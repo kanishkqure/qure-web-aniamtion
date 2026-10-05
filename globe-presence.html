@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Qure Global Presence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
+.qure-globe-wrap{width:min(720px,100% - 32px);margin:0 auto;padding:24px 0}
+/* ---- component ---- */
+.qure-globe{position:relative;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#303030}
+.qure-globe .mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.qure-globe .qg-stage{position:relative;width:100%;aspect-ratio:1/1}
+.qure-globe canvas,.qure-globe .qg-overlay{position:absolute;inset:0;width:100%;height:100%;display:block}
+.qure-globe .qg-overlay{overflow:visible;pointer-events:none}
+.qure-globe .reg{fill:none;stroke:#C9C9D4;stroke-width:1;vector-effect:non-scaling-stroke}
+.qure-globe .limb{fill:none;stroke:#303030;stroke-opacity:.25;stroke-width:1;vector-effect:non-scaling-stroke}
+.qure-globe .orbit{fill:none;stroke:#303030;stroke-opacity:.12;stroke-width:1;vector-effect:non-scaling-stroke}
+.qure-globe .ticks{fill:none;stroke:#8A8A99;stroke-width:1;vector-effect:non-scaling-stroke}
+.qure-globe .ticks .minor{stroke-opacity:.45}
+.qure-globe .tick-lbl{font-size:14px;fill:#8A8A99;letter-spacing:.12em}
+.qure-globe .qg-chip-row{display:flex;justify-content:center;margin-top:8px}
+.qure-globe .qg-chip{display:inline-flex;align-items:center;gap:8px;height:22px;padding:0 12px 0 10px;box-sizing:border-box;border:1px solid #E6E6F0;border-radius:11px;background:#fff;font-size:10px;line-height:1;letter-spacing:.12em;white-space:nowrap}
+.qure-globe .qg-chip .sdot{width:7px;height:7px;border-radius:50%;background:#FF7869;flex:none}
+.qure-globe .qg-chip .sep{color:#8A8A99}
+@media (max-width:639px){.qure-globe .tick-lbl{display:none}}
+</style>
+</head>
+<body>
+<div class="qure-globe-wrap">
+<!-- qure global presence globe: copy this block plus the component CSS and script -->
+<figure class="qure-globe" role="img" aria-label="Rotating globe of dots marking the countries where qure.ai is present, across the Americas, Europe, the Middle East, Africa, South and Southeast Asia, Japan and Australia." style="margin:0">
+  <div class="qg-stage">
+    <canvas aria-hidden="true"></canvas>
+    <svg class="qg-overlay" viewBox="0 0 1000 1000" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <g class="reg">
+        <g transform="translate(14 14)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g>
+        <g transform="translate(986 14)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g>
+        <g transform="translate(14 986)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g>
+        <g transform="translate(986 986)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g>
+      </g>
+      <circle class="orbit" cx="500" cy="500" r="420"/>
+      <g class="ticks"></g>
+      <g class="tick-lbls mono"></g>
+      <circle class="limb" cx="500" cy="500" r="360"/>
+    </svg>
+  </div>
+  <figcaption class="qg-chip-row">
+    <span class="qg-chip mono" aria-live="polite"><span class="sdot"></span><span><span>NOW VIEWING</span> <span class="sep">·</span> <span class="qg-region">MIDDLE EAST</span></span></span>
+  </figcaption>
+</figure>
+</div>
+<script>
+(function () {
+  // TODO: replace with official qure.ai country list before launch
+  const QURE_COUNTRIES = [
+    // Americas
+    'USA', 'CAN', 'MEX', 'GTM', 'PAN', 'COL', 'PER', 'BRA', 'CHL', 'ARG',
+    // Europe
+    'GBR', 'IRL', 'FRA', 'DEU', 'NLD', 'BEL', 'ESP', 'PRT', 'ITA', 'CHE', 'AUT', 'POL', 'SWE', 'DNK', 'GRC', 'ROU',
+    // Middle East
+    'TUR', 'SAU', 'ARE', 'OMN', 'QAT', 'KWT', 'BHR', 'JOR',
+    // Africa
+    'EGY', 'MAR', 'NGA', 'GHA', 'CIV', 'SEN', 'CMR', 'COD', 'KEN', 'ETH', 'TZA', 'UGA', 'RWA', 'ZMB', 'MWI', 'MOZ', 'ZWE', 'ZAF',
+    // South Asia
+    'IND', 'PAK', 'BGD', 'NPL', 'LKA',
+    // Southeast Asia
+    'IDN', 'MYS', 'SGP', 'THA', 'VNM', 'PHL', 'KHM', 'MMR',
+    // Asia Pacific
+    'JPN', 'AUS',
+  ];
+
+  // Ping hubs [lat, lon] — each must sit inside a presence country.
+  const HUBS = [
+    [40.7, -74.0],   // New York
+    [-23.5, -46.6],  // São Paulo
+    [51.5, -0.1],    // London
+    [25.2, 55.3],    // Dubai
+    [-1.3, 36.8],    // Nairobi
+    [19.1, 72.9],    // Mumbai
+    [-6.2, 106.8],   // Jakarta
+    [-33.9, 151.2],  // Sydney
+  ];
+
+  // Chip regions by the longitude facing the viewer (nearest centre wins).
+  const REGIONS = [
+    ['AMERICAS', -75], ['EUROPE', 8], ['AFRICA', 24], ['MIDDLE EAST', 48],
+    ['SOUTH ASIA', 78], ['SOUTHEAST ASIA', 108], ['ASIA PACIFIC', 142],
+  ];
+
+  const C = {
+    land: '#BDBCF0', presence: '#FF7869', grat: '#D9D9FF',
+    tilt: 15,             // degrees, north pole toward the viewer
+    staticLon: 60,        // reduced-motion / review frame centre
+    radius: .36,          // globe radius as a fraction of stage width
+    dot: .24,             // dot radius as a fraction of dot spacing
+    presenceScale: 1.3,
+    backAlpha: .12,
+    gratAlpha: .35,
+  };
+  const RAD = Math.PI / 180;
+
+  // ---------------------------------------------------------------- data
+  function decode(set, codes) {
+    const presence = new Set(QURE_COUNTRIES);
+    const lat = [], sinL = [], cosL = [], isP = [];
+    set.rows.forEach(function (row) {
+      const la = -90 + (row[0] + .5) * set.step;
+      const n = Math.max(1, Math.round(360 * Math.cos(la * RAD) / set.step));
+      let k = 0;
+      for (let i = 1; i < row.length; i += 3) {
+        k += row[i];
+        const p = presence.has(codes[row[i + 2]]);
+        for (let j = 0; j < row[i + 1]; j++, k++) {
+          const lo = (-180 + (k + .5) * 360 / n) * RAD;
+          lat.push(la * RAD); sinL.push(Math.sin(lo)); cosL.push(Math.cos(lo)); isP.push(p);
+        }
+      }
+    });
+    const N = lat.length, d = { N: N, step: set.step, cp: new Float32Array(N), sp: new Float32Array(N),
+      sl: Float32Array.from(sinL), cl: Float32Array.from(cosL), p: Uint8Array.from(isP) };
+    for (let i = 0; i < N; i++) { d.cp[i] = Math.cos(lat[i]); d.sp[i] = Math.sin(lat[i]); }
+    return d;
+  }
+
+  // ---------------------------------------------------------------- overlay
+  function buildOverlay(svg) {
+    const NS = 'http://www.w3.org/2000/svg', R = 420;
+    let d = '';
+    for (let a = 0; a < 360; a += 10) {
+      const major = a % 90 === 0, len = major ? 12 : 5;
+      const s = Math.sin(a * RAD), c = -Math.cos(a * RAD);
+      const p = function (r) { return (500 + s * r).toFixed(1) + ' ' + (500 + c * r).toFixed(1); };
+      if (major) d += 'M' + p(R - len / 2) + 'L' + p(R + len / 2);
+      else svg.querySelector('.ticks').insertAdjacentHTML('beforeend', '<path class="minor" d="M' + p(R) + 'L' + p(R + len) + '"/>');
+      if (major) {
+        const t = document.createElementNS(NS, 'text'), r = R + 28;
+        t.setAttribute('class', 'tick-lbl');
+        t.setAttribute('x', (500 + s * r).toFixed(1));
+        t.setAttribute('y', (500 + c * r + 5).toFixed(1));
+        t.setAttribute('text-anchor', 'middle');
+        t.textContent = ('00' + a).slice(-3) + '°';
+        svg.querySelector('.tick-lbls').appendChild(t);
+      }
+    }
+    svg.querySelector('.ticks').insertAdjacentHTML('afterbegin', '<path d="' + d + '"/>');
+  }
+
+  // ---------------------------------------------------------------- renderer
+  function init(fig) {
+    const canvas = fig.querySelector('canvas'), ctx = canvas.getContext('2d');
+    const raw = globeData(), codes = raw.codes.split(',');
+    const sets = { desktop: decode(raw.desktop, codes), mobile: decode(raw.mobile, codes) };
+    const narrow = matchMedia('(max-width: 639px)');
+    let W = 0, dpr = 1, data = sets.desktop;
+    buildOverlay(fig.querySelector('.qg-overlay'));
+
+    const LEVELS = 16;
+    const bucket = [];
+    for (let i = 0; i < LEVELS * 4; i++) bucket.push([]);  // [front land, front presence, back land, back presence]
+
+    function render(lon0) {
+      const R = W * C.radius, cx = W / 2, cy = W / 2;
+      const sl0 = Math.sin(lon0 * RAD), cl0 = Math.cos(lon0 * RAD);
+      const st = Math.sin(C.tilt * RAD), ct = Math.cos(C.tilt * RAD);
+      const base = R * data.step * RAD * C.dot;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, W);
+      for (let i = 0; i < bucket.length; i++) bucket[i].length = 0;
+
+      // Project: rotate by lon0 about the pole, then tilt about the x axis.
+      const N = data.N, xs = new Float32Array(N), ys = new Float32Array(N), zs = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        const sd = data.sl[i] * cl0 - data.cl[i] * sl0, cd = data.cl[i] * cl0 + data.sl[i] * sl0;
+        const x = data.cp[i] * sd, y = data.sp[i], z = data.cp[i] * cd;
+        const y2 = y * ct - z * st, z2 = y * st + z * ct;
+        xs[i] = cx + R * x; ys[i] = cy - R * y2; zs[i] = z2;
+        if (z2 < 0) {
+          // back dots also thin out toward the limb, where they would pile up behind the edge
+          const f = Math.min(1, -z2 / .35);
+          bucket[(2 + data.p[i]) * LEVELS + Math.min(LEVELS - 1, Math.floor(f * f * (3 - 2 * f) * LEVELS))].push(i);
+        } else {
+          // limb fade: transparent-ish at the edge, full opacity by ~25° in from it
+          const f = Math.min(1, z2 / .42), a = .18 + .82 * f * f * (3 - 2 * f);
+          bucket[data.p[i] * LEVELS + Math.min(LEVELS - 1, Math.floor(a * LEVELS))].push(i);
+        }
+      }
+
+      function dots(list, r, color, alpha) {
+        if (!list.length) return;
+        ctx.globalAlpha = alpha; ctx.fillStyle = color; ctx.beginPath();
+        for (let j = 0; j < list.length; j++) {
+          const i = list[j], rr = r * (.55 + .45 * Math.sqrt(Math.abs(zs[i])));
+          ctx.moveTo(xs[i] + rr, ys[i]); ctx.arc(xs[i], ys[i], rr, 0, 2 * Math.PI);
+        }
+        ctx.fill();
+      }
+
+      // back hemisphere (seen through the globe)
+      for (let p = 0; p < 2; p++) for (let l = 0; l < LEVELS; l++) {
+        dots(bucket[(2 + p) * LEVELS + l], (p ? base * C.presenceScale : base) * .85, p ? C.presence : C.land, C.backAlpha * (l + .5) / LEVELS);
+      }
+
+      // graticule, front hemisphere only
+      ctx.globalAlpha = C.gratAlpha; ctx.strokeStyle = C.grat; ctx.lineWidth = 1; ctx.beginPath();
+      const proj = function (la, lo) {
+        const cp = Math.cos(la * RAD), d = (lo - lon0) * RAD;
+        const x = cp * Math.sin(d), y = Math.sin(la * RAD), z = cp * Math.cos(d);
+        return [cx + R * x, cy - R * (y * ct - z * st), y * st + z * ct];
+      };
+      const line = function (pt) {
+        let pen = false;
+        for (let s = 0; s <= 120; s++) {
+          const q = pt(s / 120);
+          if (q[2] < 0) { pen = false; continue; }
+          pen ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); pen = true;
+        }
+      };
+      for (let lo = -180; lo < 180; lo += 30) line(function (t) { return proj(-90 + 180 * t, lo); });
+      for (let la = -60; la <= 60; la += 30) line(function (t) { return proj(la, -180 + 360 * t); });
+      ctx.stroke();
+
+      // front hemisphere
+      for (let p = 0; p < 2; p++) for (let l = 0; l < LEVELS; l++) {
+        dots(bucket[p * LEVELS + l], p ? base * C.presenceScale : base, p ? C.presence : C.land, (l + .5) / LEVELS);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function resize() {
+      const w = fig.querySelector('.qg-stage').clientWidth;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = w; canvas.width = Math.round(w * dpr); canvas.height = Math.round(w * dpr);
+      data = narrow.matches ? sets.mobile : sets.desktop;
+      render(C.staticLon);
+    }
+    new ResizeObserver(resize).observe(fig.querySelector('.qg-stage'));
+    narrow.addEventListener('change', resize);
+  }
+
+  [].forEach.call(document.querySelectorAll('.qure-globe'), init);
+
+  // Generated by scripts/build-globe-data.mjs — do not edit by hand.
+/* @globe-data:start (generated) */
+function globeData() { return {codes:"AFG,AGO,ALB,ARE,ARG,ARM,ATA,ATF,AUS,AUT,AZE,BDI,BEL,BEN,BFA,BGD,BGR,BHS,BIH,BLR,BLZ,BOL,BRA,BRN,BTN,BWA,CAF,CAN,CHE,CHL,CHN,CIV,CMR,COD,COG,COL,CRI,CUB,CYN,CYP,CZE,DEU,DJI,DNK,DOM,DZA,ECU,EGY,ERI,ESH,ESP,EST,ETH,FIN,FJI,FLK,FRA,GAB,GBR,GEO,GHA,GIN,GMB,GNB,GNQ,GRC,GRL,GTM,GUY,HND,HRV,HTI,HUN,IDN,IND,IRL,IRN,IRQ,ISL,ISR,ITA,JAM,JOR,JPN,KAZ,KEN,KGZ,KHM,KOR,KOS,KWT,LAO,LBN,LBR,LBY,LKA,LSO,LTU,LUX,LVA,MAR,MDA,MDG,MEX,MKD,MLI,MMR,MNE,MNG,MOZ,MRT,MWI,MYS,NAM,NCL,NER,NGA,NIC,NLD,NOR,NPL,NZL,OMN,PAK,PAN,PER,PHL,PNG,POL,PRI,PRK,PRT,PRY,PSE,QAT,ROU,RUS,RWA,SAU,SDN,SEN,SLB,SLE,SLV,SOL,SOM,SRB,SSD,SUR,SVK,SVN,SWE,SWZ,SYR,TCD,TGO,THA,TJK,TKM,TLS,TTO,TUN,TUR,TWN,TZA,UGA,UKR,URY,USA,UZB,VEN,VNM,VUT,YEM,ZAF,ZMB,ZWE,SGP,BHR",
+desktop:{step:2,rows:[[0,0,3,6],[1,0,9,6],[2,0,1,6,1,14,6],[3,2,19,6],[4,2,7,6,2,15,6],[5,2,8,6,2,1,6,1,19,6],[6,3,8,6,6,21,6],[7,5,4,6,1,5,6,6,24,6],[8,11,1,6,4,2,6,6,28,6],[9,18,1,6,11,27,6],[10,20,1,6,17,1,6,1,5,6,2,14,6],[11,45,1,6,8,4,6,1,4,6],[17,31,1,29,0,1,4],[18,32,1,29,0,1,4],[19,33,1,29,0,1,4,3,1,55],[20,34,1,29,0,2,4,44,1,7],[21,36,1,29,0,2,4],[22,37,1,29,0,2,4,82,2,121],[23,39,1,29,0,2,4,77,1,8,9,1,121],[24,40,1,29,0,2,4,80,1,8,10,1,121],[25,41,1,29,0,4,4,92,1,121],[26,43,1,29,0,5,4,79,4,8],[27,44,1,29,0,5,4,71,1,8,7,6,8],[28,45,1,29,0,5,4,0,2,167,30,4,174,37,4,8,4,7,8],[29,46,1,29,0,5,4,0,1,167,0,2,22,30,5,174,36,16,8],[30,47,1,29,0,6,4,0,3,22,29,1,113,0,3,174,0,1,96,0,1,174,37,16,8],[31,49,1,29,0,4,4,0,1,132,0,1,4,0,2,22,29,2,113,0,4,174,0,1,152,0,1,174,36,17,8],[32,50,1,29,0,4,4,0,2,132,0,3,22,28,3,113,0,2,25,0,3,174,0,1,109,4,2,102,30,18,8],[33,51,1,29,0,2,4,0,3,132,0,6,22,27,2,113,0,4,25,0,2,174,0,1,109,4,2,102,30,18,8],[34,51,1,29,0,3,21,0,2,132,0,8,22,25,4,113,0,3,25,0,2,176,0,1,109,4,3,102,31,16,8,7,1,114],[35,52,6,21,0,8,22,25,4,113,0,2,25,0,3,176,0,2,109,4,2,102,34,12,8],[36,52,1,125,0,5,21,0,9,22,25,5,1,0,2,175,0,3,176,0,3,109,2,3,102,35,7,8,1,3,8,15,1,54],[37,50,3,125,0,5,21,0,10,22,25,5,1,0,4,175,0,5,109,3,1,102,36,5,8,3,2,8,10,1,172],[38,50,4,125,0,3,21,0,12,22,25,4,1,0,3,175,0,1,33,0,1,175,0,1,111,0,3,109,4,1,102,39,3,8,2,1,8],[39,50,4,125,0,2,21,0,14,22,25,4,1,0,3,33,0,3,175,0,3,164,50,1,8],[40,50,3,125,0,19,22,23,5,1,0,3,33,0,2,175,0,4,164,42,1,159,7,1,127,1,2,127],[41,50,3,125,0,19,22,24,2,1,0,1,33,0,1,1,0,4,33,0,5,164,33,4,73,12,2,73,0,3,127,4,1,141],[42,49,4,125,0,18,22,24,1,1,0,8,33,0,5,164,32,1,73,8,1,73,7,2,73,0,2,127],[43,50,1,46,0,4,125,0,15,22,25,1,57,0,2,34,0,6,33,0,1,11,0,4,164,0,1,85,31,2,73,2,3,73,1,2,73,3,1,73,1,1,73,1,3,73],[44,50,2,46,0,1,125,0,2,35,0,12,22,27,3,57,0,2,34,0,6,33,0,1,137,0,1,164,0,4,85,29,2,73,3,4,73,6,2,73],[45,50,1,46,0,4,35,0,10,22,30,2,57,0,2,34,0,6,33,0,2,165,0,3,85,0,2,145,27,2,73,0,1,177,3,1,112,0,3,73,1,1,73],[46,51,5,35,0,2,170,0,2,22,0,1,68,0,2,148,0,1,56,0,1,22,29,1,64,0,3,32,0,1,34,0,6,33,0,2,165,0,4,85,0,2,145,26,1,73,1,1,112,4,2,112,0,1,73],[47,51,5,35,0,3,170,0,1,22,0,1,68,0,1,148,0,1,56,22,1,93,0,1,31,1,1,60,3,2,116,0,3,32,0,5,26,0,1,33,0,4,147,0,5,52,0,2,145,23,1,73,1,2,112,5,1,23,0,2,112],[48,51,4,35,0,4,170,0,1,68,24,1,93,0,3,31,0,2,60,0,1,13,0,4,116,0,2,32,0,5,26,0,4,147,0,7,52,0,1,145,15,1,95,9,1,156,11,1,126],[49,49,2,124,0,2,35,0,6,170,23,1,61,0,1,142,0,1,61,0,3,31,0,1,60,0,1,155,0,5,116,0,1,32,0,2,154,0,3,26,0,5,147,0,5,52,0,2,144,0,1,145,13,1,74],[50,46,1,36,5,1,35,0,2,170,3,1,160,22,1,63,0,2,61,0,2,105,0,2,14,0,1,60,0,1,13,0,5,116,0,1,32,0,3,154,0,1,26,0,4,139,0,1,147,0,1,139,0,3,52,0,1,42,2,1,144,0,1,145,12,2,74,11,2,87,0,1,171,6,1,126],[51,44,1,143,0,2,117,32,1,140,0,1,62,0,1,140,0,3,105,0,3,14,0,1,115,0,5,116,0,1,115,0,3,154,0,7,139,0,3,52,1,1,173,14,3,74,8,1,106,1,3,87,0,1,171,5,2,126],[52,42,2,67,0,3,69,32,2,140,0,7,105,0,6,115,0,4,154,0,7,139,0,2,48,1,3,173,12,3,74,8,4,156,0,1,91,0,1,171,5,1,126],[53,38,4,103,0,1,67,0,1,20,34,5,110,0,5,105,0,5,115,0,4,154,0,7,139,0,1,48,1,1,138,0,1,173,0,1,138,0,2,173,0,1,122,9,4,74,6,2,106,0,3,156,0,1,91,7,1,126],[54,11,1,168,24,4,103,2,2,103,4,1,81,1,1,71,0,1,44,1,1,129,23,5,110,0,5,105,0,5,115,0,4,154,0,7,139,1,6,138,0,2,122,7,6,74,4,2,106,0,2,156,0,1,91,0,1,171,1,1,30],[55,35,4,103,3,1,103,4,2,37,27,5,110,0,4,105,0,3,45,0,3,115,0,3,154,0,2,94,0,5,139,1,8,138,0,1,122,7,7,74,2,4,106,0,1,91,0,2,171,1,1,30],[56,34,4,103,7,1,37,29,2,100,0,1,49,0,2,110,0,2,105,0,6,45,0,1,115,0,1,94,0,1,154,0,4,94,0,4,47,2,6,138,0,1,3,0,2,122,5,9,74,0,2,15,0,3,106,0,2,30,0,1,171,0,5,30,1,1,163],[57,32,5,103,38,1,100,0,3,110,0,7,45,0,7,94,0,4,47,1,6,138,0,1,134,1,1,3,5,2,123,0,8,74,0,1,15,0,1,74,0,2,106,0,9,30,1,1,163],[58,29,1,103,1,5,103,0,1,168,6,1,168,1,1,17,28,2,100,0,8,45,0,7,94,0,4,47,1,6,138,0,1,178,1,4,76,0,3,123,0,7,74,0,1,120,0,1,74,0,1,24,0,2,74,0,1,106,0,9,30],[59,30,3,103,0,1,168,0,1,103,0,2,168,5,1,168,31,1,100,0,8,45,0,6,94,0,5,47,0,5,138,0,1,90,1,4,76,0,5,123,0,3,74,0,2,120,0,5,30,0,1,74,0,11,30],[60,27,1,103,1,3,103,0,10,168,31,2,100,0,6,45,0,3,94,2,2,94,0,1,47,1,2,47,0,1,133,0,2,138,0,2,77,0,6,76,0,3,0,0,3,123,0,2,74,0,18,30],[61,26,16,168,30,3,100,0,4,45,0,1,161,0,1,94,9,1,79,0,1,82,0,3,77,0,6,76,0,4,0,0,2,123,0,2,74,0,17,30,4,1,83],[62,24,18,168,29,2,100,0,4,45,0,1,161,8,1,39,0,1,38,0,1,92,0,1,153,0,2,77,0,6,76,0,5,0,0,2,123,0,17,30,3,1,88,1,4,83],[63,23,18,168,27,1,131,0,2,50,3,1,45,0,1,161,7,5,162,0,1,153,0,1,77,0,2,76,2,2,76,0,2,158,0,4,0,0,19,30,2,1,88,3,1,83],[64,22,19,168,25,1,131,0,3,50,6,1,80,1,1,65,1,7,162,0,2,76,2,4,158,0,1,169,0,3,157,0,17,30,3,1,130,4,1,83],[65,21,20,168,24,3,50,3,1,80,1,1,80,0,1,107,0,1,2,0,1,104,0,1,65,1,3,162,1,1,162,0,1,5,0,2,10,2,2,158,0,4,169,0,2,86,0,19,30,0,1,130],[66,20,16,168,0,1,27,0,3,168,23,2,50,0,2,56,3,1,80,1,1,70,0,1,89,0,2,16,5,1,59,0,1,136,2,2,84,0,3,169,0,3,84,0,1,86,0,1,84,0,6,30,0,6,108,0,7,30,3,2,83],[67,20,14,168,0,3,27,0,3,168,1,1,27,21,3,56,0,2,80,0,1,150,0,1,18,0,1,146,0,3,135,1,1,136,1,3,136,2,1,84,0,2,169,0,7,84,0,4,30,0,8,108,0,6,30,0,2,136],[68,19,13,168,0,5,27,1,1,27,3,1,27,18,3,56,0,1,28,0,1,80,0,1,9,0,2,72,0,2,135,0,1,101,0,2,166,1,3,136,0,12,84,0,3,30,0,9,108,0,5,30,0,2,136],[69,19,7,27,0,2,168,0,10,27,2,1,27,17,2,56,0,1,98,0,1,56,0,1,41,0,2,40,0,1,149,0,6,166,0,2,136,0,14,84,0,9,108,0,5,30,0,3,136],[70,16,22,27,17,2,58,0,1,12,0,3,41,0,3,128,0,4,166,0,4,136,0,3,84,0,1,136,0,6,84,0,5,136,0,2,108,0,5,136,0,2,30,0,6,136],[71,15,14,27,1,7,27,14,1,75,1,1,58,1,1,118,0,2,41,0,3,128,0,2,19,0,10,136,0,4,84,0,13,136,0,2,30,0,5,136,4,1,136],[72,14,14,27,1,6,27,14,2,58,6,1,136,0,1,97,0,1,19,0,11,136,0,1,84,0,18,136,6,2,136],[73,13,12,27,3,4,27,15,1,58,3,1,43,0,1,151,2,2,99,0,30,136,5,1,136],[74,5,2,168,4,1,168,0,10,27,4,4,27,18,1,119,0,2,151,2,1,51,0,29,136,5,1,136],[75,4,5,168,0,12,27,4,2,27,5,1,66,12,2,119,0,1,151,1,1,53,0,31,136,2,2,136],[76,3,6,168,0,11,27,5,1,27,3,2,66,12,1,119,0,1,151,1,2,53,0,34,136],[77,1,1,136,1,5,168,0,12,27,1,3,27,3,2,66,4,2,78,5,1,119,0,1,151,1,1,53,0,1,136,1,30,136],[78,0,1,136,2,5,168,0,11,27,2,2,27,2,3,66,10,2,151,0,1,53,0,2,136,1,26,136],[79,3,4,168,0,4,27,1,1,27,2,1,27,1,1,27,1,1,27,3,5,66,8,1,119,0,1,53,0,1,136,6,20,136],[80,10,2,27,3,3,27,3,5,66,12,1,136,1,1,136,1,12,136],[81,8,2,27,2,3,27,3,5,66,11,1,136,3,7,136],[82,9,4,27,3,5,66,14,3,136,3,1,136],[83,9,2,27,1,6,66,13,1,136],[84,8,2,27,1,4,66,3,1,119],[85,7,2,27,0,4,66,8,1,136],[86,6,1,27,1,2,66]]},
+mobile:{step:2.5,rows:[[0,0,3,6],[1,0,9,6],[2,1,15,6],[3,1,6,6,2,12,6],[4,1,7,6,2,17,6],[5,3,7,6,5,17,6],[6,6,1,6,2,2,6,1,1,6,5,21,6],[7,14,1,6,8,22,6],[8,16,1,6,15,4,6,1,11,6],[9,18,1,6,18,1,6,7,1,6],[10,21,1,6],[15,26,1,29,0,1,4,2,1,55],[16,28,2,4,35,1,7],[17,29,1,29,0,1,4,65,1,121],[18,31,2,4,68,1,121],[19,32,2,4,63,1,8,8,1,121],[20,33,1,29,0,3,4,64,1,8,8,1,121],[21,35,5,4,63,3,8],[22,36,1,29,0,4,4,0,1,167,24,3,174,29,3,8,4,5,8],[23,37,5,4,0,1,167,0,1,22,24,4,174,29,13,8],[24,38,1,29,0,4,4,0,3,22,23,1,113,0,2,174,0,1,96,0,1,174,29,14,8],[25,39,1,29,0,4,4,0,1,132,0,2,22,23,2,113,0,3,174,0,1,152,29,14,8],[26,40,1,29,0,3,4,0,2,132,0,3,22,22,2,113,0,3,25,0,2,174,0,1,109,3,1,102,25,13,8],[27,41,1,29,0,2,21,0,1,132,0,7,22,20,3,113,0,2,25,0,2,176,0,1,109,3,2,102,25,13,8,5,1,114],[28,41,1,29,0,4,21,0,7,22,20,3,113,0,2,25,0,2,176,0,2,109,3,2,102,27,9,8,12,1,54],[29,41,2,125,0,3,21,0,8,22,19,4,1,0,3,175,0,1,176,0,1,109,0,1,111,0,1,109,2,2,102,28,6,8,1,2,8,7,1,172],[30,40,3,125,0,3,21,0,9,22,20,4,1,0,4,175,0,1,111,0,2,109,34,3,8,2,1,8],[31,40,3,125,0,2,21,0,11,22,20,4,1,0,2,33,0,2,175,0,2,164],[32,40,2,125,0,15,22,19,4,1,0,2,33,0,1,175,0,4,164,30,2,73,1,1,159,5,1,73,0,1,127,1,1,127,4,1,141],[33,39,3,125,0,16,22,18,2,1,0,5,33,0,4,164,39,2,73,0,2,127],[34,40,1,46,0,3,125,0,13,22,19,1,57,0,1,34,0,5,33,0,1,11,0,3,164,0,1,85,25,1,73,6,1,73,5,2,73,0,2,127],[35,40,2,46,0,1,125,0,1,35,0,10,22,22,2,57,0,1,34,0,5,33,0,1,137,0,1,164,0,3,85,23,2,73,2,3,73,1,1,73,3,2,73],[36,40,1,46,0,3,35,0,1,22,0,1,170,0,6,22,24,1,64,0,1,57,0,1,34,0,5,33,0,2,165,0,2,85,0,2,145,22,1,73,0,1,177,2,2,112,0,1,73],[37,41,4,35,0,1,170,0,2,22,0,1,68,0,1,148,0,1,56,0,1,22,24,2,32,0,1,26,0,5,33,0,2,165,0,1,85,0,1,52,0,1,85,0,2,145,20,1,73,0,1,112,4,1,23,0,1,73],[38,41,3,35,0,3,170,0,2,68,18,1,93,0,2,31,0,2,60,0,1,13,0,2,116,0,2,32,0,5,26,0,3,147,0,5,52,0,1,145,12,1,95,7,1,112],[39,38,2,124,1,1,35,0,5,170,19,1,142,0,1,61,0,2,31,0,1,60,0,1,155,0,4,116,0,1,32,0,1,154,0,2,26,0,1,139,0,3,147,0,5,52,0,1,144,0,1,145,10,1,74,0,1,95,9,1,171,7,1,126],[40,37,1,36,3,1,35,1,1,170,2,1,160,17,1,63,0,2,61,0,1,105,0,3,14,0,1,13,0,4,116,0,3,154,0,5,139,0,3,52,0,1,42,1,1,144,10,2,74,7,1,156,1,1,87,0,1,171,5,1,126],[41,35,1,143,0,1,69,0,1,117,25,1,140,0,1,62,0,4,105,0,1,14,0,5,115,0,4,154,0,5,139,0,2,52,1,2,173,10,2,74,7,1,106,0,1,156,0,2,87,5,1,126],[42,31,3,103,0,1,67,28,1,140,0,3,110,0,3,105,0,5,115,0,3,154,0,5,139,0,1,48,1,4,173,8,3,74,5,2,106,0,2,156,0,1,91,5,1,126],[43,29,3,103,1,1,103,0,1,20,3,1,81,1,1,71,0,1,44,0,1,129,19,4,110,0,4,105,0,4,115,0,3,154,0,5,139,2,3,138,0,1,173,0,1,122,7,4,74,3,2,106,0,1,156,0,2,91,1,1,30],[44,28,3,103,3,1,103,2,1,37,23,4,110,0,2,105,0,3,45,0,3,115,0,2,154,0,1,94,0,5,139,1,6,138,0,1,122,4,6,74,2,4,106,0,2,171],[45,25,1,103,1,3,103,7,1,17,22,1,100,0,1,49,0,2,110,0,1,105,0,5,45,0,5,94,0,4,47,1,5,138,0,1,3,0,1,122,4,7,74,0,1,15,0,1,74,0,2,106,0,7,30,1,1,163],[46,24,5,103,0,1,168,5,1,168,23,1,100,0,1,49,0,1,110,0,6,45,0,5,94,0,4,47,1,4,138,0,1,134,0,1,178,1,2,76,0,3,123,0,9,74,0,1,106,0,7,30],[47,24,4,103,0,2,168,4,1,168,24,1,100,0,6,45,0,6,94,0,2,47,1,4,138,0,1,90,1,4,76,0,3,123,0,3,74,0,2,120,0,1,30,0,1,24,0,1,30,0,1,74,0,9,30],[48,23,2,103,0,9,168,24,2,100,0,5,45,0,2,94,1,2,94,0,1,47,1,1,133,0,1,79,0,1,82,0,1,138,0,2,77,0,5,76,0,1,0,0,3,123,0,2,74,0,14,30],[49,21,13,168,23,2,100,0,4,45,0,1,161,7,1,39,0,1,92,0,2,77,0,5,76,0,3,0,0,2,123,0,1,74,0,14,30,3,2,83],[50,19,15,168,24,3,45,7,1,38,1,1,153,0,2,77,0,5,76,0,1,158,0,2,0,0,2,123,0,14,30,2,1,88,2,1,83],[51,18,15,168,20,1,131,0,2,50,6,1,65,1,6,162,0,1,76,2,3,158,0,1,169,0,2,157,0,14,30,2,1,130,3,1,83],[52,17,15,168,19,1,131,0,3,50,3,1,80,0,1,2,0,1,104,0,1,146,0,3,162,1,1,59,0,1,5,0,1,10,1,2,158,0,2,169,0,1,84,0,1,169,0,1,86,0,15,30,0,1,130],[53,16,12,168,0,2,27,0,2,168,20,2,56,1,1,80,0,1,107,0,1,18,0,1,89,0,1,16,3,3,136,1,1,84,0,2,169,0,5,84,0,5,30,0,4,108,0,6,30,0,1,136,2,1,83],[54,16,11,168,0,6,27,17,2,56,0,1,28,0,1,150,0,1,70,0,1,72,0,1,135,0,1,101,1,1,166,1,3,136,1,8,84,0,2,30,0,7,108,0,5,30,0,1,136,1,1,136],[55,14,1,27,0,8,168,0,6,27,1,1,27,1,1,27,13,3,56,0,1,98,0,1,41,0,1,9,0,1,149,0,5,166,0,2,136,0,10,84,0,1,30,0,7,108,0,4,30,0,2,136],[56,13,18,27,13,1,58,0,1,12,0,1,118,0,1,41,0,1,40,0,2,128,0,3,166,0,3,136,0,1,84,0,2,136,0,5,84,0,5,136,0,1,108,0,4,136,0,2,30,0,3,136],[57,12,11,27,1,5,27,11,1,75,3,2,41,0,2,128,0,2,19,0,7,136,0,4,84,0,15,136,3,1,136],[58,4,1,168,6,10,27,2,3,27,16,1,43,0,1,151,1,1,97,0,1,99,0,24,136,4,1,136],[59,4,2,168,3,1,168,0,8,27,3,2,27,17,1,151,1,1,51,0,24,136],[60,3,4,168,0,10,27,3,1,27,4,1,66,9,2,119,0,1,151,1,1,53,0,24,136,1,3,136],[61,3,4,168,0,9,27,1,1,27,1,1,27,3,2,66,3,1,78,5,2,151,0,1,53,0,27,136],[62,0,2,136,0,4,168,0,9,27,2,2,27,1,3,66,3,1,78,4,2,151,0,1,53,2,22,136],[63,2,4,168,0,3,27,3,1,27,2,1,27,3,3,66,6,1,119,0,1,53,0,1,136,3,16,136,1,1,136],[64,7,3,27,2,2,27,2,4,66,12,10,136],[65,6,1,27,2,1,27,4,4,66,11,4,136],[66,5,1,27,1,1,27,2,5,66,11,2,136],[67,7,1,27,1,3,66,3,1,119],[68,5,2,27,0,3,66]]}}; }
+/* @globe-data:end */
+})();
+</script>
+</body>
+</html>
