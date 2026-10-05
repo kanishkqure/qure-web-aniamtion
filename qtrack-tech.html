@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>qTrack Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
+.qtrack-tech-wrap{width:min(1280px,100% - 32px);margin:0 auto;overflow:hidden}
+/* ---- component ---- */
+.qtrack-tech{display:block;width:100%;height:auto;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.qtrack-tech .mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.qtrack-tech #qtr-dots circle{fill:#D9D9FF;fill-opacity:.4}
+.qtrack-tech .reg{fill:none;stroke:#C9C9D4;stroke-width:1}
+.qtrack-tech .edge{fill:none;stroke:#303030;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
+.qtrack-tech .inner{fill:none;stroke:#303030;stroke-opacity:.12;stroke-width:1}
+.qtrack-tech .glyph{stroke:#303030}
+.qtrack-tech .hero .edge,.qtrack-tech .hero .glyph{stroke:#E0574A}
+.qtrack-tech .hero .inner{stroke:#E0574A;stroke-opacity:.35}
+.qtrack-tech #qtrack-rings{fill:none;stroke:#FF7869;stroke-width:1.25}
+.qtrack-tech #connectors path{fill:none;stroke:#303030;stroke-width:1;stroke-linejoin:round}
+.qtrack-tech #connectors #wb-march{stroke:#FF7869;stroke-width:1.5;stroke-dasharray:4 6;stroke-linecap:round;opacity:0}
+.qtrack-tech #links path{fill:none;stroke:#8A8A99;stroke-width:1}
+.qtrack-tech .up{opacity:.5}
+.qtrack-tech .up-edge{fill:none;stroke:#8A8A99;stroke-width:1.25;stroke-dasharray:3 3;stroke-linejoin:round;stroke-linecap:round}
+.qtrack-tech #up-lines path{fill:none;stroke:#C9C9D4;stroke-width:1;stroke-dasharray:3 4}
+.qtrack-tech .up-lbl text{font-size:10px;fill:#8A8A99;letter-spacing:.12em}
+.qtrack-tech .up-lbl .leader{stroke:#C9C9D4}
+.qtrack-tech .tag rect{fill:#fff;stroke:#FF7869;stroke-width:.75}
+.qtrack-tech .up-lbl .tag text{font-size:7px;fill:#FF7869;letter-spacing:.14em}
+.qtrack-tech .leader{fill:none;stroke:#303030;stroke-width:.75}
+.qtrack-tech .leader-dot{fill:#303030}
+.qtrack-tech .name{font-size:15px;fill:#303030;font-weight:500}
+.qtrack-tech .stage{font-size:10px;fill:#8A8A99;letter-spacing:.14em}
+.qtrack-tech .frame-bg{fill:#fff;stroke:#E6E6F0;stroke-width:1}
+.qtrack-tech .frame-rule{fill:none;stroke:#E6E6F0;stroke-width:1}
+.qtrack-tech .chrome-dots{fill:#ECECF2}
+.qtrack-tech .sk{fill:#DDDDE6}
+.qtrack-tech .sk-l{fill:#ECECF2}
+.qtrack-tech .sk-d{fill:#DDDDE6}
+.qtrack-tech .flag{fill:#FF7869}
+.qtrack-tech .slot{fill:#ECECF2}
+.qtrack-tech .slot.booked{fill:#FF7869}
+.qtrack-tech .dot-i{fill:#2A288C}
+.qtrack-tech .status rect{fill:#fff;stroke:#E6E6F0}
+.qtrack-tech .status text{font-size:10px;fill:#303030;letter-spacing:.12em}
+.qtrack-tech .status .sdot{fill:#FF7869}
+.qtrack-tech .status.done .sdot{fill:#2A288C}
+.qtrack-tech .status.done text{fill:#2A288C}
+/* below 640px: frames hidden, crop to the cube loop and enlarge type */
+@media (max-width:639px){
+.qtrack-tech-wrap{aspect-ratio:690/634}
+.qtrack-tech{width:198.93%;margin:0 0 0 -49.275%}
+.qtrack-tech #frames,.qtrack-tech #links{display:none}
+.qtrack-tech .lt,.qtrack-tech .ut,.qtrack-tech .status{transform-box:fill-box;transform:scale(1.8)}
+.qtrack-tech .label .lt{transform-origin:50% 100%}
+.qtrack-tech .wb-lbl .lt{transform-origin:0 0}
+.qtrack-tech .ut{transform-origin:100% 50%}
+.qtrack-tech .status{transform:scale(1.4);transform-origin:0 50%}
+}
+</style>
+</head>
+<body>
+<div class="qtrack-tech-wrap">
+<!-- qTrack referral-loop component: copy this <svg> plus the component CSS -->
+<svg class="qtrack-tech" viewBox="0 -6 1372.6 658" role="img" aria-labelledby="qtr-title" xmlns="http://www.w3.org/2000/svg">
+<title id="qtr-title">qTrack closes the referral loop: a missed referral is detected in the EMR, qTrack routes it with the packet already built, the specialist schedules it, and the outcome is written back to the EMR. Prior authorization and outreach are upcoming.</title>
+<defs><pattern id="qtr-dots" width="38.1" height="22" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1.3"/><circle cx="38.1" cy="0" r="1.3"/><circle cx="0" cy="22" r="1.3"/><circle cx="38.1" cy="22" r="1.3"/><circle cx="19.1" cy="11" r="1.3"/></pattern><clipPath id="cube-emr-clip"><path d="M424.8 431Q430 428 435.2 431L487.2 461Q492.4 464 492.4 470L492.4 530Q492.4 536 487.2 539L435.2 569Q430 572 424.8 569L372.8 539Q367.6 536 367.6 530L367.6 470Q367.6 464 372.8 461Z"/></clipPath><clipPath id="qtrack-clip"><path d="M676 254Q681.1 251 686.3 254L766 300Q771.2 303 771.2 309L771.2 401Q771.2 407 766 410L686.3 456Q681.1 459 676 456L596.3 410Q591.1 407 591.1 401L591.1 309Q591.1 303 596.3 300Z"/></clipPath><clipPath id="cube-spec-clip"><path d="M927.1 141Q932.3 138 937.5 141L989.5 171Q994.6 174 994.6 180L994.6 240Q994.6 246 989.5 249L937.5 279Q932.3 282 927.1 279L875.1 249Q869.9 246 869.9 240L869.9 180Q869.9 174 875.1 171Z"/></clipPath>
+<radialGradient id="qtr-fade" cx="686.3" cy="323" r="686.3" gradientUnits="userSpaceOnUse" gradientTransform="translate(686.3 323) scale(1 .62) translate(-686.3 -323)"><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+<mask id="qtr-mask"><rect x="0" y="-6" width="1372.6" height="658" fill="url(#qtr-fade)"/></mask>
+</defs>
+<g id="grid"><rect x="0" y="-6" width="1372.6" height="658" fill="url(#qtr-dots)" mask="url(#qtr-mask)"/></g>
+<g id="chrome"><g class="reg"><g transform="translate(20 14)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g><g transform="translate(1352.6 14)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g><g transform="translate(20 632)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g><g transform="translate(1352.6 632)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g></g></g>
+<g id="links"><path id="link-in" d="M290 468H310Q320 468 320 478V508Q320 518 330 518H398.8"/><path id="link-out" d="M963.5 228H1096.6Q1106.6 228 1106.6 238V312"/></g>
+<g id="upcoming"><g id="up-lines"><path d="M609.1 292.6L556.3 262.1"/><path d="M666.7 259.3L561.9 198.8"/></g><g id="up-prior" class="up"><path class="up-edge" d="M526.8 235.1Q529.4 233.6 532 235.1L549.3 245.1Q551.9 246.6 551.9 249.6L551.9 269.6Q551.9 272.6 549.3 274.1L532 284.1Q529.4 285.6 526.8 284.1L509.5 274.1Q506.9 272.6 506.9 269.6L506.9 249.6Q506.9 246.6 509.5 245.1ZM507.6 247L529.4 259.6L551.3 247M529.4 259.6L529.4 284.9"/></g><g id="up-outreach" class="up"><path class="up-edge" d="M532.5 171.8Q535.1 170.3 537.7 171.8L555 181.8Q557.6 183.3 557.6 186.3L557.6 206.3Q557.6 209.3 555 210.8L537.7 220.8Q535.1 222.3 532.5 220.8L515.2 210.8Q512.6 209.3 512.6 206.3L512.6 186.3Q512.6 183.3 515.2 181.8ZM513.2 183.7L535.1 196.3L557 183.7M535.1 196.3L535.1 221.6"/></g><g class="up-lbls"><g class="up-lbl"><path class="leader" d="M503.4 252.6H501.4"/><g class="ut"><text class="mono" x="495.4" y="256.1" text-anchor="end">PRIOR AUTH</text><g class="tag"><rect x="443.4" y="261.6" width="52" height="12" rx="6"/><text class="mono" x="469.4" y="270.2" text-anchor="middle">UPCOMING</text></g></g></g><g class="up-lbl"><path class="leader" d="M509.1 189.3H507.1"/><g class="ut"><text class="mono" x="501.1" y="192.8" text-anchor="end">OUTREACH</text><g class="tag"><rect x="449.1" y="198.3" width="52" height="12" rx="6"/><text class="mono" x="475.1" y="206.9" text-anchor="middle">UPCOMING</text></g></g></g></g></g>
+<g id="connectors"><path id="conn-1" d="M430 500L681.1 355"/><path id="conn-2" d="M681.1 355L932.3 210"/><path id="wb" d="M932.3 282L996.4 319Q1008.5 326 996.4 333L518.3 609Q506.2 616 494.1 609L430 572"/><path id="wb-march" d="M932.3 282L996.4 319Q1008.5 326 996.4 333L518.3 609Q506.2 616 494.1 609L430 572"/></g>
+<g id="qtrack-rings"><ellipse cx="681.1" cy="355" rx="90.1" ry="52" opacity="0"/><ellipse cx="681.1" cy="355" rx="90.1" ry="52" opacity="0"/></g>
+<g id="cubes"><g id="cube-emr"><g clip-path="url(#cube-emr-clip)"><path class="fl" fill="#fff" d="M367.6 464L430 500L430 572L367.6 536Z"/><path class="fr" fill="#fff" d="M430 500L492.4 464L492.4 536L430 572Z"/><path class="ft" fill="#fff" d="M367.6 464L430 428L492.4 464L430 500Z"/></g><path class="edge" d="M424.8 431Q430 428 435.2 431L487.2 461Q492.4 464 492.4 470L492.4 530Q492.4 536 487.2 539L435.2 569Q430 572 424.8 569L372.8 539Q367.6 536 367.6 530L367.6 470Q367.6 464 372.8 461ZM368.9 464.8L430 500L491.1 464.8M430 500L430 570.5"/><path class="inner" d="M384.6 465.9Q381.4 464 384.6 462.1L426.8 437.8Q430 435.9 433.2 437.8L475.4 462.1Q478.6 464 475.4 465.9L433.2 490.2Q430 492.1 426.8 490.2Z"/><g class="glyph" transform="matrix(0.9 -.5 0.9 .5 430 464)"><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M-9-12h11l7 7v17h-18zM2-12v7h7M-5 0h10M-5 5h10"/></g></g><g id="qtrack" class="hero"><g clip-path="url(#qtrack-clip)"><path class="fl" fill="#FFBCB4" d="M591.1 303L681.1 355L681.1 459L591.1 407Z"/><path class="fr" fill="#FFAAA0" d="M681.1 355L771.2 303L771.2 407L681.1 459Z"/><path class="ft" fill="#FFD2CC" d="M591.1 303L681.1 251L771.2 303L681.1 355Z"/></g><path class="deepen" d="M676 254Q681.1 251 686.3 254L766 300Q771.2 303 771.2 309L771.2 401Q771.2 407 766 410L686.3 456Q681.1 459 676 456L596.3 410Q591.1 407 591.1 401L591.1 309Q591.1 303 596.3 300Z" fill="#FF7869" opacity="0"/><path class="edge" d="M676 254Q681.1 251 686.3 254L766 300Q771.2 303 771.2 309L771.2 401Q771.2 407 766 410L686.3 456Q681.1 459 676 456L596.3 410Q591.1 407 591.1 401L591.1 309Q591.1 303 596.3 300ZM592.4 303.8L681.1 355L769.9 303.8M681.1 355L681.1 457.5"/><path class="inner" d="M614.2 304.9Q611 303 614.2 301.1L677.9 264.3Q681.1 262.4 684.4 264.3L748.1 301.1Q751.3 303 748.1 304.9L684.4 341.7Q681.1 343.6 677.9 341.7Z"/><g class="glyph" transform="matrix(0.9 -.5 0.9 .5 681.1 303)"><circle fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" cx="-11" cy="8" r="2.2"/><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M-8.8 8H3a5 5 0 0 0 0-10H-3a5 5 0 0 1 0-10H9"/><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M5.5-15.5L9.5-12L5.5-8.5"/></g></g><g id="cube-spec"><g clip-path="url(#cube-spec-clip)"><path class="fl" fill="#fff" d="M869.9 174L932.3 210L932.3 282L869.9 246Z"/><path class="fr" fill="#fff" d="M932.3 210L994.6 174L994.6 246L932.3 282Z"/><path class="ft" fill="#fff" d="M869.9 174L932.3 138L994.6 174L932.3 210Z"/></g><path class="edge" d="M927.1 141Q932.3 138 937.5 141L989.5 171Q994.6 174 994.6 180L994.6 240Q994.6 246 989.5 249L937.5 279Q932.3 282 927.1 279L875.1 249Q869.9 246 869.9 240L869.9 180Q869.9 174 875.1 171ZM871.2 174.8L932.3 210L993.3 174.8M932.3 210L932.3 280.5"/><path class="inner" d="M886.9 175.9Q883.7 174 886.9 172.1L929.1 147.8Q932.3 145.9 935.5 147.8L977.7 172.1Q980.9 174 977.7 175.9L935.5 200.2Q932.3 202.1 929.1 200.2Z"/><g class="glyph" transform="matrix(0.9 -.5 0.9 .5 932.3 174)"><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M-11-10h22v21h-22zM-11-4h22M-6-13v5M6-13v5M-5 4l3 3 7-7"/></g></g></g>
+<g id="labels"><g class="label"><path class="leader" d="M430 422V364"/><circle class="leader-dot" cx="430" cy="422" r="2"/><g class="lt"><text class="stage mono" x="430" y="338" text-anchor="middle">01 / DETECT</text><text class="name" x="430" y="356" text-anchor="middle">EMR</text></g></g><g class="label"><path class="leader" d="M681.1 245V177"/><circle class="leader-dot" cx="681.1" cy="245" r="2"/><g class="lt"><text class="stage mono" x="681.1" y="151" text-anchor="middle">02 / ROUTE</text><text class="name" x="681.1" y="169" text-anchor="middle">qTrack</text></g></g><g class="label"><path class="leader" d="M932.3 132V74"/><circle class="leader-dot" cx="932.3" cy="132" r="2"/><g class="lt"><text class="stage mono" x="932.3" y="48" text-anchor="middle">03 / SCHEDULE</text><text class="name" x="932.3" y="66" text-anchor="middle">Specialist</text></g></g><g class="label wb-lbl"><circle class="leader-dot" cx="681.1" cy="515" r="2"/><path class="leader" d="M681.1 515V541"/><g class="lt"><text class="stage mono" x="677.1" y="555">04 / WRITE-BACK</text></g></g></g>
+<g id="frames"><g id="frame-in" class="frame"><rect class="frame-bg" x="40" y="382" width="250" height="172" rx="10"/><path class="frame-rule" d="M40 416h250"/><rect class="sk" x="56" y="396" width="64" height="6" rx="3"/><g class="chrome-dots"><circle cx="274" cy="399" r="2.6"/><circle cx="264" cy="399" r="2.6"/><circle cx="254" cy="399" r="2.6"/></g><g class="body"><circle class="sk-d" cx="70" cy="444" r="13"/><rect class="sk" x="92" y="436" width="84" height="7" rx="3.5"/><rect class="sk-l" x="92" y="448" width="52" height="5" rx="2.5"/><rect id="flag" class="flag" x="236" y="437" width="38" height="14" rx="7"/><path class="frame-rule" d="M56 474h218"/><g class="row"><rect class="sk" x="56" y="488" width="178" height="6" rx="3"/></g><g class="row"><rect class="sk" x="56" y="504" width="132" height="6" rx="3"/></g><g class="row"><rect class="sk" x="56" y="520" width="198" height="6" rx="3"/></g><g class="row"><rect class="sk" x="56" y="536" width="116" height="6" rx="3"/></g></g></g><g id="frame-out" class="frame"><rect class="frame-bg" x="1070.6" y="312" width="262" height="214" rx="10"/><path class="frame-rule" d="M1070.6 346h262"/><rect class="sk" x="1086.6" y="326" width="64" height="6" rx="3"/><g class="chrome-dots"><circle cx="1316.6" cy="329" r="2.6"/><circle cx="1306.6" cy="329" r="2.6"/><circle cx="1296.6" cy="329" r="2.6"/></g><g class="body"><rect class="sk-l" x="1086.6" y="360" width="56" height="5" rx="2.5"/><g class="cal"><rect class="slot" x="1086.6" y="374" width="38" height="22" rx="4"/><rect class="slot" x="1132.6" y="374" width="38" height="22" rx="4"/><rect class="slot" x="1178.6" y="374" width="38" height="22" rx="4"/><rect class="slot" x="1224.6" y="374" width="38" height="22" rx="4"/><rect class="slot" x="1270.6" y="374" width="38" height="22" rx="4"/><rect class="slot" x="1086.6" y="404" width="38" height="22" rx="4"/><rect class="slot" x="1132.6" y="404" width="38" height="22" rx="4"/><rect class="slot" x="1178.6" y="404" width="38" height="22" rx="4"/><rect class="slot booked" x="1224.6" y="404" width="38" height="22" rx="4"/><rect class="slot" x="1270.6" y="404" width="38" height="22" rx="4"/><rect class="slot" x="1086.6" y="434" width="38" height="22" rx="4"/><rect class="slot" x="1132.6" y="434" width="38" height="22" rx="4"/><rect class="slot" x="1178.6" y="434" width="38" height="22" rx="4"/><rect class="slot" x="1224.6" y="434" width="38" height="22" rx="4"/><rect class="slot" x="1270.6" y="434" width="38" height="22" rx="4"/></g><path class="frame-rule" d="M1086.6 472h230"/><g class="li"><circle class="dot-i" cx="1092.6" cy="490" r="3.5"/><rect class="sk" x="1104.6" y="487" width="140" height="6" rx="3"/><rect class="sk-l" x="1282.6" y="487" width="34" height="6" rx="3"/></g><g class="li"><circle class="dot-i" cx="1092.6" cy="510" r="3.5"/><rect class="sk" x="1104.6" y="507" width="104" height="6" rx="3"/><rect class="sk-l" x="1282.6" y="507" width="34" height="6" rx="3"/></g></g></g></g>
+<g id="status-layer"><g id="status" class="status done"><rect x="724" y="196" width="104" height="22" rx="11"/><circle class="sdot" cx="738" cy="207" r="3.5"/><text class="mono" x="749" y="210.5"><tspan id="status-txt">SCHEDULED</tspan><tspan id="status-ms"></tspan></text></g></g>
+<g id="packets"><path id="pk-1" class="packet" fill="#303030" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(555.6 427.5) rotate(-30)"/><path id="pk-2" class="packet" fill="#2A288C" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(806.7 282.5) rotate(-30)"/><path id="pk-3" class="packet" fill="#FF7869" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(857.8 413) rotate(150)"/></g>
+</svg>
+</div>
+</body>
+</html>
