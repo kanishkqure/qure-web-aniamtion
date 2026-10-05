@@ -86,5 +86,177 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
 <g id="packets"><path id="pk-1" class="packet" fill="#303030" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(545.1 498.6) rotate(30)"/><path id="pk-2" class="packet" fill="#2A288C" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(773.7 485.4) rotate(-30)"/><path id="pk-3" class="packet" fill="#FF7869" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(533.7 360) rotate(150)"/></g>
 </svg>
 </div>
+<script>
+/* qTrack referral-loop animation: 6s loop, desktop only (>=640px), starts when scrolled into view.
+   Below 640px or with prefers-reduced-motion the markup's static final frame is left untouched. */
+(function () {
+  var T = 6, LAV = '#D9D9FF';
+  var cl = function (v) { return v < 0 ? 0 : v > 1 ? 1 : v; };
+  var io = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  var eo = function (x) { return 1 - Math.pow(1 - x, 3); };
+  var bk = function (x) { var c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+  var seg = function (t, a, b, e) { return (e || io)(cl((t - a) / (b - a))); };
+  var rgb = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); };
+  var mix = function (a, b, p) { a = rgb(a); b = rgb(b); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * p); }) + ')'; };
+  var desk = matchMedia('(min-width: 640px)');
+
+  function init(svg) {
+    var $ = function (s) { return svg.querySelector(s); };
+    var $$ = function (s) { return [].slice.call(svg.querySelectorAll(s)); };
+    var op = function (el, v) { el.style.opacity = v; };
+    var draw = function (el) {
+      var L = el.getTotalLength(); el.style.strokeDasharray = L + ' ' + L;
+      return function (p) { el.style.strokeDashoffset = L * (1 - p); };
+    };
+    var scaleAt = function (el, s) {
+      var b = el.getBBox(), x = b.x + b.width / 2, y = b.y + b.height / 2;
+      el.setAttribute('transform', 'translate(' + x + ' ' + y + ') scale(' + s + ') translate(' + -x + ' ' + -y + ')');
+    };
+    var pt = svg.createSVGPoint();
+    var inside = function (edges, x, y) { pt.x = x; pt.y = y; return edges.some(function (e) { return e.isPointInFill(pt); }); };
+
+    // ---- scene
+    var plate = $$('#floor > path'), grad = $('#qtr-fade'), gr = +grad.getAttribute('r');
+    var chrome = $('#chrome');
+    var blocks = ['cube-emr', 'qtrack', 'cube-spec'].map(function (id, i) {
+      var g = $('#' + id), edge = g.querySelector('.edge');
+      return { edge: edge, draw: draw(edge), faces: g.querySelector('g[clip-path]'), top: g.querySelector('.ft'),
+               rest: [g.querySelector('.inner'), g.querySelector('.glyph')], at: .05 + [0, .16, .08][i] };
+    });
+    var E = function (i) { return blocks[i].edge; };
+    var emrTop = blocks[0].top;
+    var conn1 = $('#conn-1'), conn2 = $('#conn-2'), wb = $('#wb'), march = $('#wb-march');
+    var conns = [draw(conn1), draw(conn2), draw(wb)];
+    var labels = $$('#labels .label');
+    var ups = $$('#upcoming .up'), upRest = [$('#up-lines'), $('#upcoming .up-lbls')];
+    var deepen = $('#qtrack .deepen'), rings = $$('#qtrack-rings ellipse'), ra = +rings[0].getAttribute('rx');
+    var status = $('#status'), sRect = status.querySelector('rect'), sDot = status.querySelector('.sdot'), sText = status.querySelector('text');
+    var sTxt = $('#status-txt'), sMs = $('#status-ms');
+    var sRight = +sRect.getAttribute('x') + +sRect.getAttribute('width');
+    var linkIn = $('#link-in'), linkOut = $('#link-out'), dIn = draw(linkIn), dOut = draw(linkOut);
+    var fin = $('#frame-in'), fout = $('#frame-out');
+    var bars = function (f) { return [].slice.call(f.querySelectorAll('rect.sk,rect.sk-l')).map(function (r) { return { r: r, w: +r.getAttribute('width') }; }); };
+    var inBars = bars(fin), outHead = bars(fout)[0], outSub = [].slice.call(fout.querySelectorAll('.li'));
+    var avatar = fin.querySelector('circle.sk-d'), divider = fin.querySelectorAll('.frame-rule')[1], flag = $('#flag');
+    var slots = $$('#frame-out .slot:not(.booked)'), booked = $('#frame-out .slot.booked'), outRule = fout.querySelectorAll('.frame-rule')[1];
+    var pk1 = $('#pk-1'), pk2 = $('#pk-2'), pk3 = $('#pk-3');
+
+    // place an arrowhead packet at progress p along path; hidden while inside any of `hide`
+    function place(pk, path, p, hide) {
+      var L = path.getTotalLength(), l = p * L,
+          a = path.getPointAtLength(Math.max(0, l - 1)), b = path.getPointAtLength(Math.min(L, l + 1)), q = path.getPointAtLength(l);
+      pk.setAttribute('transform', 'translate(' + q.x + ' ' + q.y + ') rotate(' + Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI + ')');
+      return inside(hide, q.x, q.y) ? 0 : 1;
+    }
+    function leg(t, a, b) { return t >= a && t <= b ? (t - a) / (b - a) : -1; }
+    function chip(w) {
+      var x = sRight - w; sRect.setAttribute('x', x); sRect.setAttribute('width', w);
+      sDot.setAttribute('cx', x + 14); sText.setAttribute('x', x + 25);
+    }
+
+    function render(t, intro, el) {
+      var ti = intro ? t : 99, out = seg(t, 5.4, 5.9), p, v;
+
+      // 0–0.5s: plate + grid grows from the centre, blocks draw in, connectors, labels (first loop only)
+      plate.forEach(function (e) { op(e, seg(ti, 0, .3)); });
+      grad.setAttribute('r', gr * seg(ti, .05, .6, eo) + .01);
+      op(chrome, seg(ti, 0, .4));
+      blocks.forEach(function (b) {
+        b.draw(seg(ti, b.at, b.at + .32));
+        v = seg(ti, b.at + .18, b.at + .42); op(b.faces, v); b.rest.forEach(function (e) { op(e, v); });
+      });
+      conns[0](seg(ti, .2, .5)); conns[1](seg(ti, .28, .58)); conns[2](seg(ti, .3, .65));
+      labels.forEach(function (e, k) { op(e, seg(ti, .3 + k * .05, .55 + k * .05)); });
+      // upcoming: dashed fade-in, then a slow 0.4 → 0.6 breathe (continuous across loops, never any packets)
+      v = seg(ti, .25, .6);
+      ups.forEach(function (e, k) { op(e, v * (.5 - .1 * Math.cos(Math.PI * 2 * (el - k * .6) / T))); });
+      upRest.forEach(function (e) { op(e, v); });
+
+      // 0.5–1.25s: input frame, skeleton bars draw left → right, peach flag pops last
+      v = seg(t, .5, .7) - out; op(fin, v); op(linkIn, v);
+      fin.setAttribute('transform', 'translate(0 ' + 6 * (1 - seg(t, .5, .75, eo)) + ')');
+      inBars.forEach(function (b, k) { b.r.setAttribute('width', b.w * seg(t, .58 + k * .05, .78 + k * .05, eo)); });
+      avatar.setAttribute('r', 13 * seg(t, .62, .8, eo)); op(divider, seg(t, .72, .9));
+      p = cl((t - 1.02) / .22); scaleAt(flag, p ? bk(p) : 0.001); op(flag, p > 0 ? 1 : 0);
+      dIn(seg(t, .95, 1.25));
+
+      // 1.25–2.0s: packet card → EMR → qTrack; pulse rings across the floor; ROUTING counter
+      v = 0;
+      if ((p = leg(t, 1.25, 1.55)) >= 0) v = place(pk1, linkIn, io(p), [E(0)]);
+      else if ((p = leg(t, 1.55, 2)) >= 0) v = place(pk1, conn1, io(p), [E(0), E(1)]);
+      op(pk1, v);
+      op(deepen, .2 * (seg(t, 1.85, 2.1) - seg(t, 2.6, 3.2)));
+      rings.forEach(function (r, k) {
+        p = cl((t - 1.9 - k * .35) / 1.1), v = ra * (1.1 + 2.6 * eo(p));
+        r.setAttribute('rx', v); r.setAttribute('ry', v * .577);
+        op(r, p > 0 && p < 1 ? .45 * (1 - p) : 0);
+      });
+      var done = t >= 3.6;
+      op(status, seg(t, 1.45, 1.65) - out);
+      status.classList.toggle('done', done);
+      sTxt.textContent = done ? 'SCHEDULED' : 'ROUTING';
+      sMs.textContent = done ? '' : ' · ' + Math.max(0, t - 1.45).toFixed(2) + 's';
+      chip(done ? 104 : 142);
+      op(sDot, done ? 1 : .35 + .65 * (.5 + .5 * Math.cos((t - 1.45) * Math.PI * 4)));
+
+      // 2.0–2.75s: indigo packet qTrack → Specialist → output frame
+      v = 0;
+      if ((p = leg(t, 2, 2.6)) >= 0) v = place(pk2, conn2, io(p), [E(1), E(2)]);
+      else if ((p = leg(t, 2.6, 2.85)) >= 0) v = place(pk2, linkOut, io(p), [E(2)]) * cl((1 - p) / .2);
+      op(pk2, v);
+      dOut(seg(t, 2.6, 2.85, function (x) { return x; })); op(linkOut, 1 - out);
+
+      // 2.75–3.75s: output frame; calendar squares stagger in, peach booked slot last with overshoot
+      v = seg(t, 2.75, 2.95) - out; op(fout, v);
+      fout.setAttribute('transform', 'translate(0 ' + 6 * (1 - seg(t, 2.75, 3, eo)) + ')');
+      outHead.r.setAttribute('width', outHead.w * seg(t, 2.8, 3, eo));
+      slots.forEach(function (s, k) { op(s, seg(t, 2.85 + k * .035, 3.05 + k * .035)); });
+      p = cl((t - 3.38) / .25); scaleAt(booked, p ? bk(p) : .001); op(booked, p > 0 ? 1 : 0);
+      op(outRule, seg(t, 3.2, 3.4));
+      outSub.forEach(function (l, k) { op(l, seg(t, 3.3 + k * .1, 3.5 + k * .1)); });
+
+      // 3.75–4.75s: write-back Specialist → EMR along the back edge, dash-march, EMR top tints lavender
+      v = 0;
+      if ((p = leg(t, 3.75, 4.7)) >= 0) v = place(pk3, wb, io(p), [E(0), E(2)]);
+      op(pk3, v);
+      op(march, seg(t, 3.7, 3.9) - seg(t, 4.7, 5));
+      march.style.strokeDashoffset = 40 * Math.min(Math.max(t - 3.7, 0), 1.3);
+      emrTop.setAttribute('fill', mix('#FFFFFF', LAV, seg(t, 4.6, 4.8) - seg(t, 5, 5.6)));
+      // 4.75–6s: hold, then frames / status / packets fade (via `out`) and the loop resets
+    }
+
+    var el = 0, last = null, running = false, raf, vis = false;
+    function tick(now) {
+      if (last !== null) el += Math.min(now - last, 64) / 1000;
+      last = now; render(el % T, el < T, el); raf = requestAnimationFrame(tick);
+    }
+    render(0, true, 0);
+    var obs = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        vis = e.isIntersecting;
+        if (vis && !running) { running = true; last = null; raf = requestAnimationFrame(tick); }
+        else if (!vis && running) { running = false; cancelAnimationFrame(raf); }
+      });
+    }, { threshold: .25 });
+    obs.observe(svg);
+    return function stop() { obs.disconnect(); cancelAnimationFrame(raf); };
+  }
+
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  [].forEach.call(document.querySelectorAll('svg.qtrack-tech'), function (svg) {
+    var pristine = svg.cloneNode(true), stop = null;
+    function sync() {
+      if (desk.matches && !stop) stop = init(svg);
+      else if (!desk.matches && stop) {
+        // back to the untouched static frame
+        stop(); stop = null;
+        var fresh = pristine.cloneNode(true); svg.parentNode.replaceChild(fresh, svg); svg = fresh;
+      }
+    }
+    sync();
+    desk.addEventListener ? desk.addEventListener('change', sync) : desk.addListener(sync);
+  });
+})();
+</script>
 </body>
 </html>
