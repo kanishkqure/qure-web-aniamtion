@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Platform Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
+.ov-wrap{width:min(1280px,100% - 32px);margin:0 auto;padding:48px 0}
+/* ---- component ---- */
+.ov{--ov-band:120px;position:relative;display:grid;grid-template-columns:200px minmax(0,1fr) 224px;grid-template-rows:auto auto var(--ov-band) auto;column-gap:24px;color:#303030;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.ov p,.ov h3,.ov ul,.ov ol{margin:0;padding:0}
+.ov ul,.ov ol{list-style:none}
+.ov .mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.ov-eyebrow{font-size:10px;letter-spacing:.14em;color:#8A8A99}
+.ov-input{grid-column:1;grid-row:1/-1;display:grid;grid-template-rows:subgrid;background:#fff;border:1px solid #E6E6F0;border-radius:10px;padding:20px 30px 20px 20px}
+.ov-input .ov-eyebrow{grid-row:1;align-self:start}
+.ov-chips{grid-row:3;align-self:center;display:grid;gap:6px}
+.ov-chip{height:34px;display:flex;align-items:center;padding:0 12px;border-radius:8px;background:#F3F3F7;font-size:13px;font-weight:500}
+.ov-track{grid-column:2;grid-row:1;display:flex;align-items:center;gap:12px;padding:2px 0 18px;font-size:10px;letter-spacing:.14em;color:#8A8A99;text-transform:uppercase}
+.ov-track::after{content:"";flex:1;height:1px;background:#E6E6F0}
+.ov-stages{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:16px}
+.ov-stage{border-top:1px solid #303030;padding-top:12px}
+.ov-stage[data-status="upcoming"]{border-top:1px dashed #C9C9D4}
+.ov-num{display:block;margin-bottom:6px;font-size:10px;letter-spacing:.14em;color:#8A8A99}
+.ov-stage-name{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:15px;font-weight:500;line-height:1.25}
+.ov-tag{display:none;padding:2px 6px;border:.75px solid #FF7869;border-radius:6px;font-size:8px;font-weight:400;letter-spacing:.14em;color:#FF7869;text-transform:uppercase}
+.ov-stage[data-status="upcoming"] .ov-tag{display:inline-block}
+.ov-desc{margin-top:8px;font-size:12.5px;line-height:1.45}
+.ov-band{grid-column:2;grid-row:3}
+.ov-cards{grid-column:2;grid-row:4;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.ov-card{padding:16px 18px 18px;background:#fff;border:1px solid #E6E6F0;border-radius:10px}
+.ov-verb{font-size:10px;letter-spacing:.14em;color:#8A8A99}
+.ov-card-name{margin:4px 0 6px;font-size:15px;font-weight:500}
+.ov-card-body{font-size:12.5px;line-height:1.45}
+.ov-output{grid-column:3;grid-row:1/-1;display:flex;flex-direction:column;justify-content:space-between;gap:24px;padding:20px 22px;background:#2A288C;color:#fff;border-radius:10px}
+.ov-output .ov-eyebrow{color:#D9D9FF}
+.ov-outcomes li{padding:12px 0;border-top:1px solid rgba(217,217,255,.22);font-size:15px;font-weight:500;line-height:1.3}
+/* visual layer: measured and drawn by the script, never renders text */
+.ov-scene{position:absolute;inset:0;pointer-events:none}
+.ov-scene[hidden]{display:none}
+.ov-scene>*{position:absolute;left:0;top:0}
+.ov-scene .ov-edge{fill:none;stroke:#303030;stroke-width:1.25;stroke-linejoin:round;stroke-linecap:round}
+.ov-scene .ov-inner{fill:none;stroke:#2A288C;stroke-opacity:.15;stroke-width:1}
+.ov-scene .hero .ov-edge{stroke:#E0574A}
+.ov-scene .hero .ov-inner{stroke:#E0574A;stroke-opacity:.35}
+.ov-scene .ov-glyph *{fill:none;stroke:#E0574A;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.ov-scene .ov-dots circle{fill:#D9D9FF;fill-opacity:.4}
+.ov-scene .ov-debug *{fill:none;stroke:#FF7869;stroke-width:.75;vector-effect:non-scaling-stroke}
+.ov-scene .ov-debug .up{stroke-dasharray:4 3}
+.ov-scene .ov-debug .route{stroke:#2A288C;stroke-opacity:.5}
+/* stacked layout: the script detects the stacked columns and hides the scene */
+@media (max-width:959px){
+.ov{grid-template-columns:minmax(0,1fr);grid-template-rows:none;row-gap:20px}
+.ov>:not(.ov-scene){grid-column:1;grid-row:auto}
+.ov-input{display:block}
+.ov-chips{display:flex;flex-wrap:wrap;margin-top:12px}
+.ov-stages{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:20px}
+.ov-band{display:none}
+.ov-cards{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="ov-wrap">
+<!-- Platform overview section: copy this <section> plus the component CSS and script.
+     The script measures the data-* hooks below; restyle freely, the scene follows. -->
+<section class="ov" data-ov-root aria-labelledby="ov-track-label">
+  <div class="ov-input" data-ov-zone="input">
+    <p class="ov-eyebrow mono">INPUT</p>
+    <ul class="ov-chips">
+      <li class="ov-chip" data-ov-source="emr">EMR</li>
+      <li class="ov-chip" data-ov-source="pacs">PACS</li>
+      <li class="ov-chip" data-ov-source="powerscribe">PowerScribe</li>
+    </ul>
+  </div>
+  <p class="ov-track mono" id="ov-track-label">The journey from finding to therapy</p>
+  <ol class="ov-stages">
+    <li class="ov-stage" data-ov-stage="1"><span class="ov-num mono">01</span><h3 class="ov-stage-name">Integrate</h3><p class="ov-desc">DICOM images, reports, encounters, labs and EMR data in one workflow</p></li>
+    <li class="ov-stage" data-ov-stage="2"><span class="ov-num mono">02</span><h3 class="ov-stage-name">Insights</h3><p class="ov-desc">Voxel and clinical text data analysed. Actionable findings surfaced and referrals prioritised</p></li>
+    <li class="ov-stage" data-ov-stage="3" data-status="upcoming"><span class="ov-num mono">03</span><h3 class="ov-stage-name">Prior auth <span class="ov-tag mono">Upcoming</span></h3><p class="ov-desc">Payer-ready packets aligned, fewer denials and delays</p></li>
+    <li class="ov-stage" data-ov-stage="4" data-status="upcoming"><span class="ov-num mono">04</span><h3 class="ov-stage-name">Outreach <span class="ov-tag mono">Upcoming</span></h3><p class="ov-desc">Phone, MyChart, SMS and letter, in their language</p></li>
+    <li class="ov-stage" data-ov-stage="5"><span class="ov-num mono">05</span><h3 class="ov-stage-name">Scheduling</h3><p class="ov-desc">Follow-ups, appointments and notes written back to the EMR</p></li>
+    <li class="ov-stage" data-ov-stage="6"><span class="ov-num mono">06</span><h3 class="ov-stage-name">Close the loop</h3><p class="ov-desc">New imaging and visits keep every team current</p></li>
+  </ol>
+  <div class="ov-band" data-ov-zone="band"></div>
+  <div class="ov-cards">
+    <article class="ov-card" data-platform="qlens"><p class="ov-verb mono">FINDS</p><h3 class="ov-card-name">qLens</h3><p class="ov-card-body">Reads every scan against the whole record and builds the referral packet.</p></article>
+    <article class="ov-card" data-platform="qtrack"><p class="ov-verb mono">MOVES</p><h3 class="ov-card-name">qTrack</h3><p class="ov-card-body">Owns every handoff after the finding until the step resolves.</p></article>
+    <article class="ov-card" data-platform="qrx"><p class="ov-verb mono">TREATS</p><h3 class="ov-card-name">qRx</h3><p class="ov-card-body">One cited next step, at the consult.</p></article>
+  </div>
+  <div class="ov-output" data-ov-zone="output">
+    <p class="ov-eyebrow mono">OUTPUT</p>
+    <ul class="ov-outcomes">
+      <li>Fewer missed follow-ups</li>
+      <li>Less administrative burden</li>
+      <li>Faster connection to specialist care</li>
+      <li>Better patient outcomes</li>
+    </ul>
+  </div>
+  <div class="ov-scene" aria-hidden="true"></div>
+</section>
+</div>
+<script>
+/* Platform overview: one isometric scene (SVG objects) joined by a halftone data stream (canvas).
+   Draw-in plays once on first view, then only the stream loops. Pauses off-screen like qLens/qTrack.
+   Static frame with prefers-reduced-motion or below 640px; hidden when the columns stack.
+   ?debug=1 outlines the measured zones, anchors and routes. */
+(function () {
+  var INTRO = 7.2, STILL = 30;                 // intro length; time used for the static frame
+  var V = 40, RHO = .18;                        // stream speed (px/s) and glyphs per px per source
+  var C = Math.cos(Math.PI / 6), TAN = Math.tan(Math.PI / 6);
+  var LAV = '#D9D9FF', MID = '#A9A8E8', IND = '#2A288C', PEACH = '#FF7869';
+  // easing and colour helpers, same as qlens-tech.html (not exported there, so copied)
+  var cl = function (v) { return v < 0 ? 0 : v > 1 ? 1 : v; };
+  var io = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  var seg = function (t, a, b, e) { return (e || io)(cl((t - a) / (b - a))); };
+  var rgb = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); };
+  var mix = function (a, b, p) { a = rgb(a); b = rgb(b); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * p); }) + ')'; };
+  var smooth = function (x) { x = cl(x); return x * x * (3 - 2 * x); };
+
+  // intro timeline (s), qLens tempo: edges draw over .55s, faces fade +.3 → +.75s, .18s stagger
+  var SRC_AT = .18, TRIB = [.9, 1.5];
+  var MINI = { qlens: [1.7, 2.4], qtrack: [3.3, 4], qrx: [4.7, 5.4] };      // [draw-in, light-up]
+  var LEGS = [[1.5, 2.4], [2.9, 4], [4.5, 5.4], [5.9, 6.6]];                 // stream front: M → qLens → qTrack → qRx → output
+
+  var OVAL = 0, RSQ = 1, PLUS = 2, DASH = 3, DOT = 4;
+  var LUT = []; for (var i = 0; i <= 64; i++) LUT.push(i < 20 ? mix(LAV, MID, i / 20) : mix(MID, IND, (i - 20) / 44));
+  var desk = matchMedia('(min-width: 640px)'), reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  var DEBUG = /[?&]debug=1(?:&|$)/.test(location.search);
+  var NS = 'http://www.w3.org/2000/svg', inst = 0;
+
+  function mk(tag, at, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in at) if (at[k] != null) e.setAttribute(k, at[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  var f1 = function (v) { return Math.round(v * 10) / 10; };
+  var P = function (p) { return f1(p[0]) + ' ' + f1(p[1]); };
+  function toward(a, b, d) { var x = b[0] - a[0], y = b[1] - a[1], L = Math.hypot(x, y) || 1; return [a[0] + x / L * d, a[1] + y / L * d]; }
+  // polygon with each corner rounded by a quadratic curve r along both edges (same construction as the baked qLens/qTrack paths)
+  function roundPoly(pts, r) {
+    var n = pts.length, d = '';
+    pts.forEach(function (v, i) {
+      var a = toward(v, pts[(i + n - 1) % n], r), b = toward(v, pts[(i + 1) % n], r);
+      d += (i ? 'L' : 'M') + P(a) + 'Q' + P(v) + ' ' + P(b);
+    });
+    return d + 'Z';
+  }
+  var poly = function (pts) { return 'M' + pts.map(P).join('L') + 'Z'; };
+  // isometric box standing on the floor: (x, y) = centre of its footprint, w = footprint side, h = height
+  function boxGeo(x, y, w, h, r, k, ri) {
+    var X = w * C, Y = w / 2, ty = y - h;
+    var T = [x, ty - Y], UR = [x + X, ty], LR = [x + X, y], B = [x, y + Y], LL = [x - X, y], UL = [x - X, ty], F = [x, ty + Y];
+    var hex = roundPoly([T, UR, LR, B, LL, UL], r);
+    return {
+      hex: hex,
+      edge: hex + 'M' + P(toward(UL, F, 1.5)) + 'L' + P(F) + 'L' + P(toward(UR, F, 1.5)) + 'M' + P(F) + 'L' + P(toward(B, F, 1.5)),
+      fl: poly([UL, F, B, LL]), fr: poly([F, UR, LR, B]), ft: poly([UL, T, UR, F]),
+      inner: roundPoly([[x - k * X, ty], [x, ty - k * Y], [x + k * X, ty], [x, ty + k * Y]], ri),
+      top: [x, ty]
+    };
+  }
+  function Path(pts) {
+    this.p = pts; this.c = [0];
+    for (var i = 1; i < pts.length; i++) this.c.push(this.c[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+    this.L = this.c[this.c.length - 1];
+  }
+  Path.prototype.at = function (s, o) {
+    var c = this.c, lo = 0, hi = c.length - 1, m;
+    while (hi - lo > 1) { m = (lo + hi) >> 1; if (c[m] <= s) lo = m; else hi = m; }
+    var a = this.p[lo], b = this.p[hi], L = c[hi] - c[lo] || 1, u = (s - c[lo]) / L;
+    o.x = a[0] + (b[0] - a[0]) * u; o.y = a[1] + (b[1] - a[1]) * u; o.dx = (b[0] - a[0]) / L; o.dy = (b[1] - a[1]) / L;
+    return o;
+  };
+  // tributary: from p along one floor axis (down-right if above y, up-right if below) to where it meets the main path
+  function join(p, main, y) {
+    var d = p[1] <= y ? [C, .5] : [C, -.5], best = null;
+    for (var i = 1; i < main.p.length; i++) {
+      var A = main.p[i - 1], ex = main.p[i][0] - A[0], ey = main.p[i][1] - A[1], den = d[0] * ey - d[1] * ex;
+      if (Math.abs(den) < 1e-6) continue;
+      var wx = A[0] - p[0], wy = A[1] - p[1], t = (wx * ey - wy * ex) / den, u = (wx * d[1] - wy * d[0]) / den;
+      if (t > .5 && u >= 0 && u <= 1 && (!best || t < best.t)) best = { t: t, i: i, pt: [p[0] + d[0] * t, p[1] + d[1] * t], s: main.c[i - 1] + u * Math.hypot(ex, ey) };
+    }
+    return best || { t: 0, i: 1, pt: main.p[0], s: 0 };
+  }
+  // triangle wave along ±30° through every stop (all at height y); stops sit on zero crossings
+  function wave(stops, y, a0, aMax, d) {
+    var pts = [[stops[0], y]], marks = [0], r0 = 2 * a0 / TAN, rMax = 2 * aMax / TAN;
+    for (var k = 1; k < stops.length; k++) {
+      var x0 = stops[k - 1], D = stops[k] - x0;
+      if (D > 1) {
+        var n = Math.max(1, Math.round(D / r0), Math.ceil(D / rMax)), r = D / n, a = r / 2 * TAN;
+        for (var j = 0; j < n; j++, d = -d) pts.push([x0 + r / 2 + j * r, y + d * a]);
+        pts.push([stops[k], y]);
+      }
+      marks.push(pts.length - 1);
+    }
+    return { pts: pts, marks: marks };
+  }
+  function rng(seed) {
+    return function () {
+      seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function pickType(r) { return r < .34 ? OVAL : r < .54 ? RSQ : r < .64 ? PLUS : r < .78 ? DASH : DOT; }
+  function rrect(ctx, x, y, w, h, r) {
+    ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+
+  function init(root) {
+    var id = 'ov-' + (++inst);
+    var $ = function (s) { return root.querySelector(s); };
+    var $$ = function (s) { return [].slice.call(root.querySelectorAll(s)); };
+    var scene = $('.ov-scene');
+    if (!scene) { scene = document.createElement('div'); scene.className = 'ov-scene'; scene.setAttribute('aria-hidden', 'true'); root.appendChild(scene); }
+    var floor = mk('svg', { 'class': 'ov-floor' }), cv = document.createElement('canvas'), objs = mk('svg', { 'class': 'ov-objects' });
+    scene.appendChild(floor); scene.appendChild(cv); scene.appendChild(objs);
+    var ctx = cv.getContext('2d'), dpr = 1, G = null, mode = '', pend = 0;
+    var el = 0, last = null, running = false, vis = false, raf = 0;
+
+    function layout() {
+      pend = 0;
+      var R = root.getBoundingClientRect();
+      var rel = function (e) { var r = e.getBoundingClientRect(); return { x: r.left - R.left, y: r.top - R.top, r: r.right - R.left, b: r.bottom - R.top, w: r.width, h: r.height }; };
+      var inp = $('[data-ov-zone="input"]'), out = $('[data-ov-zone="output"]'), band = $('[data-ov-zone="band"]');
+      var stages = $$('[data-ov-stage]'), chips = $$('[data-ov-source]');
+      var cards = ['qlens', 'qtrack', 'qrx'].map(function (k) { return $('[data-platform="' + k + '"]'); });
+      if (!inp || !out || !stages.length || cards.indexOf(null) >= 0) return setMode('hidden');
+      var I = rel(inp), O = rel(out), st = stages.map(rel), cd = cards.map(rel);
+      var row = function (a) { return a.every(function (s) { return Math.abs(s.y - a[0].y) < 4; }); };
+      var midL = st[0].x, midR = st[st.length - 1].r, stageB = Math.max.apply(null, st.map(function (s) { return s.b; }));
+      var cardT = Math.min.apply(null, cd.map(function (c) { return c.y; })), room = cardT - stageB;
+      // stacked columns: nothing to align to, hide the scene
+      if (!row(st) || !row(cd) || I.r > midL + 1 || O.x < midR - 1 || room < 48) return setMode('hidden');
+
+      // scale: px per qLens/qTrack viewBox unit, from the column width, capped so the tallest mini fits the band
+      var S = Math.min(Math.max((midR - midL) / 1930, .36), .48, (room - 22) / 208);
+      var yc = cardT - 14 - 52 * S;                                   // stream centre line = footprint centre of the minis
+      var aMax = Math.max(4, Math.min(cardT - 13 - yc, yc - stageB - 13)), a0 = Math.min(20, aMax);
+      var ws = 44 * S;
+      var src = (chips.length ? chips : [inp]).map(function (c) { var r = rel(c); return [I.r, r.y + r.h / 2 + ws / 2]; });
+      var xs = cd.map(function (c) { return c.x + c.w / 2; }), Mx = I.r, Ex = O.x;
+      var W = wave([Mx].concat(xs, [Ex]), yc, a0, aMax, -1), main = new Path(W.pts);
+      var sA = W.marks.map(function (i) { return main.c[i]; }), Lm = main.L, Z = Math.min(140, (sA[4] - sA[3]) * .8);
+      var speed = function (sm) { return sm < 0 ? V : V * (1 - .62 * smooth((sm - (Lm - Z)) / Z)); };
+
+      var ups = [];
+      stages.forEach(function (s, k) {
+        if (s.getAttribute('data-status') !== 'upcoming') return;
+        ups.push([k ? (st[k - 1].r + st[k].x) / 2 : st[k].x, k < st.length - 1 ? (st[k].r + st[k + 1].x) / 2 : st[k].r]);
+      });
+
+      var paths = src.map(function (p, i) {
+        var J = join(p, main, yc), t = [p, J.pt], Pp = new Path(t.concat(W.pts.slice(J.i))), Lt = J.t, J0 = J.s - Lt;
+        var ds = 2, n = Math.ceil(Pp.L / ds), tau = new Float32Array(n + 1);
+        for (var j = 1; j <= n; j++) tau[j] = tau[j - 1] + ds / speed(Math.min(j * ds, Pp.L) - ds / 2 + J0);
+        var T = tau[n], N = Math.round(RHO * V * T), R = rng(97 + i * 131), q = [];
+        for (j = 0; j < N; j++) q.push({ ph: (j + R() * .85) / N, l: R() + R() - 1, ty: pickType(R()), sz: R(), pc: R() < .22, keep: R() });
+        return { P: Pp, Lt: Lt, J0: J0, tau: tau, ds: ds, T: T, q: q };
+      });
+
+      // ---- SVG: floor grid + objects
+      var Wd = R.width, Ht = R.height;
+      [floor, objs].forEach(function (s) { s.textContent = ''; s.setAttribute('width', Wd); s.setAttribute('height', Ht); s.setAttribute('viewBox', '0 0 ' + f1(Wd) + ' ' + f1(Ht)); });
+      var fd = mk('defs', {}, floor), pw = 38.1 * S, ph = 22 * S;
+      var pat = mk('pattern', { id: id + '-dots', 'class': 'ov-dots', width: f1(pw), height: f1(ph), patternUnits: 'userSpaceOnUse', x: f1(xs[0]), y: f1(yc) }, fd);
+      [[0, 0], [pw, 0], [0, ph], [pw, ph], [pw / 2, ph / 2]].forEach(function (c) { mk('circle', { cx: f1(c[0]), cy: f1(c[1]), r: .9 }, pat); });
+      var rg = mk('radialGradient', { id: id + '-fade' }, fd);
+      mk('stop', { offset: .45, 'stop-color': '#fff' }, rg); mk('stop', { offset: 1, 'stop-color': '#000' }, rg);
+      var gx = I.r, gy = stageB + 4, gw = Ex - I.r, gh = cardT - stageB - 4;
+      mk('rect', { x: f1(gx), y: f1(gy), width: f1(gw), height: f1(gh), fill: 'url(#' + id + '-fade)' }, mk('mask', { id: id + '-mask' }, fd));
+      var grid = mk('g', {}, floor);
+      mk('rect', { x: f1(gx), y: f1(gy), width: f1(gw), height: f1(gh), fill: 'url(#' + id + '-dots)', mask: 'url(#' + id + '-mask)' }, grid);
+
+      var od = mk('defs', {}, objs), list = [];
+      function cube(name, x, y, w, h, r, k, ri, hero, glyph, at, lit) {
+        var g = mk('g', { 'class': 'ov-obj' + (hero ? ' hero' : '') }, objs), geo = boxGeo(x, y, w, h, r, k, ri), cid = id + '-clip-' + name;
+        mk('path', { d: geo.hex }, mk('clipPath', { id: cid }, od));
+        var faces = mk('g', { 'clip-path': 'url(#' + cid + ')' }, g);
+        mk('path', { d: geo.fl, fill: hero ? '#FFBCB4' : '#fff' }, faces);
+        mk('path', { d: geo.fr, fill: hero ? '#FFAAA0' : '#fff' }, faces);
+        mk('path', { d: geo.ft, fill: hero ? '#FFD2CC' : LAV }, faces);
+        var deepen = hero ? mk('path', { d: geo.hex, fill: PEACH }, g) : null;
+        var edge = mk('path', { 'class': 'ov-edge', d: geo.edge }, g), rest = [mk('path', { 'class': 'ov-inner', d: geo.inner }, g)];
+        if (glyph) {
+          // top-face glyph, same matrix as qLens/qTrack (0.9 skew) so the minis match their heroes
+          var gg = mk('g', { 'class': 'ov-glyph', transform: 'matrix(' + [.9 * S, -.5 * S, .9 * S, .5 * S, f1(geo.top[0]), f1(geo.top[1])].map(function (v) { return +v.toFixed(3); }).join(' ') + ')' }, g);
+          if (glyph === 'lens') { mk('circle', { r: 13 }, gg); mk('circle', { r: 5.5 }, gg); }
+          else mk('path', { d: 'M-8.8 8H3a5 5 0 0 0 0-10H-3a5 5 0 0 1 0-10H9M5.5-15.5L9.5-12L5.5-8.5' }, gg);
+          rest.push(gg);
+        }
+        var L = edge.getTotalLength(); edge.style.strokeDasharray = L + ' ' + L;
+        list.push({ at: at, lit: lit, faces: faces, rest: rest, deepen: deepen, draw: function (p) { edge.style.strokeDashoffset = L * (1 - p); } });
+      }
+      // sources: small blocks centred on the input panel's right edge, one per chip
+      src.forEach(function (p, i) { cube('src-' + i, p[0], p[1], ws, ws, 2, .7, 1.2, false, null, i * SRC_AT, 0); });
+      // minis: their section heroes at scale S, footprint centred over each platform card (fewer parts, no rings)
+      cube('qlens', xs[0], yc, 104 * S, 104 * S, 6 * S, .78, 3.7 * S, true, 'lens', MINI.qlens[0], MINI.qlens[1]);
+      cube('qtrack', xs[1], yc, 72 * S, 108 * S, 6 * S, .78, 3.7 * S, true, 'route', MINI.qtrack[0], MINI.qtrack[1]);
+      // PLACEHOLDER for review: qRx has no section animation yet; hero-style cube, no glyph
+      cube('qrx', xs[2], yc, 72 * S, 72 * S, 6 * S, .78, 3.7 * S, true, null, MINI.qrx[0], MINI.qrx[1]);
+
+      if (DEBUG) {
+        var dg = mk('g', { 'class': 'ov-debug' }, objs);
+        var box = function (r, c) { mk('rect', { x: f1(r.x), y: f1(r.y), width: f1(r.w), height: f1(r.h), 'class': c }, dg); };
+        var cross = function (p) { mk('path', { d: 'M' + f1(p[0] - 6) + ' ' + f1(p[1]) + 'h12M' + f1(p[0]) + ' ' + f1(p[1] - 6) + 'v12' }, dg); mk('circle', { cx: f1(p[0]), cy: f1(p[1]), r: 3 }, dg); };
+        box(I); box(O); if (band) box(rel(band)); chips.forEach(function (c) { box(rel(c)); }); cd.forEach(function (c) { box(c); });
+        st.forEach(function (s, k) { box(s, stages[k].getAttribute('data-status') === 'upcoming' ? 'up' : null); });
+        src.concat(xs.map(function (x) { return [x, yc]; }), [[Ex, yc]]).forEach(cross);
+        paths.forEach(function (p) { mk('path', { 'class': 'route', d: 'M' + p.P.p.map(P).join('L') }, dg); cross(p.P.p[1]); });
+        console.info('[platform-overview]', { band: band && rel(band).h, room: room, scale: +S.toFixed(3), streamY: f1(yc), amplitude: f1(a0), dpr: window.devicePixelRatio, upcoming: ups });
+      }
+
+      dpr = window.devicePixelRatio || 1;
+      cv.width = Math.round(Wd * dpr); cv.height = Math.round(Ht * dpr);
+      cv.style.width = Wd + 'px'; cv.style.height = Ht + 'px';
+      G = { paths: paths, sA: sA, Lm: Lm, Z: Z, Mx: Mx, Ex: Ex, ups: ups, objs: list, grid: grid, oT: -1 };
+      setMode(reduce.matches || !desk.matches ? 'static' : 'anim');
+    }
+
+    function upAt(x) {
+      var u = 0;
+      G.ups.forEach(function (r) { u = Math.max(u, Math.min(smooth((x - r[0]) / 24 + .5), smooth((r[1] - x) / 24 + .5))); });
+      return u;
+    }
+
+    var pt = { x: 0, y: 0, dx: 0, dy: 0 };
+    function stream(t, fT, fM) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.lineCap = 'round';
+      var span = G.Ex - G.Mx;
+      G.paths.forEach(function (p) {
+        var tau = p.tau, n = tau.length - 1;
+        p.q.forEach(function (q) {
+          var tt = (t + q.ph * p.T) % p.T, lo = 0, hi = n, m;
+          while (hi - lo > 1) { m = (lo + hi) >> 1; if (tau[m] <= tt) lo = m; else hi = m; }
+          var s = Math.min((lo + (tt - tau[lo]) / (tau[hi] - tau[lo])) * p.ds, p.P.L), sm = s - p.Lt, v, hw, kEnd = 0;
+          if (sm < 0) { v = cl((fT * p.Lt - s) / 14); hw = 3; }
+          else {                                                        // on the main path; s + J0 = arc length along it
+            v = fT < 1 ? 0 : cl((fM - s - p.J0) / 24);
+            kEnd = smooth((s + p.J0 - (G.Lm - G.Z)) / G.Z);            // compress + densify into the output panel
+            hw = (3 + 4 * smooth(sm / 40)) * (1 - .7 * kEnd);
+          }
+          if (v <= 0) return;
+          p.P.at(s, pt);
+          var x = pt.x, y = pt.y + q.l * hw, u = upAt(x);
+          if (u > 0 && q.keep > 1 - .7 * u) return;                    // upcoming: sparse, never empty
+          var ty = u > .5 ? DASH : q.ty, al = Math.abs(q.l), d;
+          var col = q.pc && sm < 36 ? (sm < 0 ? PEACH : mix(PEACH, LAV, sm / 36)) : LUT[Math.round(cl((x - G.Mx) / span) * 64)];
+          d = (ty === OVAL ? 3.5 + 3.5 * q.sz : ty === RSQ ? 2.6 + 2.6 * q.sz : ty === DOT ? 1.6 + .8 * q.sz : 4 + 2.5 * q.sz) * (1 - .5 * Math.pow(al, 1.5)) * (1 - .3 * kEnd);
+          ctx.globalAlpha = v * (1 - .6 * u) * (1 - .3 * al);
+          ctx.fillStyle = ctx.strokeStyle = col;
+          ctx.beginPath();
+          if (ty === DOT) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.arc(x, y, d / 2, 0, 6.2832); ctx.fill(); return; }
+          // glyph frame = travel axis + the other floor axis, so every glyph lies on the isometric floor
+          ctx.setTransform(dpr * pt.dx, dpr * pt.dy, dpr * pt.dx, -dpr * pt.dy, dpr * x, dpr * y);
+          if (ty === OVAL) { ctx.ellipse(0, 0, d / 2, d * .32, 0, 0, 6.2832); ctx.fill(); }
+          else if (ty === RSQ) { rrect(ctx, -d / 2, -d / 2, d, d, d * .3); ctx.fill(); }
+          else {
+            ctx.moveTo(-d / 2, 0); ctx.lineTo(d / 2, 0);
+            if (ty === PLUS) { ctx.moveTo(0, -d / 2); ctx.lineTo(0, d / 2); }
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.lineWidth = ty === PLUS ? 1.1 : 1.3; ctx.stroke();
+          }
+        });
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    function render(t) {
+      if (!G) return;
+      var it = Math.min(t, INTRO + 1), fT, fM = -1, k;
+      if (G.oT !== it) {                                                // objects settle after the intro: no further DOM writes
+        G.oT = it;
+        G.grid.style.opacity = seg(it, 0, .8);
+        G.objs.forEach(function (o) {
+          o.draw(seg(it, o.at, o.at + .55));
+          var v = seg(it, o.at + .3, o.at + .75);
+          o.faces.style.opacity = v; o.rest.forEach(function (e) { e.style.opacity = v; });
+          if (o.deepen) o.deepen.style.opacity = .22 * (seg(it, o.lit, o.lit + .6) - seg(it, o.lit + .8, o.lit + 1.5));
+        });
+      }
+      fT = seg(t, TRIB[0], TRIB[1]);
+      for (k = 0; k < LEGS.length; k++) if (t >= LEGS[k][0]) fM = G.sA[k] + (G.sA[k + 1] - G.sA[k]) * seg(t, LEGS[k][0], LEGS[k][1]);
+      if (t >= LEGS[LEGS.length - 1][1]) fM = Infinity;
+      stream(t, fT, fM);
+    }
+
+    function tick(now) {
+      if (last !== null) el += Math.min(now - last, 64) / 1000;
+      last = now; render(el); raf = requestAnimationFrame(tick);
+    }
+    function start() { if (!running) { running = true; last = null; raf = requestAnimationFrame(tick); } }
+    function stop() { if (running) { running = false; cancelAnimationFrame(raf); } }
+    function setMode(m) {
+      mode = m; scene.hidden = m === 'hidden';
+      if (m !== 'anim') stop();
+      if (m === 'hidden') G = null;
+      else if (m === 'static') render(STILL);
+      else { render(el); if (vis) start(); }
+    }
+    function schedule() { if (!pend) pend = requestAnimationFrame(layout); }
+
+    layout();
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        vis = e.isIntersecting;
+        if (vis && mode === 'anim') start();
+        else if (!vis) stop();
+      });
+    }, { threshold: .25 }).observe(root);
+    var ro = new ResizeObserver(schedule);
+    [root].concat($$('[data-ov-zone],[data-ov-stage],[data-ov-source],[data-platform]')).forEach(function (e) { ro.observe(e); });
+    new MutationObserver(schedule).observe(root, { subtree: true, attributes: true, attributeFilter: ['data-status'] });
+    window.addEventListener('resize', schedule);                         // devicePixelRatio changes (zoom, monitor move)
+    [desk, reduce].forEach(function (q) { q.addEventListener ? q.addEventListener('change', schedule) : q.addListener(schedule); });
+    if (document.fonts) document.fonts.ready.then(schedule);
+  }
+
+  [].forEach.call(document.querySelectorAll('[data-ov-root]'), init);
+})();
+</script>
+</body>
+</html>
