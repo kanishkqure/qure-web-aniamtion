@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>qLens Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
+.qlens-tech-wrap{width:min(1280px,100% - 32px);margin:0 auto}
+/* ---- component ---- */
+.qlens-tech{display:block;width:100%;height:auto;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.qlens-tech .mono,.qlens-tech .jl{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.qlens-tech #qt-dots circle{fill:#D9D9FF;fill-opacity:.4}
+.qlens-tech .reg{fill:none;stroke:#C9C9D4;stroke-width:1}
+.qlens-tech .face{stroke:#303030;stroke-width:1.5;stroke-linejoin:round}
+.qlens-tech .inner{fill:none;stroke:#303030;stroke-opacity:.12;stroke-width:1;stroke-linejoin:round}
+.qlens-tech .glyph{stroke:#303030}
+.qlens-tech .hero .face{stroke:#E0574A}
+.qlens-tech .hero .inner{stroke:#E0574A;stroke-opacity:.35}
+.qlens-tech .hero .glyph{stroke:#E0574A}
+.qlens-tech #connectors path:not(#ticks){fill:none;stroke:#303030;stroke-width:1}
+.qlens-tech #ticks{fill:none;stroke:#8A8A99;stroke-width:1}
+.qlens-tech .tick-lbl{font-size:7px;fill:#8A8A99;letter-spacing:.04em}
+.qlens-tech #links path{fill:none;stroke:#8A8A99;stroke-width:1}
+.qlens-tech #feeds path{fill:none;stroke:#2A288C;stroke-opacity:.55;stroke-width:1;stroke-dasharray:1.5 3.5;stroke-linecap:round}
+.qlens-tech .chip rect{fill:#D9D9FF}
+.qlens-tech .chip text{font-size:10px;fill:#2A288C;letter-spacing:.08em}
+.qlens-tech .leader{fill:none;stroke:#303030;stroke-width:.75}
+.qlens-tech .leader-dot{fill:#303030}
+.qlens-tech .name{font-size:15px;fill:#303030;font-weight:500}
+.qlens-tech .stage{font-size:10px;fill:#8A8A99;letter-spacing:.14em}
+.qlens-tech .card-bg{fill:#fff;stroke:#E6E6F0;stroke-width:1}
+.qlens-tech .card-rule{stroke:#E6E6F0;stroke-width:1}
+.qlens-tech .card-dot{fill:#E6E6F0}
+.qlens-tech .out .card-dot{fill:#2A288C}
+.qlens-tech .hdr{font-size:12px;fill:#303030}
+.qlens-tech .hdr .m{fill:#8A8A99}
+.qlens-tech .jl{font-size:12px;fill:#8A8A99}
+.qlens-tech .jl .k{fill:#8A8A99}
+.qlens-tech .in .v{fill:#303030}
+.qlens-tech .out .v{fill:#2A288C}
+.qlens-tech .status rect{fill:#fff;stroke:#E6E6F0}
+.qlens-tech .status text{font-size:10px;fill:#303030;letter-spacing:.12em}
+.qlens-tech .status .sdot{fill:#FF7869}
+.qlens-tech .status.done .sdot{fill:#2A288C}
+</style>
+</head>
+<body>
+<div class="qlens-tech-wrap">
+<!-- qLens technical pipeline component: copy this <svg> plus the component CSS -->
+<svg class="qlens-tech" viewBox="0 -6.0 1392.6 622" role="img" aria-labelledby="qt-title" xmlns="http://www.w3.org/2000/svg">
+<title id="qt-title">qLens pipeline: a patient record is ingested, qLens reasons over guidelines, trials and real-world evidence, and qTrack acts on the resulting care plan.</title>
+<defs><pattern id="qt-dots" width="38.1" height="22" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1.3"/><circle cx="38.1" cy="0" r="1.3"/><circle cx="0" cy="22" r="1.3"/><circle cx="38.1" cy="22" r="1.3"/><circle cx="19.1" cy="11" r="1.3"/></pattern>
+<radialGradient id="qt-fade" cx="696.3" cy="305" r="696.3" gradientUnits="userSpaceOnUse" gradientTransform="translate(696.3 305) scale(1 .62) translate(-696.3 -305)"><stop offset=".45" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient>
+<mask id="qt-mask"><rect x="0" y="-6.0" width="1392.6" height="622" fill="url(#qt-fade)"/></mask>
+</defs>
+<g id="grid"><rect x="0" y="-6.0" width="1392.6" height="622" fill="url(#qt-dots)" mask="url(#qt-mask)"/></g>
+<g id="chrome"><g class="reg"><g transform="translate(20 14)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g><g transform="translate(1372.6 14)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g><g transform="translate(20 596)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g><g transform="translate(1372.6 596)"><path d="M-9 0h18M0-9v18"/><circle r="4"/></g></g></g>
+<g id="links"><path id="link-in" d="M316.8 475H336.8Q346.8 475 346.8 485V508Q346.8 518 356.8 518H398.8"/><path id="link-out" d="M963.5 228H1054.6Q1064.6 228 1064.6 238V316"/></g>
+<g id="connectors"><path id="conn-1" d="M430 500L681.1 355"/><path id="conn-2" d="M681.1 355L932.3 210"/><path id="ticks" d="M503.1 457.8l3.5 6.1M509.1 454.3l1.8 3M515.2 450.8l1.8 3M521.2 447.3l1.8 3M527.3 443.8l1.8 3M533.4 440.3l3.5 6.1M539.4 436.8l1.8 3M545.5 433.3l1.8 3M551.5 429.8l1.8 3M557.6 426.3l1.8 3M563.7 422.8l3.5 6.1M569.7 419.3l1.8 3M575.8 415.8l1.8 3M581.9 412.3l1.8 3"/><g class="tick-lbls"><text class="mono tick-lbl" transform="matrix(0.9 -.5 0 1 509.1 468.2)">0.00</text><text class="mono tick-lbl" transform="matrix(0.9 -.5 0 1 539.4 450.7)">0.25</text><text class="mono tick-lbl" transform="matrix(0.9 -.5 0 1 569.7 433.2)">0.50</text></g></g>
+<g id="feeds"><path id="feed-1" d="M663.1 168L655.1 305"/><path id="feed-2" d="M757.1 168L681.1 299"/><path id="feed-3" d="M829.1 168L707.1 305"/></g>
+<g id="cubes"><g id="cube-record"><path class="face" fill="#fff" d="M367.6 464L430 500L430 572L367.6 536Z"/><path class="face" fill="#fff" d="M430 500L492.4 464L492.4 536L430 572Z"/><path class="face top" fill="#fff" d="M367.6 464L430 428L492.4 464L430 500Z"/><path class="inner" d="M381.4 464L430 435.9L478.6 464L430 492.1Z"/><g class="glyph" transform="matrix(0.9 -.5 0.9 .5 430 464)"><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M-9-12h11l7 7v17h-18zM2-12v7h7M-5 0h10M-5 5h10"/></g></g><g id="qlens" class="hero"><path class="face" fill="#FFBCB4" d="M591.1 303L681.1 355L681.1 459L591.1 407Z"/><path class="face" fill="#FFAAA0" d="M681.1 355L771.2 303L771.2 407L681.1 459Z"/><path class="face top" fill="#FFD2CC" d="M591.1 303L681.1 251L771.2 303L681.1 355Z"/><path class="inner" d="M610.9 303L681.1 262.4L751.4 303L681.1 343.6Z"/><g class="glyph" transform="matrix(0.9 -.5 0.9 .5 681.1 303)"><circle fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" r="13"/><circle fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" r="5.5"/><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M5.5 0L11.8 -5.5M-2.75 4.8L-1.2 12.9M-2.75-4.8L-10.6-7.6"/></g></g><g id="cube-qtrack"><path class="face" fill="#fff" d="M869.9 174L932.3 210L932.3 282L869.9 246Z"/><path class="face" fill="#fff" d="M932.3 210L994.6 174L994.6 246L932.3 282Z"/><path class="face top" fill="#fff" d="M869.9 174L932.3 138L994.6 174L932.3 210Z"/><path class="inner" d="M883.7 174L932.3 145.9L980.9 174L932.3 202.1Z"/><g class="glyph" transform="matrix(0.9 -.5 0.9 .5 932.3 174)"><path fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" d="M-11-10h22v21h-22zM-11-4h22M-6-13v5M6-13v5M-5 4l3 3 7-7"/></g></g></g>
+<g id="chips"><g class="chip" id="chip-1"><rect x="624.1" y="150" width="78" height="18" rx="9"/><text class="mono" x="663.1" y="162.5" text-anchor="middle">GUIDELINES</text></g><g class="chip" id="chip-2"><rect x="730.1" y="150" width="54" height="18" rx="9"/><text class="mono" x="757.1" y="162.5" text-anchor="middle">TRIALS</text></g><g class="chip" id="chip-3"><rect x="811.1" y="150" width="36" height="18" rx="9"/><text class="mono" x="829.1" y="162.5" text-anchor="middle">RWE</text></g></g>
+<g id="labels"><g class="label"><path class="leader" d="M430 422V364"/><circle class="leader-dot" cx="430" cy="422" r="2"/><text class="stage mono" x="430" y="338" text-anchor="middle">01 / INGEST</text><text class="name" x="430" y="356" text-anchor="middle">Patient record</text></g><g class="label"><path class="leader" d="M591.1 297V229"/><circle class="leader-dot" cx="591.1" cy="297" r="2"/><text class="stage mono" x="591.1" y="203" text-anchor="middle">02 / REASON</text><text class="name" x="591.1" y="221" text-anchor="middle">qLens</text></g><g class="label"><path class="leader" d="M932.3 132V74"/><circle class="leader-dot" cx="932.3" cy="132" r="2"/><text class="stage mono" x="932.3" y="48" text-anchor="middle">03 / ACT</text><text class="name" x="932.3" y="66" text-anchor="middle">qTrack</text></g></g>
+<g id="cards"><g id="card-in" class="card in"><rect class="card-bg" x="40" y="368" width="276.8" height="191" rx="10"/><path class="card-rule" d="M40 404h276.8"/><circle class="card-dot" cx="298.8" cy="386" r="3"/><text class="mono hdr" x="56" y="390"><tspan class="m">POST</tspan> /analyze</text><g class="json"><text class="jl" x="56" y="426" xml:space="preserve">{</text><text class="jl" x="56" y="445" xml:space="preserve">  <tspan class="k">"patient_id"</tspan>: <tspan class="v">"PT-0482"</tspan>,</text><text class="jl" x="56" y="464" xml:space="preserve">  <tspan class="k">"age"</tspan>: <tspan class="v">61</tspan>,</text><text class="jl" x="56" y="483" xml:space="preserve">  <tspan class="k">"hba1c"</tspan>: <tspan class="v">8.2</tspan>,</text><text class="jl" x="56" y="502" xml:space="preserve">  <tspan class="k">"egfr"</tspan>: <tspan class="v">54</tspan>,</text><text class="jl" x="56" y="521" xml:space="preserve">  <tspan class="k">"meds"</tspan>: [<tspan class="v">"metformin"</tspan>, <tspan class="v">"..."</tspan>]</text><text class="jl" x="56" y="540" xml:space="preserve">}</text></g></g><g id="card-out" class="card out"><rect class="card-bg" x="1028.6" y="316" width="320" height="191" rx="10"/><path class="card-rule" d="M1028.6 352h320"/><circle class="card-dot" cx="1330.6" cy="334" r="3"/><text class="mono hdr" x="1044.6" y="338"><tspan class="m">POST</tspan> /care-plan</text><g class="json"><text class="jl" x="1044.6" y="374" xml:space="preserve">{</text><text class="jl" x="1044.6" y="393" xml:space="preserve">  <tspan class="k">"recommendation"</tspan>: <tspan class="v">"rx:adjust_02 ..."</tspan>,</text><text class="jl" x="1044.6" y="412" xml:space="preserve">  <tspan class="k">"evidence"</tspan>: <tspan class="v">"grade:A ..."</tspan>,</text><text class="jl" x="1044.6" y="431" xml:space="preserve">  <tspan class="k">"guideline"</tspan>: <tspan class="v">"ref:ADA-24 ..."</tspan>,</text><text class="jl" x="1044.6" y="450" xml:space="preserve">  <tspan class="k">"confidence"</tspan>: <tspan class="v">0.94</tspan>,</text><text class="jl" x="1044.6" y="469" xml:space="preserve">  <tspan class="k">"handoff"</tspan>: <tspan class="v">"qtrack:follow_up ..."</tspan></text><text class="jl" x="1044.6" y="488" xml:space="preserve">}</text></g></g></g>
+<g id="status-layer"><g id="status" class="status done"><rect x="703.1" y="478" width="150" height="22" rx="11"/><circle class="sdot" cx="717.1" cy="489" r="3.5"/><text class="mono" x="728.1" y="492.5"><tspan id="status-txt">COMPLETE</tspan> · <tspan id="status-ms">0.42s</tspan></text></g></g>
+<g id="packets"><path id="pk-1" class="packet" fill="#303030" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(555.6 427.5) rotate(-30)"/><path id="pk-2" class="packet" fill="#2A288C" d="M5 0L-4 -4.2L-2 0L-4 4.2Z" transform="translate(806.7 282.5) rotate(-30)"/></g>
+</svg>
+</div>
+</body>
+</html>
