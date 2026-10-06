@@ -27,15 +27,15 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
 .ov-win-dots i{width:5.2px;height:5.2px;border-radius:50%;background:#ECECF2}
 .ov .ov-win-rows{padding:8px 16px 10px}
 .ov-win-rows li{padding:6px 0;font-size:13px;font-weight:500;line-height:1.3}
-.ov-win-out .ov-win-rows li{display:flex;gap:10px;align-items:baseline;color:#303030;transition:color .4s}
-.ov-win-out .ov-win-rows li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:#2A288C;box-shadow:inset 0 0 0 1px #2A288C;transform:translateY(-1px);transition:background .4s}
-.ov-win-out .ov-win-rows li[data-ov-tick="off"]{color:#8A8A99}
-.ov-win-out .ov-win-rows li[data-ov-tick="off"]::before{background:#fff}
+.ov-win-out .ov-win-rows li{display:flex;gap:10px;align-items:baseline}
+.ov-win-out .ov-win-rows li::before{content:"";flex:none;box-sizing:border-box;width:7px;height:7px;border:1px solid #2A288C;border-radius:50%;background:#2A288C;box-shadow:inset 0 0 0 calc((1 - var(--ov-tick,1)) * 3px) #fff;transform:translateY(-1px)}
 /* stage cards */
 .ov-stages{grid-column:2;grid-row:2;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:16px}
-.ov-stage{padding:12px 12px 14px;background:#fff;border:1px solid #E6E6F0;border-radius:10px;transition:border-color .4s}
+.ov-stage{padding:12px 12px 14px;background:#fff;border:1px solid #E6E6F0;border-radius:10px}
 .ov-stage[data-status="upcoming"]{border-style:dashed;border-color:#C9C9D4}
 .ov-num{display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:10px;letter-spacing:.14em;color:#8A8A99}
+.ov-num::after{content:"";width:5px;height:5px;border-radius:50%;background:#2A288C;opacity:var(--ov-hl,0)}
+.ov-stage[data-status="upcoming"] .ov-num::after{background:#A9A8E8}
 .ov-stage-name{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:14px;font-weight:500;line-height:1.25}
 .ov-tag{display:none;padding:2px 6px;border:.75px solid #FF7869;border-radius:6px;font-size:8px;font-weight:400;letter-spacing:.14em;color:#FF7869;text-transform:uppercase}
 .ov-stage[data-status="upcoming"] .ov-tag{display:inline-block}
@@ -59,6 +59,9 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
 .ov-scene .ov-link{fill:none;stroke:#8A8A99;stroke-width:1}
 .ov-scene .ov-conn{fill:none;stroke:#303030;stroke-width:1;stroke-linejoin:round}
 .ov-scene .ov-jdot{fill:#303030}
+.ov-scene .ov-wb{stroke:#C9C9D4}
+.ov-scene .ov-march{fill:none;stroke:#FF7869;stroke-width:1.5;stroke-dasharray:4 6;stroke-linecap:round;opacity:0}
+.ov-scene .ov-ring{fill:none;stroke:#FF7869;stroke-width:1.25;opacity:0}
 .ov-scene .ov-edge{fill:none;stroke:#303030;stroke-width:1.5;stroke-linejoin:round;stroke-linecap:round}
 .ov-scene .ov-inner{fill:none;stroke:#303030;stroke-opacity:.12;stroke-width:1}
 .ov-scene .ov-glyph *{fill:none;stroke:#303030;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
@@ -125,10 +128,38 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
 <script>
 /* Platform overview: isometric scene in qTrack's visual language, one diamond floor plate per stage
    column plus one for qRx, nodes joined by 1px connectors along the ±30° axes.
-   Everything is measured from the data-* hooks; ?debug=1 outlines zones, anchors and leader targets.
-   STATIC FRAME ONLY for review: packets, highlights and the output tick-on are not wired yet. */
+   Draw-in plays once on first view; then a 12s loop (qLens tempo) moves packets one stage at a time
+   with qTrack's leg timing. Pauses off-screen like qLens/qTrack. Static final frame with
+   prefers-reduced-motion or below 640px; hidden when the columns stack.
+   Everything is measured from the data-* hooks; ?debug=1 outlines zones, anchors and the path line. */
 (function () {
+  var T = 12, STILL = 10.8;                    // loop length; loop time used for the static final frame
   var C = Math.cos(Math.PI / 6), TAN = Math.tan(Math.PI / 6);
+  var INK = '#303030', GREY = '#8A8A99', IND = '#2A288C', MID = '#A9A8E8', PEACH = '#FF7869';
+  // easing and colour helpers, same as qlens-tech.html / qtrack-tech.html (not exported there, so copied)
+  var cl = function (v) { return v < 0 ? 0 : v > 1 ? 1 : v; };
+  var io = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  var eo = function (x) { return 1 - Math.pow(1 - x, 3); };
+  var seg = function (t, a, b, e) { return (e || io)(cl((t - a) / (b - a))); };
+  var rgb = function (h) { return [1, 3, 5].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); };
+  var mix = function (a, b, p) { a = rgb(a); b = rgb(b); return 'rgb(' + a.map(function (v, i) { return Math.round(v + (b[i] - v) * p); }) + ')'; };
+  var leg = function (t, a, b) { return t >= a && t <= b ? (t - a) / (b - a) : -1; };
+
+  // loop timeline (s). Legs follow qTrack (.3–.6s, eased in and out); stage cards light as the packet arrives.
+  var F = {
+    feed: [1.8, 2.1],                          // input window → sources (staggered .06s)
+    src: [2.15, 2.6],                          // sources → junction J (via j1)
+    lens: [2.6, 3.1],                          // J → qLens; qLens deepens + one pulse ring at 3.1
+    hops: [[3.9, 4.5], [4.6, 5.2], [5.3, 5.9], [6.3, 6.8], [6.9, 7.3]],   // qLens → up3 → up4 → qTrack → Specialist → qRx
+    out: [7.4, 7.8],                           // qRx → output window
+    tick: 7.9,                                 // output rows tick on, .25s apart
+    back: [8.9, 10.4],                         // write-back Specialist → EMR, peach
+    reset: [11.2, 11.8]                        // output rows fade back
+  };
+  var STAGE_AT = [2.15, 3.1, 4.5, 5.2, 5.9, 8.9];
+  var DEEPEN = { qlens: 3.05, qtrack: 5.85, qrx: 7.25 };
+
+  var desk = matchMedia('(min-width: 640px)'), reduce = matchMedia('(prefers-reduced-motion: reduce)');
   var DEBUG = /[?&]debug=1(?:&|$)/.test(location.search);
   var NS = 'http://www.w3.org/2000/svg', inst = 0;
   // top-face glyphs in qLens/qTrack viewBox units (simplified: lens without spokes, route without its origin dot)
@@ -145,6 +176,7 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
     if (parent) parent.appendChild(e);
     return e;
   }
+  var op = function (e, v) { e.style.opacity = v; };
   var f1 = function (v) { return Math.round(v * 10) / 10; };
   var P = function (p) { return f1(p[0]) + ' ' + f1(p[1]); };
   var dist = function (a, b) { return Math.hypot(b[0] - a[0], b[1] - a[1]); };
@@ -178,6 +210,18 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
     }
     return pts[0][1];
   }
+  // polyline for packets: point + heading at fraction p of its length
+  function Poly(pts) {
+    this.p = pts; this.c = [0];
+    for (var i = 1; i < pts.length; i++) this.c.push(this.c[i - 1] + dist(pts[i - 1], pts[i]));
+    this.L = this.c[this.c.length - 1];
+  }
+  Poly.prototype.at = function (p) {
+    var s = cl(p) * this.L, c = this.c, i = 1;
+    while (i < c.length - 1 && c[i] < s) i++;
+    var a = this.p[i - 1], b = this.p[i], u = (s - c[i - 1]) / ((c[i] - c[i - 1]) || 1);
+    return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI];
+  };
   // isometric box standing on the floor: (x, y) = centre of its footprint, w = footprint side, h = height
   function boxGeo(x, y, w, h, r, k, ri) {
     var X = w * C, Y = w / 2, ty = y - h;
@@ -191,6 +235,10 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
       top: [x, ty], peak: T[1], hw: X
     };
   }
+  function drawable(e) {
+    var L = e.getTotalLength(); e.style.strokeDasharray = L + ' ' + L;
+    return function (p) { e.style.strokeDashoffset = L * (1 - p); };
+  }
 
   function init(root) {
     var id = 'ov-' + (++inst);
@@ -199,7 +247,15 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
     var scene = $('.ov-scene');
     if (!scene) { scene = document.createElement('div'); scene.className = 'ov-scene'; scene.setAttribute('aria-hidden', 'true'); root.appendChild(scene); }
     var svg = mk('svg', {}); scene.appendChild(svg);
-    var pend = 0;
+    var pt = svg.createSVGPoint();
+    var G = null, mode = '', pend = 0, el = 0, last = null, running = false, vis = false, raf = 0;
+
+    // inline styles the animation writes on real content; cleared whenever the scene is hidden or static
+    function clean() {
+      $$('.ov-win, .ov-label').forEach(function (e) { e.style.opacity = ''; e.style.transform = ''; });
+      $$('[data-ov-stage]').forEach(function (e) { e.style.removeProperty('border-color'); e.style.removeProperty('--ov-hl'); });
+      $$('.ov-win-out .ov-win-rows li').forEach(function (e) { e.style.color = ''; e.style.removeProperty('--ov-tick'); });
+    }
 
     function layout() {
       pend = 0;
@@ -209,11 +265,12 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
       var stages = $$('[data-ov-stage]'), labels = {};
       $$('[data-ov-label]').forEach(function (e) { labels[e.getAttribute('data-ov-label')] = e; });
       var place = function (on) { root.classList.toggle('ov-placed', on); scene.hidden = !on; };
-      if (!inp || !out || !band || stages.length !== 6) return place(false);
+      if (!inp || !out || !band || stages.length !== 6) { place(false); return setMode('hidden'); }
+      clean();                                                          // measure content without animation offsets
       var I = rel(inp), O = rel(out), B = rel(band), st = stages.map(rel);
       var row = st.every(function (s) { return Math.abs(s.y - st[0].y) < 4; });
       // stacked columns: nothing to align to, hide the scene and let the labels fall back to a plain row
-      if (!row || I.r > st[0].x + 1 || O.x < st[5].r - 1 || B.h < 120) return place(false);
+      if (!row || I.r > st[0].x + 1 || O.x < st[5].r - 1 || B.h < 120) { place(false); return setMode('hidden'); }
       place(true);
       var up = stages.map(function (s) { return s.getAttribute('data-status') === 'upcoming'; });
 
@@ -233,12 +290,12 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
       var src = [-1, 0, 1].map(function (j) { return [xs, yc + j * sp]; });     // EMR (back), PACS, PowerScribe (front)
       var J = [xs + sp / TAN, yc], j1 = [xs + sp / (2 * TAN), yc + sp / 2];
       var N = {
-        qlens: { at: [cx[1], yc], w: 104 * S, h: 104 * S, kind: 'hero', glyph: 'lens' },
-        up3: { at: [cx[2], yc], w: 48 * S, h: 48 * S, kind: up[2] ? 'up' : 'node' },
-        up4: { at: [cx[3], yc], w: 48 * S, h: 48 * S, kind: up[3] ? 'up' : 'node' },
-        qtrack: { at: [cx[4], yc], w: 72 * S, h: 108 * S, kind: 'hero', glyph: 'route' },
-        specialist: { at: [cx[5], yc], w: 72 * S, h: 72 * S, kind: 'node', glyph: 'cal' },
-        qrx: { at: [cx[6], yc], w: 72 * S, h: 72 * S, kind: 'hero', glyph: 'plus' }
+        qlens: { at: [cx[1], yc], w: 104 * S, h: 104 * S, kind: 'hero', glyph: 'lens', t: .35 },
+        up3: { at: [cx[2], yc], w: 48 * S, h: 48 * S, kind: up[2] ? 'up' : 'node', t: .45 },
+        up4: { at: [cx[3], yc], w: 48 * S, h: 48 * S, kind: up[3] ? 'up' : 'node', t: .55 },
+        qtrack: { at: [cx[4], yc], w: 72 * S, h: 108 * S, kind: 'hero', glyph: 'route', t: .65 },
+        specialist: { at: [cx[5], yc], w: 72 * S, h: 72 * S, kind: 'node', glyph: 'cal', t: .75 },
+        qrx: { at: [cx[6], yc], w: 72 * S, h: 72 * S, kind: 'hero', glyph: 'plus', t: .85 }
       };
       Object.keys(N).forEach(function (n) { var o = N[n]; o.geo = boxGeo(o.at[0], o.at[1], o.w, o.h, 6 * S, .78, 3.7 * S); });
       var order = ['qlens', 'up3', 'up4', 'qtrack', 'specialist', 'qrx'];
@@ -250,6 +307,10 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
       for (k = 5; k >= 1; k--) wb.push([bnd[k], yc], [cx[k - 1], yc - hh[k - 1]]); // then along every back rim to plate 1,
       wb.push([src[0][0], src[0][1] - ws / 2]);                                  // ending inside EMR
       var outX = Math.min(cx[6] + N.qrx.geo.hw + 18, O.r - 16), outY = yc - N.qrx.h / 2;
+      var feeds = src.map(function (s, i) {
+        var x = I.r - 20 - 14 * i, y = s[1] - ws / 2;
+        return { x: x, y: y, link: new Poly([[x, I.b], [x, y], [s[0], y]]), conn: new Poly(i === 1 ? [s, j1, J] : [s, J]) };
+      });
 
       // ---- draw
       var Wd = R.width, Ht = R.height;
@@ -260,55 +321,66 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
       var rg = mk('radialGradient', { id: id + '-fade' }, defs);
       [[0, '#fff'], [.5, '#fff'], [1, '#000']].forEach(function (s) { mk('stop', { offset: s[0], 'stop-color': s[1] }, rg); });
 
-      var gPlates = mk('g', {}, svg), gLinks = mk('g', {}, svg), gConn = mk('g', {}, svg), gObj = mk('g', {}, svg), gLead = mk('g', {}, svg);
+      var gPlates = mk('g', {}, svg), gRing = mk('g', {}, svg), gLinks = mk('g', {}, svg), gConn = mk('g', {}, svg), gObj = mk('g', {}, svg), gLead = mk('g', {}, svg), gPk = mk('g', {}, svg);
+      var g = { plates: [], objs: [], ups: [], conns: [], leads: [], labels: [], solid: [], heroes: {}, up: up, bnd: bnd,
+                cards: stages, wins: [inp, out], rows: $$('.ov-win-out .ov-win-rows li'), feeds: feeds };
       for (k = 0; k < 7; k++) {
-        var L = [bnd[k], yc], T = [cx[k], yc - hh[k]], Rt = [bnd[k + 1], yc], Bt = [cx[k], yc + hh[k]];
+        var L = [bnd[k], yc], T = [cx[k], yc - hh[k]], Rt = [bnd[k + 1], yc], Bt = [cx[k], yc + hh[k]], pg = mk('g', {}, gPlates);
         var side = 'M' + P(L) + 'V' + f1(yc + TH) + 'L' + P([Bt[0], Bt[1] + TH]) + 'L' + P([Rt[0], yc + TH]) + 'V' + f1(yc);
-        mk('path', { 'class': 'ov-plate-side', d: side + 'Z' }, gPlates);
-        mk('path', { 'class': 'ov-plate-rim', d: side }, gPlates);
+        mk('path', { 'class': 'ov-plate-side', d: side + 'Z' }, pg);
+        mk('path', { 'class': 'ov-plate-rim', d: side }, pg);
         var top = roundPoly([L, T, Rt, Bt], 5);
-        mk('path', { 'class': 'ov-plate-top', d: top }, gPlates);
+        mk('path', { 'class': 'ov-plate-top', d: top }, pg);
         mk('path', { d: top }, mk('clipPath', { id: id + '-plate-' + k }, defs));
         var bb = { x: f1(bnd[k]), y: f1(yc - hh[k]), width: f1(bnd[k + 1] - bnd[k]), height: f1(2 * hh[k]) };
         var m = mk('mask', { id: id + '-mask-' + k }, defs); mk('rect', Object.assign({ fill: 'url(#' + id + '-fade)' }, bb), m);
-        mk('rect', Object.assign({ fill: 'url(#' + id + '-iso)', mask: 'url(#' + id + '-mask-' + k + ')', 'clip-path': 'url(#' + id + '-plate-' + k + ')' }, bb), gPlates);
+        mk('rect', Object.assign({ fill: 'url(#' + id + '-iso)', mask: 'url(#' + id + '-mask-' + k + ')', 'clip-path': 'url(#' + id + '-plate-' + k + ')' }, bb), pg);
+        g.plates.push(pg);
       }
+      g.ring = mk('ellipse', { 'class': 'ov-ring', cx: f1(N.qlens.at[0]), cy: f1(yc), rx: 1, ry: 1 }, gRing);
+      g.ringR = N.qlens.geo.hw;
 
       // links: input window → each source (drop, then along the floor); qRx → output window
-      src.forEach(function (s, i) {
-        var x = I.r - 20 - 14 * i, y = s[1] - ws / 2;
-        mk('path', { 'class': 'ov-link', d: 'M' + f1(x) + ' ' + f1(I.b) + 'V' + f1(y - 10) + 'Q' + P([x, y]) + ' ' + P([x + 10, y]) + 'H' + f1(s[0]) }, gLinks);
-      });
-      mk('path', { 'class': 'ov-link', d: 'M' + P([cx[6], outY]) + 'H' + f1(outX - 10) + 'Q' + P([outX, outY]) + ' ' + P([outX, outY - 10]) + 'V' + f1(O.b) }, gLinks);
+      var conn = function (parent, cls, d, a, b) { var e = mk('path', { 'class': cls, d: d }, parent); g.conns.push({ draw: drawable(e), a: a, b: b }); return e; };
+      feeds.forEach(function (f) { conn(gLinks, 'ov-link', 'M' + f1(f.x) + ' ' + f1(I.b) + 'V' + f1(f.y - 10) + 'Q' + P([f.x, f.y]) + ' ' + P([f.x + 10, f.y]) + 'H' + f1(src[0][0]), .9, 1.3); });
+      conn(gLinks, 'ov-link', 'M' + P([cx[6], outY]) + 'H' + f1(outX - 10) + 'Q' + P([outX, outY]) + ' ' + P([outX, outY - 10]) + 'V' + f1(O.b), 1.1, 1.5);
+      g.outLink = new Poly([[cx[6], outY], [outX, outY], [outX, O.b]]);
 
-      // connectors: sources converge on j1 / J, main path, write-back
-      [[src[0], J], [src[1], j1], [src[2], J]].forEach(function (l) { mk('path', { 'class': 'ov-conn', d: 'M' + P(l[0]) + 'L' + P(l[1]) }, gConn); });
-      mk('path', { 'class': 'ov-conn', d: roundLine(main, 8) }, gConn);
-      mk('path', { 'class': 'ov-conn', d: roundLine(wb, 8) }, gConn);
-      [j1, J].forEach(function (p) { mk('circle', { 'class': 'ov-jdot', cx: f1(p[0]), cy: f1(p[1]), r: 2.5 }, gConn); });
+      // connectors: sources converge on j1 / J, main path, write-back (grey at rest, peach march while its packet runs)
+      [[src[0], J], [src[1], j1], [src[2], J]].forEach(function (l) { conn(gConn, 'ov-conn', 'M' + P(l[0]) + 'L' + P(l[1]), .45, .85); });
+      conn(gConn, 'ov-conn', roundLine(main, 8), .55, 1.35);
+      conn(gConn, 'ov-conn ov-wb', roundLine(wb, 8), 1, 1.6);
+      g.march = mk('path', { 'class': 'ov-march', d: roundLine(wb, 8) }, gConn);
+      g.jdots = [j1, J].map(function (p) { return mk('circle', { 'class': 'ov-jdot', cx: f1(p[0]), cy: f1(p[1]), r: 2.5 }, gConn); });
+      g.toLens = new Poly(main.slice(0, 3));
+      g.hops = [0, 1, 2, 3, 4].map(function (i) { return new Poly(main.slice(2 + 2 * i, 5 + 2 * i)); });
+      g.wb = new Poly(wb);
 
       // objects, back to front
-      function cube(o, x, y, w, h, kind, glyph, name) {
-        var g = mk('g', { 'class': 'ov-obj' + (kind === 'hero' ? ' hero' : kind === 'up' ? ' ov-up' : '') }, gObj);
+      function cube(o, x, y, w, h, kind, glyph, name, at) {
+        var gg = mk('g', { 'class': 'ov-obj' + (kind === 'hero' ? ' hero' : kind === 'up' ? ' ov-up' : '') }, gObj);
         var geo = o ? o.geo : boxGeo(x, y, w, h, 2, .7, 1.2);
-        if (kind === 'up') { mk('path', { 'class': 'ov-up-edge', d: geo.edge }, g); return; }
+        if (kind === 'up') { mk('path', { 'class': 'ov-up-edge', d: geo.edge }, gg); g.ups.push({ g: gg, at: at }); return; }
         var cid = id + '-clip-' + name, hero = kind === 'hero';
         mk('path', { d: geo.hex }, mk('clipPath', { id: cid }, defs));
-        var faces = mk('g', { 'clip-path': 'url(#' + cid + ')' }, g);
+        var faces = mk('g', { 'clip-path': 'url(#' + cid + ')' }, gg);
         mk('path', { d: geo.fl, fill: hero ? '#FFBCB4' : '#fff' }, faces);
         mk('path', { d: geo.fr, fill: hero ? '#FFAAA0' : '#fff' }, faces);
         mk('path', { d: geo.ft, fill: hero ? '#FFD2CC' : '#fff' }, faces);
-        if (hero) mk('path', { 'class': 'ov-deepen', d: geo.hex, fill: '#FF7869', opacity: 0 }, g);
-        mk('path', { 'class': 'ov-edge', d: geo.edge }, g);
-        mk('path', { 'class': 'ov-inner', d: geo.inner }, g);
+        var deepen = hero ? mk('path', { d: geo.hex, fill: PEACH, opacity: 0 }, gg) : null;
+        var edge = mk('path', { 'class': 'ov-edge', d: geo.edge }, gg), fade = [faces, mk('path', { 'class': 'ov-inner', d: geo.inner }, gg)];
         if (glyph) {
           // same top-face matrix as qLens/qTrack (0.9 skew, see issues.md #2) so the minis match their heroes
-          var gg = mk('g', { 'class': 'ov-glyph', transform: 'matrix(' + [.9 * S, -.5 * S, .9 * S, .5 * S, geo.top[0], geo.top[1]].map(function (v) { return +v.toFixed(3); }).join(' ') + ')' }, g);
-          GLYPH[glyph].forEach(function (s) { mk(s[0], s[1], gg); });
+          var gl = mk('g', { 'class': 'ov-glyph', transform: 'matrix(' + [.9 * S, -.5 * S, .9 * S, .5 * S, geo.top[0], geo.top[1]].map(function (v) { return +v.toFixed(3); }).join(' ') + ')' }, gg);
+          GLYPH[glyph].forEach(function (s) { mk(s[0], s[1], gl); });
+          fade.push(gl);
         }
+        g.solid.push(edge);
+        g.objs.push({ draw: drawable(edge), fade: fade, at: at });
+        if (deepen) g.heroes[name] = deepen;
       }
-      src.forEach(function (s, i) { cube(null, s[0], s[1], ws, ws, 'node', null, 'src-' + i); });
-      order.forEach(function (n) { cube(N[n], 0, 0, 0, 0, N[n].kind, N[n].glyph, n); });
+      src.forEach(function (s, i) { cube(null, s[0], s[1], ws, ws, 'node', null, 'src-' + i, .15 + .06 * i); });
+      order.forEach(function (n) { cube(N[n], 0, 0, 0, 0, N[n].kind, N[n].glyph, n, N[n].t); });
 
       // scene labels (HTML) on one baseline, leaders dropping onto each cube's top
       var heroes = ['qlens', 'qtrack', 'specialist', 'qrx'];
@@ -317,25 +389,29 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
         var o = N[n], x = o.at[0], lg = mk('g', {}, gLead);
         mk('path', { 'class': 'ov-leader', d: 'M' + f1(x) + ' ' + f1(base + 4) + 'V' + f1(o.geo.peak - 6) }, lg);
         mk('circle', { 'class': 'ov-ldot', cx: f1(x), cy: f1(o.geo.peak - 6), r: 2 }, lg);
-        if (labels[n]) { labels[n].style.left = f1(x) + 'px'; labels[n].style.top = f1(base) + 'px'; }
+        if (labels[n]) { labels[n].style.left = f1(x) + 'px'; labels[n].style.top = f1(base) + 'px'; g.labels.push(labels[n]); }
+        g.leads.push(lg);
       });
 
-      // stage-card leaders: card bottom → its object or path segment
-      // left of the hero, clear of both the cube and its label's measured width
+      // stage-card leaders: card bottom → its object or path segment, clear of the hero labels
       var clear = function (n, pad) { var lw = labels[n] ? labels[n].getBoundingClientRect().width : 0; return N[n].at[0] - Math.max(N[n].geo.hw + pad, lw / 2 + 8); };
       var tx = [J[0], clear('qlens', 10), cx[2], cx[3], clear('qtrack', 10), clear('specialist', 22)];
       var ty = [J[1], yAt(main, tx[1]), N.up3.geo.peak - 6, N.up4.geo.peak - 6, yAt(main, tx[4]), yAt(wb, tx[5])];
       var beside = { 1: 'qlens', 4: 'qtrack', 5: 'specialist' };
       st.forEach(function (s, i) {
         var x = Math.min(Math.max(tx[i], s.x + 10), s.r - 10), lg = mk('g', { 'class': up[i] ? 'up' : null }, gLead);
-        var n = beside[i], el = n && labels[n];
-        if (el) {                                                     // leader clamped into a narrow card: nudge the label clear of it
-          var lw = el.getBoundingClientRect().width, lx = Math.max(N[n].at[0], x + 8 + lw / 2);
-          el.style.left = f1(lx) + 'px';
+        var n = beside[i], le = n && labels[n];
+        if (le) {                                                     // leader clamped into a narrow card: nudge the label clear of it
+          var lw = le.getBoundingClientRect().width;
+          le.style.left = f1(Math.max(N[n].at[0], x + 8 + lw / 2)) + 'px';
         }
         mk('path', { 'class': 'ov-leader', d: 'M' + f1(x) + ' ' + f1(s.b) + 'V' + f1(ty[i]) }, lg);
         mk('circle', { 'class': 'ov-ldot', cx: f1(x), cy: f1(ty[i]), r: 2 }, lg);
+        g.leads.push(lg);
       });
+
+      // packets (qTrack arrowheads): three from the sources, one main, one peach for the write-back
+      g.pk = [INK, INK, INK, INK, PEACH].map(function (c) { return mk('path', { d: 'M5 0L-4 -4.2L-2 0L-4 4.2Z', fill: c, style: 'opacity:0' }, gPk); });
 
       if (DEBUG) {
         var dg = mk('g', { 'class': 'ov-debug' }, svg);
@@ -347,13 +423,114 @@ body{margin:0;background:#fff;display:grid;place-items:center;min-height:100vh}
         mk('path', { d: 'M' + f1(B.x) + ' ' + f1(yc) + 'H' + f1(B.r), 'class': 'up' }, dg);
         console.info('[platform-overview]', JSON.stringify({ band: f1(B.h), pitch: f1(pitch), scale: +S.toFixed(3), plateHalfH: f1(hh[0]), sourceGap: f1(sp), labelBase: f1(base - B.y) }));
       }
+
+      G = g;
+      setMode(reduce.matches || !desk.matches ? 'static' : 'anim');
     }
 
+    // place an arrowhead at fraction p along poly; hidden while inside any solid cube
+    function put(pk, poly, p, s) {
+      var q = poly.at(p);
+      pk.setAttribute('transform', 'translate(' + f1(q[0]) + ' ' + f1(q[1]) + ') rotate(' + f1(q[2]) + ') scale(' + (s || 1) + ')');
+      pt.x = q[0]; pt.y = q[1];
+      return G.solid.some(function (e) { return e.isPointInFill(pt); }) ? 0 : 1;
+    }
+    // packets passing an upcoming stage run faint (driven by data-status)
+    function faint(pk) {
+      var x = +(pk.getAttribute('transform').match(/translate\(([-\d.]+)/) || [0, -1e9])[1], f = 1;
+      G.up.forEach(function (u, k) { if (u) f = Math.min(f, 1 - .65 * Math.min(cl((x - G.bnd[k]) / 12), cl((G.bnd[k + 1] - x) / 12))); });
+      return f;
+    }
+
+    function render(t, intro, el) {
+      var g = G; if (!g) return;
+      var ti = intro ? t : 99, v, p, k;
+
+      // ---- draw-in, first loop only (qLens tempo: .55s edge draw, faces +.3 → +.75s)
+      g.plates.forEach(function (e, k) { op(e, seg(ti, k * .05, .3 + k * .05)); });
+      g.objs.forEach(function (o) { o.draw(seg(ti, o.at, o.at + .55)); v = seg(ti, o.at + .3, o.at + .75); o.fade.forEach(function (e) { op(e, v); }); });
+      // upcoming: dashed fade-in, then qTrack's slow .4 → .6 breathe (continuous across loops)
+      g.ups.forEach(function (u, k) { op(u.g, seg(ti, u.at + .3, u.at + .75) * (.5 - .1 * Math.cos(Math.PI * 2 * (el - k * .6) / T))); });
+      g.conns.forEach(function (c) { c.draw(seg(ti, c.a, c.b)); });
+      g.jdots.forEach(function (e) { op(e, seg(ti, .8, 1)); });
+      g.leads.forEach(function (e, k) { op(e, seg(ti, .8 + k * .04, 1.1 + k * .04)); });
+      g.labels.forEach(function (e, k) { op(e, seg(ti, .9 + k * .06, 1.2 + k * .06)); });
+      g.wins.forEach(function (w) { op(w, seg(ti, .9, 1.25)); w.style.transform = 'translateY(' + f1(6 * (1 - seg(ti, .9, 1.3, eo))) + 'px)'; });
+
+      // ---- Integrate: input window → sources → junction
+      g.feeds.forEach(function (f, i) {
+        v = 0;
+        if ((p = leg(t, F.feed[0] + i * .06, F.feed[1] + i * .06)) >= 0) v = put(g.pk[i], f.link, io(p), .8);
+        else if ((p = leg(t, F.src[0] + i * .06, F.src[1])) >= 0) v = put(g.pk[i], f.conn, io(p), .8);
+        op(g.pk[i], v);
+      });
+
+      // ---- Insights → Scheduling → qRx → output: one packet, one stage at a time
+      var m = g.pk[3], col = INK; v = 0;
+      if ((p = leg(t, F.lens[0], F.lens[1])) >= 0) v = put(m, g.toLens, io(p));
+      else {
+        for (k = 0; k < g.hops.length; k++) if ((p = leg(t, F.hops[k][0], F.hops[k][1])) >= 0) { v = put(m, g.hops[k], io(p)); col = IND; break; }
+        if (k === g.hops.length && (p = leg(t, F.out[0], F.out[1])) >= 0) { v = put(m, g.outLink, io(p)) * cl((1 - p) / .2); col = IND; }
+      }
+      m.setAttribute('fill', col); op(m, v && v * faint(m));
+
+      // qLens deepens and pulses once; qTrack and qRx deepen as the packet arrives
+      Object.keys(g.heroes).forEach(function (n) { var a = DEEPEN[n]; op(g.heroes[n], (n === 'qlens' ? .22 : .2) * (seg(t, a, a + .4) - seg(t, a + .6, a + 1.2))); });
+      p = cl((t - DEEPEN.qlens) / 1.6); v = g.ringR * (1.05 + .9 * eo(p));
+      g.ring.setAttribute('rx', f1(v)); g.ring.setAttribute('ry', f1(v * TAN));
+      op(g.ring, p > 0 && p < 1 ? .5 * (1 - p) : 0);
+
+      // ---- Close the loop: peach packet along the write-back, dash-march as in qTrack
+      v = 0;
+      if ((p = leg(t, F.back[0], F.back[1])) >= 0) v = put(g.pk[4], g.wb, io(p));
+      op(g.pk[4], v);
+      op(g.march, seg(t, F.back[0] - .2, F.back[0]) - seg(t, F.back[1], F.back[1] + .3));
+      g.march.style.strokeDashoffset = -30 * Math.max(t - F.back[0] + .2, 0);
+
+      // ---- stage cards light as the packet reaches them (upcoming: faint lavender only)
+      g.cards.forEach(function (c, k) {
+        var a = STAGE_AT[k], u = g.up[k];
+        v = seg(t, a, a + .25) - seg(t, a + .8, a + 1.6);
+        if (v <= 0) { c.style.removeProperty('border-color'); c.style.removeProperty('--ov-hl'); return; }
+        c.style.borderColor = mix(u ? '#C9C9D4' : '#E6E6F0', u ? MID : IND, u ? .7 * v : v);
+        c.style.setProperty('--ov-hl', (u ? .7 : 1) * v);
+      });
+
+      // ---- output rows tick on one by one, hold, reset quietly before the next loop
+      g.rows.forEach(function (r, k) {
+        v = seg(t, F.tick + k * .25, F.tick + .3 + k * .25) - seg(t, F.reset[0], F.reset[1]);
+        r.style.color = mix(GREY, INK, v); r.style.setProperty('--ov-tick', v);
+      });
+    }
+
+    function tick(now) {
+      if (last !== null) el += Math.min(now - last, 64) / 1000;
+      last = now; render(el % T, el < T, el); raf = requestAnimationFrame(tick);
+    }
+    function start() { if (!running) { running = true; last = null; raf = requestAnimationFrame(tick); } }
+    function stop() { if (running) { running = false; cancelAnimationFrame(raf); } }
+    function setMode(m) {
+      mode = m;
+      if (m !== 'anim') stop();
+      if (m === 'hidden') { G = null; clean(); }
+      else if (m === 'static') render(STILL, false, T / 4);
+      else { render(el % T, el < T, el); if (vis) start(); }
+    }
     function schedule() { if (!pend) pend = requestAnimationFrame(layout); }
+
     layout();
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        vis = e.isIntersecting;
+        if (vis && mode === 'anim') start();
+        else if (!vis) stop();
+      });
+    }, { threshold: .25 }).observe(root);
     var ro = new ResizeObserver(schedule);
     [root].concat($$('[data-ov-zone],[data-ov-stage],[data-ov-label]')).forEach(function (e) { ro.observe(e); });
     new MutationObserver(schedule).observe(root, { subtree: true, attributes: true, attributeFilter: ['data-status'] });
+    window.addEventListener('resize', schedule);
+    [desk, reduce].forEach(function (q) { q.addEventListener ? q.addEventListener('change', schedule) : q.addListener(schedule); });
     if (document.fonts) document.fonts.ready.then(schedule);
   }
 
