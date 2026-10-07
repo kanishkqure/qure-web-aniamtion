@@ -12,36 +12,48 @@ html,body{margin:0;background:#fff}
 /* demo-only page chrome around the section */
 .ps-demo{display:grid;place-items:center;height:70vh;font:400 14px/1.4 "DM Mono",ui-monospace,monospace;letter-spacing:.14em;color:#8A8A99;text-transform:uppercase}
 
-/* ---- component ---- */
-.ps{--k:1;--u:1px;position:relative;background:#FFFFFF;color:#303030;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* ---- component ----
+   --u: layout px (design 1440 × 900 scaled by k = min(vh / 900, vw / 1440))
+   --ut: text px (same scale, floored so small type stays legible on short laptops) */
+.ps{--u:1px;--ut:1px;position:relative;background:#FFFFFF;color:#303030;font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .ps *{box-sizing:border-box}
 .ps .ps-mono{font-family:"DM Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .ps-sticky{position:sticky;top:0;height:100vh;overflow:hidden;background:#FFFFFF}
 .ps-static .ps-sticky{position:relative}
 
-/* design canvas: 1440 × 900 design px, scaled by --k (min of height / 900 and width / 1440) */
+/* design canvas */
 .ps-canvas{position:absolute;left:var(--cx,0px);top:var(--cy,0px);width:calc(1440 * var(--u));height:calc(900 * var(--u));pointer-events:none}
 .ps-frame{position:absolute;visibility:hidden}
-.ps-frame[data-ps-frame="overview"]{left:calc(70 * var(--u));top:calc(330 * var(--u));width:calc(1300 * var(--u));height:calc(487 * var(--u))}
+.ps-frame[data-ps-frame="overview"]{left:calc(70 * var(--u));top:calc(330 * var(--u));width:calc(1300 * var(--u));height:calc(530 * var(--u))}
 .ps-frame[data-ps-frame="product"]{left:calc(70 * var(--u));top:calc(278 * var(--u));width:calc(927 * var(--u));height:calc(557 * var(--u))}
-.ps-heading{position:absolute;left:calc(70 * var(--u));top:calc(72 * var(--u));margin:0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:400;font-size:calc(66 * var(--u));line-height:1.1;letter-spacing:-.025em;color:#2A288C;white-space:nowrap}
+/* headings scale with viewport height (clamped) so heading + cards + row fit on short laptops */
+.ps-heading{position:absolute;left:calc(70 * var(--u));top:calc(72 * var(--u));margin:0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:400;font-size:clamp(40px,calc(9.09vh - 15.8px),calc(66 * var(--u)));line-height:1.1;letter-spacing:-.025em;color:#2A288C;white-space:nowrap}
 .ps-heading .ps-peach{color:#FF7869}
-.ps-support{position:absolute;left:calc(1060 * var(--u));top:calc(219 * var(--u));width:calc(310 * var(--u));margin:0;font-size:calc(16 * var(--u));line-height:1.4;color:#303030}
+.ps-support{position:absolute;left:calc(1060 * var(--u));top:0;width:calc(310 * var(--u));margin:0;font-size:max(13px,calc(16 * var(--u)));line-height:1.4;color:#303030}
 .ps-panel{position:absolute;left:calc(1060 * var(--u));top:calc(278 * var(--u));width:calc(312 * var(--u));height:calc(557 * var(--u))}
 .ps-pan{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0}
 .ps-pan-head{display:flex;align-items:center;gap:calc(20 * var(--u))}
 .ps-pill{display:inline-flex;align-items:center;height:calc(46 * var(--u));padding:0 calc(20 * var(--u));border-radius:999px;background:#FF7869;color:#fff;font-weight:500;font-size:calc(20 * var(--u));letter-spacing:-.01em}
-.ps-pan-over{font-size:calc(13 * var(--u));letter-spacing:.06em;color:#2A288C}
+.ps-pan-over{font-size:calc(13 * var(--ut));letter-spacing:.06em;color:#2A288C}
 .ps-pan-title{margin:calc(30 * var(--u)) 0 0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:400;font-size:calc(30 * var(--u));line-height:1.27;letter-spacing:-.01em;color:#2A288C;text-transform:uppercase}
 .ps-lines{list-style:none;margin:auto 0 0;padding:0;display:flex;flex-direction:column;gap:calc(20 * var(--u))}
-.ps-line{font-size:calc(15 * var(--u));line-height:1.3;color:#303030;opacity:.55;transition:opacity .45s cubic-bezier(.33,1,.68,1),background-color .45s cubic-bezier(.33,1,.68,1)}
+.ps-line{font-size:calc(15 * var(--ut));line-height:1.3;color:#303030;opacity:.55;transition:opacity .45s cubic-bezier(.33,1,.68,1),background-color .45s cubic-bezier(.33,1,.68,1)}
 .ps-line.is-on{opacity:1}
-.ps-lead{color:#2A288C;font-weight:500;padding:0 calc(3 * var(--u));margin:0 calc(-3 * var(--u));border-radius:3px;transition:background-color .45s cubic-bezier(.33,1,.68,1)}
+.ps-lead{color:#2A288C;font-weight:500;padding:0 3px;margin:0 -3px;border-radius:3px;transition:background-color .45s cubic-bezier(.33,1,.68,1)}
 .ps-line.is-on .ps-lead{background:#D9D9FF}
 /* lines without a lead-in (qLens): the whole block takes the highlight, as in the wireframe */
 .ps-line.ps-block{padding:calc(6 * var(--u)) calc(7 * var(--u));margin:calc(-6 * var(--u)) calc(-7 * var(--u));border-radius:3px}
 .ps-line.ps-block.is-on{background:#D9D9FF}
-.ps-up-tag{margin-left:calc(6 * var(--u));font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--u));letter-spacing:.06em;color:#FF7869;white-space:nowrap}
+.ps-up-tag{margin-left:6px;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--ut));letter-spacing:.06em;color:#FF7869;white-space:nowrap}
+
+/* S0 stage cards: six equal columns above the row; positioned by the script */
+.ps-cards{position:absolute;left:0;top:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));column-gap:calc(16 * var(--u));margin:0;padding:0;list-style:none;opacity:0;will-change:opacity}
+.ps-card{border-top:1px solid #2A288C;padding-top:calc(10 * var(--ut))}
+.ps-card[data-status="upcoming"]{border-top:1px dashed #A9A8E8}
+.ps-card-num{display:block;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--ut));letter-spacing:.14em;color:#2A288C}
+.ps-card[data-status="upcoming"] .ps-card-num{color:#A9A8E8}
+.ps-card-title{display:flex;flex-wrap:wrap;align-items:center;gap:calc(6 * var(--ut));margin:calc(6 * var(--ut)) 0 0;font-size:calc(15 * var(--ut));font-weight:500;line-height:1.25;color:#303030}
+.ps-card-desc{margin:calc(5 * var(--ut)) 0 0;font-size:calc(13 * var(--ut));line-height:1.4;color:#8A8A99}
 
 /* the one world: SVG fills the sticky viewport; the edge fade is a CSS mask over the current frame rect */
 .ps-world-wrap{position:absolute;inset:0;
@@ -59,46 +71,48 @@ html,body{margin:0;background:#fff}
 .ps-world .glyph{fill:none;stroke:#303030;stroke-width:calc(1.3px * var(--iz));stroke-linecap:round;stroke-linejoin:round}
 .ps-world .hero .edge,.ps-world .hero .glyph{stroke:#E0574A}
 .ps-world .hero .inner{stroke:#E0574A;stroke-opacity:.35}
-.ps-world .small .edge{stroke-width:calc(1.25px * var(--iz))}
-.ps-world .small .inner{stroke:#2A288C;stroke-opacity:.15}
 .ps-world .up-edge{fill:none;stroke:#8A8A99;stroke-width:calc(1.25px * var(--iz));stroke-dasharray:3 3;stroke-linejoin:round;stroke-linecap:round}
 .ps-world .conn{fill:none;stroke:#303030;stroke-width:calc(1px * var(--iz));stroke-linejoin:round}
-.ps-world .conn-up{fill:none;stroke:#C9C9D4;stroke-width:calc(1px * var(--iz));stroke-dasharray:3 4}
 .ps-world .conn-wb{stroke:#2A288C;stroke-opacity:.55}
 .ps-world .feed{fill:none;stroke:#A9A8E8;stroke-width:calc(1.6px * var(--iz));stroke-dasharray:0 4.5;stroke-linecap:round}
 .ps-world .port{fill:#A9A8E8}
-.ps-world .jdot{fill:#303030}
 .ps-world .ring{fill:none;stroke:#FF7869;stroke-width:calc(1.25px * var(--iz))}
 .ps-hud .elbow{fill:none;stroke:#8A8A99;stroke-width:1}
-.ps-hud .elbow-dot{fill:#8A8A99}
+.ps-hud .lead{fill:none;stroke:#303030;stroke-width:.75}
+.ps-hud .lead.up{stroke:#A9A8E8}
+.ps-hud .lead.wb{stroke:#2A288C}
+.ps-hud .dot{fill:#303030}
+.ps-hud .dot.grey{fill:#8A8A99}
+.ps-hud .dot.up{fill:#A9A8E8}
+.ps-hud .dot.wb{fill:#2A288C}
 
 /* HTML labels, pills and windows, placed by the script */
 .ps-labels{position:absolute;inset:0;pointer-events:none}
 .ps-el{position:absolute;left:0;top:0;opacity:0;will-change:transform,opacity}
 .ps-lbl{display:flex;flex-direction:column;align-items:center;text-align:center;white-space:nowrap}
-.ps-lbl .ps-over{font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--u));letter-spacing:.14em;color:#8A8A99;text-transform:uppercase}
-.ps-lbl .ps-name{margin-top:calc(3 * var(--u));font-size:calc(15 * var(--u));font-weight:500;line-height:1.2;color:#303030}
-.ps-lbl .ps-leader{display:block;width:0;height:calc(var(--lead,30) * var(--u));border-left:.75px solid #303030;margin-top:calc(6 * var(--u));position:relative}
+.ps-lbl .ps-over{font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--ut));letter-spacing:.14em;color:#8A8A99;text-transform:uppercase}
+.ps-lbl .ps-name{margin-top:calc(3 * var(--ut));font-size:calc(15 * var(--ut));font-weight:500;line-height:1.2;color:#303030}
+.ps-lbl .ps-leader{display:block;width:0;height:calc(var(--lead,18) * var(--ut));border-left:.75px solid #303030;margin-top:calc(5 * var(--ut));position:relative}
 .ps-lbl .ps-leader::after{content:"";position:absolute;left:-2.4px;bottom:-2px;width:4px;height:4px;border-radius:50%;background:#303030}
-.ps-lbl[data-dir="down"] .ps-leader{order:-1;margin:0 0 calc(5 * var(--u))}
+.ps-lbl[data-dir="down"] .ps-leader{order:-1;margin:0 0 calc(5 * var(--ut))}
 .ps-lbl[data-dir="down"] .ps-leader::after{bottom:auto;top:-2px}
-.ps-lbl[data-align="start"]{align-items:flex-start;text-align:left}
+.ps-lbl[data-align="start"]{align-items:flex-start}
+.ps-lbl[data-align="start"] .ps-leader{margin-left:calc(16 * var(--ut))}
 .ps-lbl.is-grey .ps-leader{border-color:#C9C9D4}
 .ps-lbl.is-grey .ps-leader::after{background:#C9C9D4}
-.ps-lbl.is-indigo .ps-over{color:#2A288C}
-.ps-lbl.is-indigo .ps-leader{border-color:#2A288C}
-.ps-lbl.is-indigo .ps-leader::after{background:#2A288C}
-.ps-tag{display:inline-block;margin-top:calc(4 * var(--u));padding:calc(1 * var(--u)) calc(6 * var(--u));border:.75px solid #FF7869;border-radius:999px;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(7.5 * var(--u));letter-spacing:.14em;color:#FF7869;background:#fff}
-.ps-status{display:inline-flex;align-items:center;gap:calc(7 * var(--u));height:calc(22 * var(--u));padding:0 calc(11 * var(--u)) 0 calc(10 * var(--u));border:1px solid #E6E6F0;border-radius:999px;background:#fff;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--u));letter-spacing:.12em;color:#303030;white-space:nowrap}
-.ps-status::before{content:"";width:calc(7 * var(--u));height:calc(7 * var(--u));border-radius:50%;background:#2A288C}
-.ps-win{background:#fff;border:1px solid #E6E6F0;border-radius:calc(10 * var(--u))}
-.ps-win-head{display:flex;align-items:center;justify-content:space-between;gap:calc(24 * var(--u));height:calc(32 * var(--u));padding:0 calc(12 * var(--u)) 0 calc(14 * var(--u));border-bottom:1px solid #E6E6F0}
-.ps-win-head .ps-over{font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--u));letter-spacing:.14em;color:#8A8A99}
-.ps-win-dots{display:flex;gap:calc(4 * var(--u))}
-.ps-win-dots i{width:calc(5 * var(--u));height:calc(5 * var(--u));border-radius:50%;background:#ECECF2}
-.ps-win-rows{list-style:none;margin:0;padding:calc(6 * var(--u)) calc(14 * var(--u)) calc(8 * var(--u))}
-.ps-win-rows li{display:flex;align-items:center;gap:calc(9 * var(--u));height:calc(26 * var(--u));font-size:calc(13 * var(--u));font-weight:500;white-space:nowrap}
-.ps-win-out .ps-win-rows li::before{content:"";flex:none;width:calc(6 * var(--u));height:calc(6 * var(--u));border-radius:50%;background:#2A288C}
+.ps-tag{display:inline-block;padding:1px calc(6 * var(--ut));border:.75px solid #FF7869;border-radius:999px;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(7.5 * var(--ut));font-weight:400;letter-spacing:.14em;color:#FF7869;background:#fff;line-height:1.5}
+.ps-status{display:inline-flex;align-items:center;gap:calc(7 * var(--ut));height:calc(22 * var(--ut));padding:0 calc(11 * var(--ut)) 0 calc(10 * var(--ut));border:1px solid #E6E6F0;border-radius:999px;background:#fff;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--ut));letter-spacing:.12em;color:#303030;white-space:nowrap}
+.ps-status::before{content:"";width:calc(7 * var(--ut));height:calc(7 * var(--ut));border-radius:50%;background:#2A288C}
+.ps-win{background:#fff;border:1px solid #E6E6F0;border-radius:calc(10 * var(--ut))}
+.ps-win-in{width:calc(132 * var(--ut))}
+.ps-win-out{width:calc(206 * var(--ut))}
+.ps-win-head{display:flex;align-items:center;justify-content:space-between;gap:calc(16 * var(--ut));height:calc(32 * var(--ut));padding:0 calc(12 * var(--ut)) 0 calc(14 * var(--ut));border-bottom:1px solid #E6E6F0}
+.ps-win-head .ps-over{font-family:"DM Mono",ui-monospace,monospace;font-size:calc(10 * var(--ut));letter-spacing:.14em;color:#8A8A99}
+.ps-win-dots{display:flex;gap:calc(4 * var(--ut))}
+.ps-win-dots i{width:calc(5 * var(--ut));height:calc(5 * var(--ut));border-radius:50%;background:#ECECF2}
+.ps-win-rows{list-style:none;margin:0;padding:calc(7 * var(--ut)) calc(14 * var(--ut)) calc(9 * var(--ut))}
+.ps-win-rows li{display:flex;align-items:baseline;gap:calc(9 * var(--ut));padding:calc(4 * var(--ut)) 0;font-size:calc(13 * var(--ut));font-weight:500;line-height:1.3}
+.ps-win-out .ps-win-rows li::before{content:"";flex:none;width:calc(6 * var(--ut));height:calc(6 * var(--ut));border-radius:50%;background:#2A288C;transform:translateY(-1px)}
 
 /* ?debug=1 */
 .ps-debug{position:absolute;inset:0;pointer-events:none}
@@ -127,33 +141,36 @@ html,body{margin:0;background:#fff}
       <p class="ps-support" id="ps-support">Every step is powered by the platform below — turning incidental findings into actionable pathways.</p>
       <aside class="ps-panel" id="ps-panel" data-ps-panel aria-live="polite"></aside>
     </div>
+    <!-- S0 stage cards; each drops a leader to its object on the row -->
+    <ol class="ps-cards" id="ps-cards" data-ps-cards>
+      <li class="ps-card" data-ps-card="01" data-target="src-pacs"><span class="ps-card-num">01</span><h3 class="ps-card-title">Integrate</h3><p class="ps-card-desc">DICOM images, reports, encounters, labs and EMR data in one workflow</p></li>
+      <li class="ps-card" data-ps-card="02" data-target="lbl-qlens"><span class="ps-card-num">02</span><h3 class="ps-card-title">Insights</h3><p class="ps-card-desc">Voxel and clinical text data analysed. Actionable findings surfaced and referrals prioritised</p></li>
+      <li class="ps-card" data-ps-card="03" data-target="up-prior" data-status="upcoming"><span class="ps-card-num">03</span><h3 class="ps-card-title">Prior auth <span class="ps-tag">UPCOMING</span></h3><p class="ps-card-desc">Payer-ready packets aligned, fewer denials and delays</p></li>
+      <li class="ps-card" data-ps-card="04" data-target="up-outreach" data-status="upcoming"><span class="ps-card-num">04</span><h3 class="ps-card-title">Outreach <span class="ps-tag">UPCOMING</span></h3><p class="ps-card-desc">Phone, MyChart, SMS and letter, in their language</p></li>
+      <li class="ps-card" data-ps-card="05" data-target="lbl-qtrack"><span class="ps-card-num">05</span><h3 class="ps-card-title">Scheduling</h3><p class="ps-card-desc">Follow-ups, appointments and notes written back to the EMR</p></li>
+      <li class="ps-card" data-ps-card="06" data-target="arc-corner"><span class="ps-card-num">06</span><h3 class="ps-card-title">Close the loop</h3><p class="ps-card-desc">New imaging and visits keep every team current</p></li>
+    </ol>
     <div class="ps-labels" id="ps-labels" aria-hidden="true">
       <!-- product labels (above their object) -->
       <div class="ps-el ps-lbl" id="ps-lbl-qlens" data-ps-el="lbl-qlens" data-anchor="qlens"><span class="ps-over">Finds</span><span class="ps-name">qLens</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-qtrack" data-ps-el="lbl-qtrack" data-anchor="qtrack"><span class="ps-over">Moves</span><span class="ps-name">qTrack</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl" id="ps-lbl-spec" data-ps-el="lbl-spec" data-anchor="spec"><span class="ps-over">05 / Scheduling</span><span class="ps-name">Specialist</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl" id="ps-lbl-spec" data-ps-el="lbl-spec" data-anchor="spec"><span class="ps-over">Specialist</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-qrx" data-ps-el="lbl-qrx" data-anchor="qrx"><span class="ps-over">Treats</span><span class="ps-name">qRx</span><i class="ps-leader"></i></div>
-      <!-- overview stage labels (overline only) -->
-      <div class="ps-el ps-lbl" id="ps-stg-01" data-ps-el="stg-01" data-anchor="src-ps" data-dir="down" style="--lead:14"><span class="ps-over">01 / Integrate</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl" id="ps-stg-02" data-ps-el="stg-02" data-anchor="qlens" data-dir="down" style="--lead:14"><span class="ps-over">02 / Insights</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-grey" id="ps-stg-03" data-ps-el="stg-03" data-anchor="up-prior" data-dir="down" style="--lead:26"><span class="ps-over">03 / Prior auth</span><span class="ps-tag">UPCOMING</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-grey" id="ps-stg-04" data-ps-el="stg-04" data-anchor="up-outreach" data-dir="down" data-align="start" style="--lead:10"><span class="ps-over">04 / Outreach</span><span class="ps-tag">UPCOMING</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-indigo" id="ps-stg-06" data-ps-el="stg-06" data-anchor="arc-label" style="--lead:16"><span class="ps-over">06 / Close the loop</span><i class="ps-leader"></i></div>
-      <!-- qLens close-up: source names, trigger pill -->
-      <div class="ps-el ps-lbl is-grey" id="ps-lbl-emr" data-ps-el="lbl-emr" data-anchor="src-emr" data-dir="down" style="--lead:12"><span class="ps-over">EMR</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-grey" id="ps-lbl-pacs" data-ps-el="lbl-pacs" data-anchor="src-pacs" data-dir="down" style="--lead:12"><span class="ps-over">PACS</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-grey" id="ps-lbl-ps" data-ps-el="lbl-ps" data-anchor="src-ps" data-dir="down" style="--lead:12"><span class="ps-over">PowerScribe</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-grey" id="ps-lbl-dicom" data-ps-el="lbl-dicom" data-anchor="art-dicom" data-dir="down" style="--lead:12"><span class="ps-over">DICOM</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl is-grey" id="ps-lbl-doc" data-ps-el="lbl-doc" data-anchor="art-doc" data-dir="down" style="--lead:12"><span class="ps-over">Document</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl" id="ps-pill-visit" data-ps-el="pill-visit" data-anchor="src-emr" style="--lead:22"><span class="ps-status">VISIT COMPLETED</span><i class="ps-leader"></i></div>
-      <!-- overview windows, anchored to the frame's thin ends -->
+      <!-- qLens close-up: source names, trigger pill, artifact names -->
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-emr" data-ps-el="lbl-emr" data-anchor="src-emr" data-dir="down" style="--lead:10"><span class="ps-over">EMR</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-pacs" data-ps-el="lbl-pacs" data-anchor="src-pacs" style="--lead:12"><span class="ps-over">PACS</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-ps" data-ps-el="lbl-ps" data-anchor="src-ps" data-dir="down" style="--lead:10"><span class="ps-over">PowerScribe</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-dicom" data-ps-el="lbl-dicom" data-anchor="art-dicom" data-dir="down" style="--lead:16"><span class="ps-over">DICOM</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-doc" data-ps-el="lbl-doc" data-anchor="art-doc" data-dir="down" style="--lead:10"><span class="ps-over">Document</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl" id="ps-pill-visit" data-ps-el="pill-visit" data-anchor="src-emr" data-align="start" style="--lead:18"><span class="ps-status">VISIT COMPLETED</span><i class="ps-leader"></i></div>
+      <!-- overview windows -->
       <div class="ps-el ps-win ps-win-in" id="ps-win-in" data-ps-el="win-in">
         <div class="ps-win-head"><span class="ps-over">INPUT</span><span class="ps-win-dots"><i></i><i></i><i></i></span></div>
-        <ul class="ps-win-rows"><li data-ps-row="src-emr">EMR</li><li data-ps-row="src-pacs">PACS</li><li data-ps-row="src-ps">PowerScribe</li></ul>
+        <ul class="ps-win-rows"><li>EMR</li><li>PACS</li><li>PowerScribe</li></ul>
       </div>
       <div class="ps-el ps-win ps-win-out" id="ps-win-out" data-ps-el="win-out">
         <div class="ps-win-head"><span class="ps-over">OUTPUT</span><span class="ps-win-dots"><i></i><i></i><i></i></span></div>
-        <ul class="ps-win-rows"><li>Fewer missed follow-ups</li><li>Less administrative burden</li><li>Faster connection to specialist care</li><li>Better patient outcomes</li></ul>
+        <ul class="ps-win-rows"><li>Fewer missed follow&#8209;ups</li><li>Less administrative burden</li><li>Faster connection to specialist care</li><li>Better patient outcomes</li></ul>
       </div>
     </div>
     <div class="ps-debug" id="ps-debug" hidden></div>
@@ -166,8 +183,10 @@ html,body{margin:0;background:#fff}
 /* Platform scroll section.
    One SVG world on a 30° isometric floor (grid unit 44), one camera, one state machine of named steps.
    Scroll / keys only ever call next() / prev() / goTo(); each step declares camera, emphasis and panel.
-   Copied from qlens-tech.html / qtrack-tech.html (read-only): io / eo / seg / mix, the cube recipe (edge, inner rhombus,
-   faces, deepen), glyph paths and the 0.9 top-face matrix, packet arrowhead and placement, feeds, skeleton windows.
+   S0 lays the platform out as one row along the floor's screen-horizontal diagonal (+x / −y), so objects stand on the
+   iso floor but read as a flat left-to-right line, each centred under its stage card.
+   Copied from qlens-tech.html / qtrack-tech.html (read-only): io / eo / seg, the cube recipe (edge, inner rhombus,
+   faces, deepen), glyph paths and the 0.9 top-face matrix, packet arrowhead and placement, dotted feeds, skeleton windows.
    Copied from platform-overview.html: boxGeo / roundPoly / roundLine / Poly helpers. */
 (function () {
   'use strict';
@@ -176,22 +195,24 @@ html,body{margin:0;background:#fff}
   var CFG = {
     design: { w: 1440, h: 900 },
     unit: 44,                                   // grid unit (world px per iso step)
+    textFloor: .86,                             // small type never scales below 86% of design size
     minWidth: 1024,                             // below: no pinning, static S0
     fade: {                                     // edge fade per frame: [top, right, bottom, left], fraction of frame size
-      overview: [.12, .13, .12, .13],
+      overview: [.12, .13, .14, .13],
       product: [.12, .22, .12, .13]             // wider right fade keeps the scene off the panel
     },
-    step: 1.4,                                  // s: camera + mask + heading + panel, one continuous motion
+    row: { pitch: 3, labelGap: 64 },            // S0: grid units between columns along the diagonal; card → object top room (text px)
+    step: 1.4,                                  // s: camera + mask + heading + cards + panel, one continuous motion
     entry: .55, stagger: .18,                   // qLens tempo: element entry, stagger between entries
     build: { grid: [0, .5], objects: [.35, 1.15], edge: .55, conns: [1.15, 1.7], labels: [1.6, 2.3], end: 2.35 },
     emphasis: { active: 1, dim: .5, faint: .2 },
+    zoom: { 'qlens-read': 1.5 },                // product zoom relative to the S0 zoom
     lockQuiet: 150,                             // ms with no wheel event before the next gesture counts
     stroke: [.85, 1.15],                        // on-screen stroke scale clamp (lines stay ~constant through zooms)
     packet: 1.05,                               // packet size factor (arrowhead is 9 world px)
     reduced: { out: .18, in: .32 }              // prefers-reduced-motion crossfade (s)
   };
 
-  // panel copy
   var PANELS = {
     qlens: { pill: 'qLens', over: 'INSIGHT GENERATION', title: 'Reads everything,<br>misses nothing', lines: [
       { text: 'For every patient visit completed, qLens reads every medical record, document and DICOM.' },
@@ -207,36 +228,36 @@ html,body{margin:0;background:#fff}
       { lead: 'Care adherence —', text: ' hands off to qTrack for follow-ups, refills, and outcome monitoring.' }] }
   };
 
-  // world layout, grid units (x: down-right axis, y: down-left axis); s / h in world px
+  // ---- world layout, grid units (x: down-right axis, y: down-left axis). Column c of the row sits at (c·pitch, −c·pitch).
+  var R = CFG.row.pitch, col = function (c, dx, dy) { return [c * R + (dx || 0), -c * R + (dy || 0)]; };
+  var EMR = col(0, .67, -.67);                     // shifted along the row so the source cluster is centred in column 01
   var OBJ = {
-    'src-emr':     { at: [0, 0],        s: 72,  h: 72,  kind: 'node', glyph: 'doc' },
-    'src-pacs':    { at: [0, 2.5],      s: 72,  h: 72,  kind: 'node', glyph: 'scan' },
-    'src-ps':      { at: [0, 5],        s: 72,  h: 72,  kind: 'node', glyph: 'mic' },
-    'qlens':       { at: [5, 0],        s: 104, h: 104, kind: 'hero', glyph: 'lens' },
-    'qtrack':      { at: [10, 0],       s: 72,  h: 108, kind: 'hero', glyph: 'route' },
-    'spec':        { at: [10, -6],      s: 72,  h: 72,  kind: 'node', glyph: 'cal' },
-    'qrx':         { at: [14, -6],      s: 72,  h: 72,  kind: 'hero', glyph: 'rx' },
-    'up-prior':    { at: [11.6, -1.6],  s: 52,  h: 50,  kind: 'up' },
-    'up-outreach': { at: [11.6, -3.5],  s: 52,  h: 50,  kind: 'up' }
+    'src-ps':      { at: [EMR[0] - 1.35, EMR[1] + 1.35], s: 56, h: 56, kind: 'node', glyph: 'mic', g: .8 },   // left of EMR, on the row
+    'src-pacs':    { at: [EMR[0] - 1.35, EMR[1]],        s: 56, h: 56, kind: 'node', glyph: 'scan', g: .8 },  // behind, between
+    'src-emr':     { at: EMR,                            s: 56, h: 56, kind: 'node', glyph: 'doc', g: .8 },
+    'qlens':       { at: col(1),       s: 104, h: 104, kind: 'hero', glyph: 'lens' },
+    'up-prior':    { at: col(2),       s: 52,  h: 50,  kind: 'up' },
+    'up-outreach': { at: col(3),       s: 52,  h: 50,  kind: 'up' },
+    'qtrack':      { at: col(4),       s: 72,  h: 108, kind: 'hero', glyph: 'route' },
+    'spec':        { at: col(5),       s: 72,  h: 72,  kind: 'node', glyph: 'cal' },
+    'qrx':         { at: col(5, 2.1, -2.1), s: 72, h: 72, kind: 'hero', glyph: 'rx' }                          // beside the Specialist, on the row
   };
-  var ART = { 'art-dicom': [4.1, 2.9], 'art-doc': [5.9, 2.9] };           // S1 artifacts (DICOM slice stack, document card)
-  var POINTS = { 'arc-label': [3, -6] };                                   // floor anchors for labels
-  var BUS = 2.5;                                                           // x of the source bus into qLens
+  var WB_BACK = 2.2;                                                       // write-back arc runs this far behind the row
+  var QL = OBJ.qlens.at;
+  var ART = { 'art-dicom': [QL[0] + .6, QL[1] + 2.8], 'art-doc': [QL[0] + 2.8, QL[1] + .6] };   // S1: in front of qLens
+  var POINTS = { 'arc-corner': [OBJ.spec.at[0] - WB_BACK, OBJ.spec.at[1]] };
 
   // steps. emphasis: listed in active → 1, dim → .5, faint → .2, otherwise hidden.
   var ALL0 = ['grid', 'src-emr', 'src-pacs', 'src-ps', 'qlens', 'qtrack', 'spec', 'qrx', 'up-prior', 'up-outreach',
-              'conn-src', 'conn-lt', 'conn-ts', 'conn-sq', 'conn-up', 'arc-wb',
-              'lbl-qlens', 'lbl-qtrack', 'lbl-spec', 'lbl-qrx', 'stg-01', 'stg-02', 'stg-03', 'stg-04', 'stg-06', 'win-in', 'win-out'];
+              'conn-src', 'conn-lens', 'conn-row', 'conn-sq', 'arc-wb', 'lbl-qlens', 'lbl-qtrack', 'lbl-spec', 'lbl-qrx', 'cards', 'win-in', 'win-out'];
   var STEPS = [
-    { name: 'overview', frame: 'overview', heading: 0, panel: null, line: [],
-      cam: { fit: ['src-emr', 'src-pacs', 'src-ps', 'qlens', 'qtrack', 'spec', 'qrx', 'up-prior', 'up-outreach'], pad: [70, 40, 64, 40], fitWindows: true },
+    { name: 'overview', frame: 'overview', heading: 0, panel: null, line: [], cam: { row: true },
       active: ALL0, ambient: 'overview' },
     { name: 'qlens-read', frame: 'product', heading: 1, panel: 'qlens', line: [0],
-      cam: { fit: ['src-emr', 'src-pacs', 'src-ps', 'qlens', 'art-dicom', 'art-doc'], pad: [74, 16, 44, 20], maxZ: 1.5 },
-      active: ['grid', 'src-emr', 'src-pacs', 'src-ps', 'qlens', 'conn-src', 'artifacts', 'feeds-art',
+      cam: { fit: ['src-pacs', 'src-emr', 'qlens', 'art-dicom', 'art-doc'], pad: [92, 24, 52, 10], edge: ['src-ps', .45] },   // PowerScribe centred in the left edge fade
+      active: ['grid', 'src-emr', 'src-pacs', 'src-ps', 'qlens', 'conn-src', 'conn-lens', 'artifacts', 'feeds-art',
                'lbl-qlens', 'lbl-emr', 'lbl-pacs', 'lbl-ps', 'lbl-dicom', 'lbl-doc', 'pill-visit'],
-      dim: ['qtrack', 'spec', 'qrx', 'conn-lt', 'conn-ts', 'conn-sq', 'arc-wb', 'lbl-qtrack'],
-      faint: ['up-prior', 'up-outreach', 'conn-up'],
+      dim: ['up-prior', 'up-outreach', 'qtrack', 'spec', 'qrx', 'conn-row', 'conn-sq', 'arc-wb', 'lbl-qtrack'],
       enter: ['pill-visit', 'artifacts', 'feeds-art', 'lbl-emr', 'lbl-pacs', 'lbl-ps', 'lbl-dicom', 'lbl-doc'],
       ambient: 'qlens-read' },
     // declared, built next round
@@ -245,8 +266,9 @@ html,body{margin:0;background:#fff}
     { name: 'qrx-decide', todo: true }, { name: 'qrx-adhere', todo: true }
   ];
   var SEQ = STEPS.filter(function (s) { return !s.todo; });
+  var FAST_OUT = { cards: 1, 'win-in': 1, 'win-out': 1 };                  // S0-only: gone in the first third of the move
 
-  // ---------------------------------------------------------------- helpers (io / eo / seg / mix copied from qlens-tech.html)
+  // ---------------------------------------------------------------- helpers (io / eo / seg copied from qlens-tech.html)
   var C = Math.cos(Math.PI / 6), TAN = Math.tan(Math.PI / 6), NS = 'http://www.w3.org/2000/svg';
   var INK = '#303030', IND = '#2A288C', PEACH = '#FF7869';
   var cl = function (v) { return v < 0 ? 0 : v > 1 ? 1 : v; };
@@ -260,7 +282,8 @@ html,body{margin:0;background:#fff}
   function toward(a, b, d) { var L = dist(a, b) || 1; return [a[0] + (b[0] - a[0]) / L * d, a[1] + (b[1] - a[1]) / L * d]; }
   // the one projection: world (x, y, z) in px → flat world-screen px
   function iso(x, y, z) { return [(x - y) * C, (x + y) / 2 - (z || 0)]; }
-  function G(x, y, z) { return iso(x * CFG.unit, y * CFG.unit, z); }      // grid units → world-screen px
+  function G(p, z) { return iso(p[0] * CFG.unit, p[1] * CFG.unit, z); }   // grid units → world-screen px
+  var ROW_PX = G(col(1))[0];                                               // world-screen px between columns
   function mk(tag, at, parent) {
     var e = document.createElementNS(NS, tag);
     for (var k in at) if (at[k] != null) e.setAttribute(k, at[k]);
@@ -302,11 +325,11 @@ html,body{margin:0;background:#fff}
       edge: hex + 'M' + P(toward(UL, F, 1.5)) + 'L' + P(F) + 'L' + P(toward(UR, F, 1.5)) + 'M' + P(F) + 'L' + P(toward(B, F, 1.5)),
       fl: poly([UL, F, B, LL]), fr: poly([F, UR, LR, B]), ft: poly([UL, T, UR, F]),
       inner: roundPoly([[x - k * X, ty], [x, ty - k * Y], [x + k * X, ty], [x, ty + k * Y]], ri),
-      top: [x, ty], peak: [x, ty - Y], bottom: B, right: [x + X, ty + (h > 20 ? h / 2 : 0)], left: [x - X, ty + h / 2], hw: X
+      top: [x, ty], peak: [x, ty - Y], bottom: B, right: [x + X, ty + h / 2], left: [x - X, ty + h / 2], hw: X
     };
   }
   function drawable(e) {
-    var L = e.getTotalLength(); e.style.strokeDasharray = L + ' ' + L;
+    var L = e.getTotalLength();
     return function (p) {
       if (p >= 1) { if (e.style.strokeDasharray) { e.style.strokeDasharray = ''; e.style.strokeDashoffset = ''; } return; }
       e.style.strokeDasharray = L + ' ' + L; e.style.strokeDashoffset = L * (1 - p);
@@ -329,7 +352,7 @@ html,body{margin:0;background:#fff}
   var root = document.getElementById('ps-root'); if (!root) return;
   var $ = function (id) { return document.getElementById(id); };
   var sticky = $('ps-sticky'), canvas = $('ps-canvas'), wrap = $('ps-world-wrap'), svg = $('ps-world'), hud = $('ps-hud');
-  var labelsLayer = $('ps-labels'), dbg = $('ps-debug');
+  var labelsLayer = $('ps-labels'), dbg = $('ps-debug'), cardsEl = $('ps-cards');
   var DEBUG = /[?&]debug=1(?:&|$)/.test(location.search);
   var reduce = matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -338,18 +361,19 @@ html,body{margin:0;background:#fff}
   var world = mk('g', { id: 'ps-world-g' }, svg);
   var gGrid = mk('g', { id: 'ps-g-grid' }, world), gConn = mk('g', { id: 'ps-g-conn' }, world), gRing = mk('g', { id: 'ps-g-ring' }, world);
   var gObj = mk('g', { id: 'ps-g-obj' }, world), gPk = mk('g', { id: 'ps-g-packets' }, world);
-  var E = {};                                                                // logical element id → { els, build, ... }
+  var E = {};                                                                // logical element id → { els, ... }
   function reg(id, el, extra) { var o = E[id] || (E[id] = { id: id, els: [], world: true }); if (el) o.els.push(el); if (extra) for (var k in extra) o[k] = extra[k]; return o; }
   var solids = [];                                                           // cube silhouettes: packets hide inside these
 
-  // floor grid: lines every half unit along both iso axes, clipped to a wide field; revealed radially in the build
+  // floor grid: lines every half unit along both iso axes over a wide field; revealed radially in the build
+  var FIELD = [-800, -560, 2400, 720];
   (function () {
-    var x0 = -900, x1 = 1700, y0 = -620, y1 = 760, step = CFG.unit / 2, d = '';
+    var x0 = FIELD[0], y0 = FIELD[1], x1 = FIELD[2], y1 = FIELD[3], step = CFG.unit / 2, d = '';
     for (var b = Math.floor((y0 - x1 * TAN) / step) * step; b <= y1 - x0 * TAN; b += step) d += 'M' + f1(x0) + ' ' + f1(x0 * TAN + b) + 'L' + f1(x1) + ' ' + f1(x1 * TAN + b);
     for (b = Math.floor((y0 + x0 * TAN) / step) * step; b <= y1 + x1 * TAN; b += step) d += 'M' + f1(x0) + ' ' + f1(-x0 * TAN + b) + 'L' + f1(x1) + ' ' + f1(-x1 * TAN + b);
     mk('path', { d: 'M' + x0 + ' ' + y0 + 'H' + x1 + 'V' + y1 + 'H' + x0 + 'Z' }, mk('clipPath', { id: 'ps-grid-clip' }, defs));
-    var rg = mk('radialGradient', { id: 'ps-grid-fade', gradientUnits: 'userSpaceOnUse', cx: 300, cy: 90, r: 1500 }, defs);
-    [[0, '#fff'], [.7, '#fff'], [1, '#000']].forEach(function (s) { mk('stop', { offset: s[0], 'stop-color': s[1] }, rg); });
+    var rg = mk('radialGradient', { id: 'ps-grid-fade', gradientUnits: 'userSpaceOnUse', cx: f1(ROW_PX * 2.5), cy: 0, r: 2000 }, defs);
+    [[0, '#fff'], [.75, '#fff'], [1, '#000']].forEach(function (s) { mk('stop', { offset: s[0], 'stop-color': s[1] }, rg); });
     var m = mk('mask', { id: 'ps-grid-mask', maskUnits: 'userSpaceOnUse', x: x0, y: y0, width: x1 - x0, height: y1 - y0 }, defs);
     mk('rect', { x: x0, y: y0, width: x1 - x0, height: y1 - y0, fill: 'url(#ps-grid-fade)' }, m);
     var g = mk('g', { mask: 'url(#ps-grid-mask)', 'clip-path': 'url(#ps-grid-clip)' }, gGrid);
@@ -359,11 +383,11 @@ html,body{margin:0;background:#fff}
 
   // objects
   var GEO = {};
-  function cube(id, x, y, s, h, kind, glyph, z) {
-    var c = G(x, y), r = s >= 60 ? 6 : s >= 40 ? 4 : 3;
-    var geo = boxGeo(c[0], c[1] - (z || 0), s, h, r, .76, s >= 60 ? 3.7 : 2);
-    var g = mk('g', { id: 'ps-' + id, 'class': kind === 'hero' ? 'hero' : kind === 'small' ? 'small' : null }, gObj);
-    var o = { g: g, geo: geo, kind: kind, depth: x + y };
+  function cube(id, at, s, h, kind, glyph, z, gs) {
+    var c = G(at), r = s >= 60 ? 6 : s >= 40 ? 4 : 3;
+    var geo = boxGeo(c[0], c[1] - (z || 0), s, h, r, .76, s >= 60 ? 3.7 : 2.4);
+    var g = mk('g', { id: 'ps-' + id, 'class': kind === 'hero' ? 'hero' : null }, gObj);
+    var o = { g: g, geo: geo, kind: kind, depth: at[0] + at[1] };
     if (kind === 'up') {
       o.edge = mk('path', { 'class': 'up-edge', d: geo.edge }, g);
     } else {
@@ -371,96 +395,95 @@ html,body{margin:0;background:#fff}
       var faces = mk('g', { 'clip-path': 'url(#ps-clip-' + id + ')' }, g), hero = kind === 'hero';
       mk('path', { d: geo.fl, fill: hero ? '#FFBCB4' : '#fff' }, faces);
       mk('path', { d: geo.fr, fill: hero ? '#FFAAA0' : '#fff' }, faces);
-      o.top = mk('path', { d: geo.ft, fill: hero ? '#FFD2CC' : kind === 'small' ? '#D9D9FF' : '#fff' }, faces);
+      o.top = mk('path', { d: geo.ft, fill: hero ? '#FFD2CC' : '#fff' }, faces);
       if (hero) o.deepen = mk('path', { d: geo.hex, fill: PEACH, opacity: 0 }, g);
       o.edge = mk('path', { 'class': 'edge', d: geo.edge }, g);
       o.fade = [faces, mk('path', { 'class': 'inner', d: geo.inner }, g)];
       if (glyph) {
         // same top-face matrix as qLens / qTrack (0.9 skew) so objects match the originals
-        var gl = mk('g', { 'class': 'glyph', transform: 'matrix(.9 -.5 .9 .5 ' + f1(geo.top[0]) + ' ' + f1(geo.top[1]) + ')' }, g);
+        var gl = mk('g', { 'class': 'glyph', transform: 'matrix(.9 -.5 .9 .5 ' + P(geo.top) + ')' + (gs ? ' scale(' + gs + ')' : '') }, g);
         GLYPH[glyph].forEach(function (sp) { mk(sp[0], sp[1], gl); });
         o.fade.push(gl);
       }
-      o.wash = mk('path', { d: geo.hex, fill: '#fff', opacity: 0 }, g);       // dims toward white instead of see-through opacity
+      o.wash = mk('path', { d: geo.hex, fill: '#fff', opacity: 0 }, g);    // dims toward white instead of see-through opacity
       solids.push(mk('path', { d: geo.hex, fill: 'none', stroke: 'none' }, g));
     }
     GEO[id] = geo;
     return o;
   }
-  var objs = Object.keys(OBJ).map(function (id) { var d = OBJ[id], o = cube(id, d.at[0], d.at[1], d.s, d.h, d.kind, d.glyph); o.id = id; return o; });
+  var objs = Object.keys(OBJ).map(function (id) { var d = OBJ[id], o = cube(id, d.at, d.s, d.h, d.kind, d.glyph, 0, d.g); o.id = id; return o; });
 
   // S1 artifacts: a thin stack of DICOM slices and a document card, in front of qLens
   var artG = mk('g', { id: 'ps-artifacts' }, gObj);
   (function () {
-    var a = ART['art-dicom'], b = ART['art-doc'], tiles = [];
+    var tiles = [];
     for (var i = 0; i < 5; i++) {
-      var t = cube('art-dicom-' + i, a[0], a[1], 40, 2.5, 'node', null, i * 6);
+      var t = cube('art-dicom-' + i, ART['art-dicom'], 40, 2.5, 'node', null, i * 6);
       artG.appendChild(t.g); if (i === 4) t.top.setAttribute('fill', '#F3F3FF'); tiles.push(t);
     }
     var gl = mk('g', { 'class': 'glyph', transform: 'matrix(.9 -.5 .9 .5 ' + P(tiles[4].geo.top) + ') scale(.6)' }, tiles[4].g);
     mk('circle', { r: 9 }, gl); mk('circle', { r: 3.5 }, gl);
-    var doc = cube('art-doc', b[0], b[1], 40, 3, 'node', null, 0); artG.appendChild(doc.g);
+    var doc = cube('art-doc', ART['art-doc'], 40, 3, 'node', null, 0); artG.appendChild(doc.g);
     var dg = mk('g', { 'class': 'glyph', transform: 'matrix(.9 -.5 .9 .5 ' + P(doc.geo.top) + ') scale(.75)' }, doc.g);
     mk('path', { d: 'M-9-12h11l7 7v17h-18zM2-12v7h7M-5 0h10M-5 5h10' }, dg);
     GEO['art-dicom'] = tiles[4].geo; GEO['art-doc'] = doc.geo;
     reg('artifacts', artG, { tiles: tiles.map(function (t) { return t.g; }).concat([doc.g]) });
   })();
 
-  // depth sort (back → front)
+  // depth sort (back → front); artifacts sit in front of qLens
   objs.slice().sort(function (p, q) { return p.depth - q.depth; }).forEach(function (o) { gObj.appendChild(o.g); });
-  // artifacts sit in front of qLens, behind nothing else on that side
   gObj.appendChild(artG);
   objs.forEach(function (o) { reg(o.id, o.g, { obj: o }); });
 
-  // connectors (1px #303030 along iso axes)
+  // connectors (1px #303030 along iso axes); the main path runs straight along the row
   function line(id, cls, ptsU, r) {
-    var pts = ptsU.map(function (p) { return G(p[0], p[1]); });
+    var pts = ptsU.map(function (p) { return G(p); });
     var e = mk('path', { 'class': cls, d: roundLine(pts, r || 8) }, gConn);
     reg(id, e); (E[id].paths || (E[id].paths = [])).push({ el: e, poly: new Poly(pts) });
     return e;
   }
-  line('conn-src', 'conn', [[0, 0], [5, 0]]);
-  line('conn-src', 'conn', [[0, 2.5], [BUS, 2.5]]);
-  line('conn-src', 'conn', [[0, 5], [BUS, 5], [BUS, 0]]);
-  [[BUS, 2.5], [BUS, 0]].forEach(function (p) { var q = G(p[0], p[1]); reg('conn-src', mk('circle', { 'class': 'jdot', cx: f1(q[0]), cy: f1(q[1]), r: 2.5 }, gConn)); });
-  line('conn-lt', 'conn', [[5, 0], [10, 0]]);
-  line('conn-ts', 'conn', [[10, 0], [10, -6]]);
-  line('conn-sq', 'conn', [[10, -6], [14, -6]]);
-  line('conn-up', 'conn-up', [[10.9, 0], [11.6, 0], [11.6, -3.5]], 6);
-  line('arc-wb', 'conn conn-wb', [[10, -6], [0, -6], [0, 0]], 12);
-  // S1 dotted feeds: artifacts → qLens front-left face
+  var A = function (id) { return OBJ[id].at; };
+  line('conn-src', 'conn', [A('src-ps'), A('src-emr')]);
+  line('conn-src', 'conn', [A('src-pacs'), A('src-emr')]);
+  line('conn-lens', 'conn', [A('src-emr'), A('qlens')]);
+  line('conn-row', 'conn', [A('qlens'), A('spec')]);                     // through prior auth, outreach and qTrack
+  line('conn-sq', 'conn', [A('spec'), A('qrx')]);
+  // write-back: Specialist → behind the whole row → EMR (Close the loop)
+  line('arc-wb', 'conn conn-wb', [A('spec'), POINTS['arc-corner'], [EMR[0], EMR[1] - WB_BACK], EMR], 12);
   ['art-dicom', 'art-doc'].forEach(function (k) {
-    var a = ART[k], e = mk('path', { 'class': 'feed', d: 'M' + P(G(a[0], a[1])) + 'L' + P(G(a[0], 1.25)) }, gConn);
-    reg('feeds-art', e); (E['feeds-art'].paths || (E['feeds-art'].paths = [])).push({ el: e, poly: new Poly([G(a[0], a[1]), G(a[0], 0)]) });
-    var q = G(a[0], 1.25); reg('feeds-art', mk('circle', { 'class': 'port', cx: f1(q[0]), cy: f1(q[1]), r: 2.2 }, gConn));
+    var a = ART[k], edge = k === 'art-dicom' ? [a[0], QL[1] + 1.25] : [QL[0] + 1.25, a[1]];
+    var e = mk('path', { 'class': 'feed', d: 'M' + P(G(a)) + 'L' + P(G(edge)) }, gConn);
+    reg('feeds-art', e);
+    var q = G(edge); reg('feeds-art', mk('circle', { 'class': 'port', cx: f1(q[0]), cy: f1(q[1]), r: 2.2 }, gConn));
   });
-  // qLens pulse ring
-  var ring = mk('ellipse', { 'class': 'ring', cx: f1(G(5, 0)[0]), cy: f1(G(5, 0)[1]), rx: 1, ry: 1, opacity: 0 }, gRing);
-
-  // packets
+  var ring = mk('ellipse', { 'class': 'ring', cx: f1(G(QL)[0]), cy: f1(G(QL)[1]), rx: 1, ry: 1, opacity: 0 }, gRing);
   var pkMain = mk('path', { d: PK, fill: INK, opacity: 0 }, gPk);
 
-  // ambient packet paths
+  // ambient packet paths (one packet at a time)
   var AMB = {
     overview: { legs: [
-      { poly: new Poly([G(BUS, 0), G(5, 0)]), color: INK },
-      { poly: new Poly([G(5, 0), G(10, 0)]), color: IND },
-      { poly: new Poly([G(10, 0), G(10, -6)]), color: IND },
-      { poly: new Poly([G(10, -6), G(14, -6)]), color: IND }], leg: .85, gap: .12, rest: 2.2, deepen: { 0: 'qlens' } },
+      { poly: new Poly([G(A('src-emr')), G(QL)]), color: INK },
+      { poly: new Poly([G(QL), G(A('qtrack'))]), color: IND, faint: ['up-prior', 'up-outreach'] },
+      { poly: new Poly([G(A('qtrack')), G(A('spec'))]), color: IND },
+      { poly: new Poly([G(A('spec')), G(A('qrx'))]), color: IND }], leg: .9, gap: .15, rest: 2.4, deepen: { 0: 'qlens' } },
     'qlens-read': { legs: [
-      { poly: new Poly([G(0, 0), G(5, 0)]), color: INK },
-      { poly: new Poly([G(0, 2.5), G(BUS, 2.5), G(BUS, 0), G(5, 0)]), color: INK },
-      { poly: new Poly([G(0, 5), G(BUS, 5), G(BUS, 0), G(5, 0)]), color: INK },
-      { poly: new Poly([G(ART['art-dicom'][0], ART['art-dicom'][1]), G(ART['art-dicom'][0], 0)]), color: IND, s: .8 },
-      { poly: new Poly([G(ART['art-doc'][0], ART['art-doc'][1]), G(ART['art-doc'][0], 0)]), color: IND, s: .8 }], leg: .95, gap: .3, rest: 1.4, deepen: { all: 'qlens' } }
+      { poly: new Poly([G(A('src-emr')), G(QL)]), color: INK },
+      { poly: new Poly([G(A('src-pacs')), G(A('src-emr')), G(QL)]), color: INK },
+      { poly: new Poly([G(A('src-ps')), G(QL)]), color: INK },
+      { poly: new Poly([G(ART['art-dicom']), G([ART['art-dicom'][0], QL[1]])]), color: IND, s: .8 },
+      { poly: new Poly([G(ART['art-doc']), G([QL[0], ART['art-doc'][1]])]), color: IND, s: .8 }], leg: .95, gap: .3, rest: 1.4, deepen: { all: 'qlens' } }
   };
 
   // ---- HTML elements
   [].forEach.call(labelsLayer.querySelectorAll('[data-ps-el]'), function (el) {
-    var id = el.getAttribute('data-ps-el'); reg(id, el, { world: false, anchor: el.getAttribute('data-anchor'), dir: el.getAttribute('data-dir') || 'up', start: el.getAttribute('data-align') === 'start' });
+    reg(el.getAttribute('data-ps-el'), el, { world: false, anchor: el.getAttribute('data-anchor'), dir: el.getAttribute('data-dir') || 'up', start: el.getAttribute('data-align') === 'start' });
   });
+  reg('cards', cardsEl, { world: false });
+  var cards = [].slice.call(cardsEl.querySelectorAll('.ps-card'));
   var winIn = $('ps-win-in'), winOut = $('ps-win-out');
-  var elbows = [0, 1, 2, 3].map(function () { return { p: mk('path', { 'class': 'elbow' }, hud), d: mk('circle', { 'class': 'elbow-dot', r: 2 }, hud) }; });
+  var hudLine = function (cls) { return { p: mk('path', { 'class': cls }, hud), d: mk('circle', { 'class': 'dot ' + cls.split(' ').slice(1).join(' '), r: 2 }, hud) }; };
+  var elbowIn = hudLine('elbow grey'), elbowOut = hudLine('elbow grey');
+  var cardLeads = cards.map(function (c) { var up = c.getAttribute('data-status') === 'upcoming', wb = c.getAttribute('data-target') === 'arc-corner'; return hudLine('lead' + (up ? ' up' : wb ? ' wb' : '')); });
 
   // panel DOM (one block per product, crossfaded)
   var panelEl = $('ps-panel'), PAN = {};
@@ -476,21 +499,37 @@ html,body{margin:0;background:#fff}
   var heads = [$('ps-heading-0'), $('ps-heading-1')], support = $('ps-support');
 
   // ---------------------------------------------------------------- layout (measured, never hardcoded)
-  var L = null;                                     // measured layout
+  var L = null;
   function rectOf(el) { var r = el.getBoundingClientRect(), s = sticky.getBoundingClientRect(); return { x: r.left - s.left, y: r.top - s.top, w: r.width, h: r.height }; }
+  function withFade(r, n) { var f = CFG.fade[n]; r.f = [f[0] * r.h, f[1] * r.w, f[2] * r.h, f[3] * r.w]; return r; }
   function measure() {
     var vw = sticky.clientWidth, vh = sticky.clientHeight;
-    var k = Math.min(vh / CFG.design.h, vw / CFG.design.w);
-    root.style.setProperty('--k', k); root.style.setProperty('--u', k + 'px');
+    var k = Math.min(vh / CFG.design.h, vw / CFG.design.w), t = Math.max(k, CFG.textFloor);
+    root.style.setProperty('--u', k + 'px'); root.style.setProperty('--ut', t + 'px');
     canvas.style.setProperty('--cx', f1((vw - CFG.design.w * k) / 2) + 'px'); canvas.style.setProperty('--cy', f1((vh - CFG.design.h * k) / 2) + 'px');
-    var frames = {};
-    ['overview', 'product'].forEach(function (n) {
-      var r = rectOf(canvas.querySelector('[data-ps-frame="' + n + '"]')), f = CFG.fade[n];
-      r.f = [f[0] * r.h, f[1] * r.w, f[2] * r.h, f[3] * r.w];         // px: top right bottom left
-      frames[n] = r;
-    });
-    L = { vw: vw, vh: vh, k: k, frames: frames, win: { in: [winIn.offsetWidth, winIn.offsetHeight], out: [winOut.offsetWidth, winOut.offsetHeight] },
-          rowY: [].map.call(winIn.querySelectorAll('li'), function (li) { return li.offsetTop + li.offsetHeight / 2; }) };
+    L = { vw: vw, vh: vh, k: k, t: t, frames: {} };
+    var head0 = rectOf(heads[0]), cr = rectOf(canvas);
+    // support text sits on the heading's last line
+    support.style.top = f1(head0.y + head0.h - cr.y - support.offsetHeight - 4 * k) + 'px';
+
+    // ---- S0 row: cards span the frame between the windows; column pitch sets the S0 zoom
+    var fo = rectOf(canvas.querySelector('[data-ps-frame="overview"]')), g = 22 * k;
+    var wi = [winIn.offsetWidth, winIn.offsetHeight], wo = [winOut.offsetWidth, winOut.offsetHeight];
+    var qrxOff = G(A('qrx'))[0] - G(A('spec'))[0] + GEO.qrx.hw, over = 40 * k, x0, w, pitch, z;
+    for (var it = 0; it < 3; it++) {                                      // qRx overhangs column 06; reserve room for it before the output window
+      x0 = fo.x + wi[0] + g; w = fo.x + fo.w - wo[0] - g - over - x0; pitch = w / 6; z = pitch / ROW_PX;
+      over = Math.max(0, qrxOff * z - pitch / 2 + 16 * k);
+    }
+    cardsEl.style.left = f1(x0) + 'px'; cardsEl.style.width = f1(w) + 'px';
+    cardsEl.style.top = f1(head0.y + head0.h + 34 * k) + 'px';
+    var cb = rectOf(cardsEl), cardsBottom = cb.y + cb.h;
+    var above = Math.max.apply(null, ['qlens', 'qtrack', 'spec', 'qrx'].map(function (id) { return -GEO[id].peak[1]; }));
+    var minFloor = cardsBottom + CFG.row.labelGap * t + 30 * t + above * z, maxFloor = vh - 70 * t - 60 * z;
+    var floorY = maxFloor > minFloor ? lerp(minFloor, maxFloor, .3) : minFloor;
+    L.row = { x0: x0, pitch: pitch, z: z, floorY: floorY, cardsBottom: cardsBottom, win: { in: wi, out: wo } };
+    L.frames.overview = withFade({ x: fo.x, y: cardsBottom + 6 * k, w: fo.w, h: Math.max(floorY + 150 * t, vh - 30 * k) - cardsBottom - 6 * k }, 'overview');
+    L.frames.product = withFade(rectOf(canvas.querySelector('[data-ps-frame="product"]')), 'product');
+    L.leadH = {}; Object.keys(E).forEach(function (id) { if (!E[id].world && E[id].anchor) L.leadH[id] = E[id].els[0].offsetHeight; });
     L.targets = SEQ.map(target);
   }
   function usable(fr) { return { x: fr.x + fr.f[3], y: fr.y + fr.f[0], w: fr.w - fr.f[1] - fr.f[3], h: fr.h - fr.f[0] - fr.f[2] }; }
@@ -502,28 +541,25 @@ html,body{margin:0;background:#fff}
     });
     return [x0 - pad[3], y0 - pad[0], x1 + pad[1], y1 + pad[2]];
   }
-  // a step's camera: fit its focus box into the frame's unfaded area (or between the windows in the overview)
+  // camera: S0 aligns the row to the card columns; products fit their focus box at a zoom relative to S0
   function target(st) {
-    var fr = L.frames[st.frame], u = usable(fr), b = bboxOf(st.cam.fit, st.cam.pad), g = 24 * L.k;
-    if (st.cam.fitWindows) { var l = fr.x + L.win.in[0] + g, r = fr.x + fr.w - L.win.out[0] - g; u = { x: l, y: u.y, w: r - l, h: u.h }; }
-    var z = Math.min(u.w / (b[2] - b[0]), u.h / (b[3] - b[1]), st.cam.maxZ ? st.cam.maxZ * L.k : 1e9);
-    return { frame: fr, cam: { x: (b[0] + b[2]) / 2, y: (b[1] + b[3]) / 2, z: z, ux: u.x + u.w / 2, uy: u.y + u.h / 2 } };
+    var fr = L.frames[st.frame];
+    if (st.cam.row) return { frame: fr, cam: { x: 0, y: 0, z: L.row.z, ux: L.row.x0 + L.row.pitch / 2, uy: L.row.floorY } };
+    var u = usable(fr), b = bboxOf(st.cam.fit, st.cam.pad);
+    var fit = Math.min(u.w / (b[2] - b[0]), u.h / (b[3] - b[1]));
+    var z = CFG.zoom[st.name] ? Math.min(CFG.zoom[st.name] * L.row.z, fit) : fit;
+    var cx = (b[0] + b[2]) / 2, ux = u.x + u.w / 2;
+    if (st.cam.edge) ux = fr.x + fr.f[3] * st.cam.edge[1] + (cx - GEO[st.cam.edge[0]].top[0]) * z;   // pin an object's centre inside the left fade band
+    return { frame: fr, cam: { x: cx, y: (b[1] + b[3]) / 2, z: z, ux: ux, uy: u.y + u.h / 2 } };
   }
 
   // ---------------------------------------------------------------- state machine
-  var S = {
-    i: 0,                 // index into SEQ
-    t0: 0, from: null,    // transition start + snapshot of rendered values
-    stepT0: 0,            // when the current step's choreography / ambient clock started
-    build: -1,            // S0 build clock (s); -1 = not started
-    buildT0: 0,
-    cur: null             // last rendered values (for snapshots)
-  };
+  var S = { i: 0, t0: 0, from: null, stepT0: 0, build: -1, buildT0: 0, cur: null };
   function emTarget(st, id) {
-    var E_ = CFG.emphasis;
-    if (st.active && st.active.indexOf(id) >= 0) return E_.active;
-    if (st.dim && st.dim.indexOf(id) >= 0) return E_.dim;
-    if (st.faint && st.faint.indexOf(id) >= 0) return E_.faint;
+    var m = CFG.emphasis;
+    if (st.active && st.active.indexOf(id) >= 0) return m.active;
+    if (st.dim && st.dim.indexOf(id) >= 0) return m.dim;
+    if (st.faint && st.faint.indexOf(id) >= 0) return m.faint;
     return 0;
   }
   function snapshot() {
@@ -536,7 +572,7 @@ html,body{margin:0;background:#fff}
   function goTo(name, opt) {
     var j = typeof name === 'number' ? name : SEQ.map(function (s) { return s.name; }).indexOf(name);
     if (j < 0 || j >= SEQ.length) return false;
-    if (S.build < CFG.build.end) S.build = CFG.build.end;                            // a gesture during (or before) the build snaps it to its end state
+    if (S.build < CFG.build.end) S.build = CFG.build.end;                   // a gesture during (or before) the build snaps it to its end state
     if (j === S.i && S.from === null) return false;
     S.from = snapshot(); S.i = j; S.t0 = now(); S.stepT0 = S.t0;
     S.dur = (opt && opt.instant) ? 0 : CFG.step;
@@ -549,9 +585,9 @@ html,body{margin:0;background:#fff}
   function transitioning() { return S.from !== null; }
 
   // ---------------------------------------------------------------- render
-  var running = false, raf = 0, visible = false, enabled = true, staticMode = false;
-  function kick() { if (!running && (visible || staticMode)) { running = true; raf = requestAnimationFrame(frame); } }
-  function frame() { raf = 0; render(); if (running && (visible || transitioning()) && !document.hidden && !staticMode) raf = requestAnimationFrame(frame); else running = false; }
+  var running = false, visible = false, enabled = true, staticMode = false;
+  function kick() { if (!running && (visible || staticMode)) { running = true; requestAnimationFrame(frame); } }
+  function frame() { render(); if (running && (visible || transitioning()) && !document.hidden && !staticMode) requestAnimationFrame(frame); else running = false; }
 
   function project(cam, wx, wy) { return [cam.ux + (wx - cam.x) * cam.z, cam.uy + (wy - cam.y) * cam.z]; }
   function edgeAlpha(fr, x, y) {
@@ -561,20 +597,23 @@ html,body{margin:0;background:#fff}
   }
   function lerpFrame(a, b, p) { return { x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p), w: lerp(a.w, b.w, p), h: lerp(a.h, b.h, p), f: a.f.map(function (v, i) { return lerp(v, b.f[i], p); }) }; }
   function lerpCam(a, b, p) { return { x: lerp(a.x, b.x, p), y: lerp(a.y, b.y, p), z: Math.exp(lerp(Math.log(a.z), Math.log(b.z), p)), ux: lerp(a.ux, b.ux, p), uy: lerp(a.uy, b.uy, p) }; }
+  function hudPath(h, d, x, y, v) { h.p.setAttribute('d', d); h.d.setAttribute('cx', f1(x)); h.d.setAttribute('cy', f1(y)); h.p.style.opacity = h.d.style.opacity = v.toFixed(3); }
+  var ORDER_OBJ = ['src-ps', 'src-pacs', 'src-emr', 'qlens', 'up-prior', 'up-outreach', 'qtrack', 'spec', 'qrx'];
+  var ORDER_CONN = ['conn-src', 'conn-lens', 'conn-row', 'conn-sq', 'arc-wb'];
+  var ORDER_HTML = ['cards', 'win-in', 'lbl-qlens', 'lbl-qtrack', 'lbl-spec', 'lbl-qrx', 'win-out'];
 
   function render() {
     if (!L) return;
     var t = now(), st = SEQ[S.i], tg = L.targets[S.i], dur = S.dur || 0;
     var p = S.from && dur ? cl((t - S.t0) / dur) : 1, rm = reduce.matches && S.from;
-    var globalOp = 1, pe = p;                              // pe: progress used for state interpolation
+    var globalOp = 1, pe = p;
     if (rm) {                                              // reduced motion: crossfade between static frames
       var to = CFG.reduced.out, ti = CFG.reduced.in, tt = t - S.t0;
       p = cl(tt / (to + ti)); pe = tt < to ? 0 : 1; globalOp = tt < to ? 1 - tt / to : cl((tt - to) / ti);
     }
-    var F = S.from;
-    // build clock
-    var B = CFG.build, bt = S.build < 0 ? 0 : S.build >= B.end ? B.end : Math.min(B.end, t - S.buildT0);
-    if (S.build >= 0 && S.build < B.end) { S.build = bt; }
+    var F = S.from, B = CFG.build;
+    var bt = S.build < 0 ? 0 : S.build >= B.end ? B.end : Math.min(B.end, t - S.buildT0);
+    if (S.build >= 0 && S.build < B.end) S.build = bt;
     if (reduce.matches || staticMode) bt = S.build = B.end;
     var built = bt >= B.end;
 
@@ -582,14 +621,14 @@ html,body{margin:0;background:#fff}
     var pc = rm ? pe : io(p);
     var cam = F ? lerpCam(F.cam, tg.cam, pc) : tg.cam;
     var fr = F ? lerpFrame(F.frame, tg.frame, pc) : tg.frame;
-    var zs = Math.min(Math.max(cam.z, CFG.stroke[0] * L.k), CFG.stroke[1] * L.k) / cam.z;    // keeps strokes ~constant on screen
+    var zs = Math.min(Math.max(cam.z, CFG.stroke[0] * L.k), CFG.stroke[1] * L.k) / cam.z;
     world.setAttribute('transform', 'translate(' + f1(cam.ux - cam.x * cam.z) + ' ' + f1(cam.uy - cam.y * cam.z) + ') scale(' + +cam.z.toFixed(4) + ')');
     svg.style.setProperty('--iz', zs.toFixed(4));
     var ws = wrap.style;
     ws.setProperty('--mx', f1(fr.x) + 'px'); ws.setProperty('--my', f1(fr.y) + 'px'); ws.setProperty('--mw', f1(fr.w) + 'px'); ws.setProperty('--mh', f1(fr.h) + 'px');
     ws.setProperty('--ft', f1(fr.f[0]) + 'px'); ws.setProperty('--fr', f1(fr.f[1]) + 'px'); ws.setProperty('--fb', f1(fr.f[2]) + 'px'); ws.setProperty('--fl', f1(fr.f[3]) + 'px');
 
-    // emphasis: brighten late (easeOutCubic entry, staggered, overlapping the end of the camera move), dim early
+    // emphasis: brighten late (easeOutCubic, staggered, overlapping the end of the camera move); dim early; S0-only items go first
     var em = {}, enterOrder = st.enter || [];
     Object.keys(E).forEach(function (id) {
       var to = emTarget(st, id), from = F ? (F.em[id] != null ? F.em[id] : 0) : to, v;
@@ -598,114 +637,105 @@ html,body{margin:0;background:#fff}
       else if (to > from) {
         var k = enterOrder.indexOf(id), d0 = from > .01 ? .25 : .5 + (k < 0 ? 0 : Math.min(k, 3) * CFG.stagger / dur);
         v = from + (to - from) * seg(p, d0, Math.min(1, d0 + CFG.entry / dur), eo);
-      } else v = from + (to - from) * seg(p, 0, .5);
+      } else v = from + (to - from) * seg(p, 0, FAST_OUT[id] ? .32 : .5);
       em[id] = v;
     });
 
-    // ---- build (S0 on entering view): grid → objects → connectors → labels / windows
-    var bGrid = seg(bt, B.grid[0], B.grid[1], eo);
-    E.grid.gradient.setAttribute('r', f1(1500 * bGrid + 1));
-    var objIds = ['src-ps', 'src-pacs', 'src-emr', 'qlens', 'qtrack', 'up-prior', 'up-outreach', 'spec', 'qrx'];
-    var buildOf = {};
-    objIds.forEach(function (id, n) {
-      var at = B.objects[0] + n * (B.objects[1] - B.objects[0] - B.edge * .4) / objIds.length, o = E[id].obj;
-      if (!o.draw) o.draw = o.kind === 'up' ? null : drawable(o.edge);
+    // ---- build (S0 on entering view): grid → objects → connectors → cards / labels / windows
+    E.grid.gradient.setAttribute('r', f1(2000 * seg(bt, B.grid[0], B.grid[1], eo) + 1));
+    var buildOf = { grid: seg(bt, B.grid[0], B.grid[0] + .3) };
+    ORDER_OBJ.forEach(function (id, n) {
+      var at = B.objects[0] + n * (B.objects[1] - B.objects[0] - B.edge * .4) / ORDER_OBJ.length, o = E[id].obj;
+      if (o.draw === undefined) o.draw = o.kind === 'up' ? null : drawable(o.edge);
       if (o.draw) o.draw(seg(bt, at, at + B.edge));
       var fv = seg(bt, at + .3, at + .75);
       if (o.fade) o.fade.forEach(function (e) { e.style.opacity = fv; });
       buildOf[id] = o.kind === 'up' ? seg(bt, at + .2, at + .7) : (bt > at ? 1 : 0);
     });
-    ['conn-src', 'conn-lt', 'conn-ts', 'conn-sq', 'conn-up', 'arc-wb'].forEach(function (id, n) {
-      var a = B.conns[0] + n * .05, v = seg(bt, a, B.conns[1] + n * .05);
+    ORDER_CONN.forEach(function (id, n) {
+      var a = B.conns[0] + n * .06, v = seg(bt, a, B.conns[1] + n * .06);
       (E[id].paths || []).forEach(function (pp) { if (!pp.draw) pp.draw = drawable(pp.el); pp.draw(v); });
       buildOf[id] = bt > a ? 1 : 0;
-      if (id === 'conn-src') E[id].els.forEach(function (e) { if (e.tagName === 'circle') e.style.opacity = seg(bt, B.conns[1] - .1, B.conns[1] + .15); });
     });
-    var htmlOrder = ['win-in', 'stg-01', 'lbl-qlens', 'stg-02', 'stg-06', 'lbl-qtrack', 'stg-03', 'stg-04', 'lbl-spec', 'lbl-qrx', 'win-out'];
-    htmlOrder.forEach(function (id, n) { var a = B.labels[0] + n * .05; buildOf[id] = seg(bt, a, a + .35, eo); });
-    buildOf.grid = seg(bt, B.grid[0], B.grid[0] + .3);
+    ORDER_HTML.forEach(function (id, n) { var a = B.labels[0] + n * .06; buildOf[id] = seg(bt, a, a + .35, eo); });
 
-    // ---- apply world emphasis
+    // ---- world emphasis
     var amb = t - S.stepT0, breathe = st.active && st.active.indexOf('up-prior') >= 0;
     Object.keys(E).forEach(function (id) {
       var o = E[id]; if (!o.world) return;
-      var v = em[id] * (buildOf[id] != null ? buildOf[id] : 1);
+      var b = buildOf[id] != null ? buildOf[id] : 1, v = em[id] * b;
       if (o.obj && o.obj.kind === 'up') v *= .5 + (breathe && built && !reduce.matches ? -.1 * Math.cos(Math.PI * 2 * (amb - (id === 'up-prior' ? 0 : .6)) / 6) : 0);
       if (o.obj && o.obj.wash) {                                       // solid cube: opaque from 20% emphasis up, washed toward white below 1
         o.obj.wash.setAttribute('opacity', Math.min(.85, 1 - em[id]).toFixed(3));
-        v = cl(em[id] / .2) * (buildOf[id] != null ? buildOf[id] : 1);
+        v = cl(em[id] / .2) * b;
       }
       o.els.forEach(function (e) { e.style.opacity = v.toFixed(3); });
     });
-    // artifacts rise into place as they enter (easeOutCubic, staggered tiles)
-    var ae = em.artifacts;
-    E.artifacts.tiles.forEach(function (g, n) {
-      var q = cl(ae * 1.6 - n * .12); g.setAttribute('transform', 'translate(0 ' + f1(-14 * (1 - eo(q))) + ')'); g.style.opacity = eo(q).toFixed(3);
+    E.artifacts.tiles.forEach(function (g, n) {                          // artifacts settle into place as they enter (easeOutCubic, staggered)
+      var q = cl(em.artifacts * 1.6 - n * .12); g.setAttribute('transform', 'translate(0 ' + f1(-14 * (1 - eo(q))) + ')'); g.style.opacity = eo(q).toFixed(3);
     });
-    E['feeds-art'].els.forEach(function (e) { if (e.classList.contains('feed')) e.style.strokeDashoffset = f1(-15 * ((amb * 1.2) % 1e3)); });
+    E['feeds-art'].els.forEach(function (e) { if (e.classList.contains('feed')) e.style.strokeDashoffset = f1(-18 * amb % 1e4); });
 
     // ---- ambient: only the current step's packet path loops; one packet at a time
-    var A = AMB[st.ambient], pkV = 0;
-    var deep = { qlens: 0 }, ringP = -1;
-    if (A && built && !reduce.matches && !staticMode) {
-      var a0 = st.name === 'overview' ? .4 : CFG.step * .9;          // first packet once the step has settled
-      var cyc = A.legs.length * (A.leg + A.gap) + A.rest, tc = amb - a0;
+    var Am = AMB[st.ambient], pkV = 0, deep = 0, ringP = -1;
+    if (Am && built && !reduce.matches && !staticMode) {
+      var a0 = st.name === 'overview' ? .4 : CFG.step * .9, cyc = Am.legs.length * (Am.leg + Am.gap) + Am.rest, tc = amb - a0;
       if (tc > 0) {
         tc %= cyc;
-        var li = Math.floor(tc / (A.leg + A.gap)), lt = (tc - li * (A.leg + A.gap)) / A.leg;
-        if (li < A.legs.length && lt <= 1) {
-          var lg = A.legs[li], q = lg.poly.at(io(lt));
+        var li = Math.floor(tc / (Am.leg + Am.gap)), lt = (tc - li * (Am.leg + Am.gap)) / Am.leg, deepLeg = function (i) { return Am.deepen && (Am.deepen.all || Am.deepen[i] != null); };
+        if (li < Am.legs.length && lt <= 1) {
+          var lg = Am.legs[li], q = lg.poly.at(io(lt));
           pkMain.setAttribute('transform', 'translate(' + f1(q[0]) + ' ' + f1(q[1]) + ') rotate(' + f1(q[2]) + ') scale(' + (zs * CFG.packet * (lg.s || 1)).toFixed(3) + ')');
           pkMain.setAttribute('fill', lg.color);
           pkV = inside(q[0], q[1]) ? 0 : 1;
-          if (A.deepen && (A.deepen.all || A.deepen[li] != null) && lt > .85) deep.qlens = Math.max(deep.qlens, seg(lt, .85, 1));
+          if (lg.faint) lg.faint.forEach(function (id) { var g = GEO[id], dx = Math.abs(q[0] - g.top[0]); if (dx < g.hw + 8) pkV *= .35 + .65 * cl((dx - g.hw + 8) / 16); });
+          if (deepLeg(li) && lt > .85) deep = Math.max(deep, seg(lt, .85, 1));
         }
-        // qLens deepens softly as packets arrive; one ring per cycle (after the last leg)
-        var lastEnd = A.legs.length * (A.leg + A.gap);
-        if (st.name === 'qlens-read') ringP = (tc - (lastEnd - A.gap)) / 1.4;
-        var sinceArr = tc - (li * (A.leg + A.gap) + A.leg);
-        if (A.deepen && (A.deepen.all || A.deepen[li] != null) && sinceArr > 0 && sinceArr < .8) deep.qlens = Math.max(deep.qlens, 1 - sinceArr / .8);
+        var since = tc - (li * (Am.leg + Am.gap) + Am.leg);
+        if (deepLeg(li) && since > 0 && since < .8) deep = Math.max(deep, 1 - since / .8);
+        if (st.name === 'qlens-read') ringP = (tc - (Am.legs.length * (Am.leg + Am.gap) - Am.gap)) / 1.4;
       }
     }
-    pkMain.style.opacity = (pkV * globalOp * (F ? cl(1 - p * 3) + (p >= 1 ? 1 : 0) : 1)).toFixed(3);
-    E.qlens.obj.deepen.setAttribute('opacity', (.2 * deep.qlens * em.qlens).toFixed(3));
-    var rr = E.qlens.obj.geo.hw;
-    if (ringP > 0 && ringP < 1) { var rv = rr * (1.05 + .9 * eo(ringP)); ring.setAttribute('rx', f1(rv)); ring.setAttribute('ry', f1(rv * TAN)); ring.setAttribute('opacity', (.45 * (1 - ringP)).toFixed(3)); }
+    pkMain.style.opacity = (pkV * globalOp * (F ? (p >= 1 ? 1 : cl(1 - p * 3)) : 1)).toFixed(3);
+    E.qlens.obj.deepen.setAttribute('opacity', (.2 * deep * em.qlens).toFixed(3));
+    if (ringP > 0 && ringP < 1) { var rv = GEO.qlens.hw * (1.05 + .9 * eo(ringP)); ring.setAttribute('rx', f1(rv)); ring.setAttribute('ry', f1(rv * TAN)); ring.setAttribute('opacity', (.45 * (1 - ringP)).toFixed(3)); }
     else ring.setAttribute('opacity', 0);
 
     // ---- HTML labels: projected from world anchors, faded by the same edge band as the mask
+    var labelTop = {};
     Object.keys(E).forEach(function (id) {
       var o = E[id]; if (o.world || !o.anchor) return;
       var a = anchorPt(o.anchor, o.dir), s = project(cam, a[0], a[1]);
       var v = em[id] * (buildOf[id] != null ? buildOf[id] : 1) * edgeAlpha(fr, s[0], s[1]);
       var lift = id === 'pill-visit' ? 8 * (1 - cl(em[id])) : 0;
-      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.start ? '-.5px' : '-50%') + ',' + (o.dir === 'down' ? '0' : '-100%') + ')';
+      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : '-100%') + ')';
       o.els[0].style.opacity = v.toFixed(3);
+      labelTop[id] = [s[0], s[1] - (L.leadH[id] || 0)];
     });
 
-    // ---- overview windows: at the frame's thin ends, rows aligned just above the cubes they feed; elbows into the floor
-    var ov = L.frames.overview, emr = project(cam, GEO['src-emr'].peak[0], GEO['src-emr'].peak[1]);
-    var wiX = fr.x, wiY = emr[1] - L.rowY[0] - 34 * L.k;
-    var qr = project(cam, GEO.qrx.right[0], GEO.qrx.right[1]);
-    var woX = fr.x + fr.w - L.win.out[0], woY = qr[1] - 44 * L.k - L.win.out[1];
-    var winV = { 'win-in': em['win-in'] * buildOf['win-in'], 'win-out': em['win-out'] * buildOf['win-out'] };
-    winIn.style.transform = 'translate(' + f1(wiX) + 'px,' + f1(wiY + 6 * (1 - buildOf['win-in'])) + 'px)'; winIn.style.opacity = winV['win-in'].toFixed(3);
-    winOut.style.transform = 'translate(' + f1(woX) + 'px,' + f1(woY + 6 * (1 - buildOf['win-out'])) + 'px)'; winOut.style.opacity = winV['win-out'].toFixed(3);
-    var R8 = 8 * L.k;
-    ['src-emr', 'src-pacs', 'src-ps'].forEach(function (sid, n) {
-      var pk = GEO[sid].peak, c = project(cam, pk[0], pk[1] - 4), x0 = wiX + L.win.in[0], y0 = wiY + L.rowY[n], eb = elbows[n];
-      var dd = 'M' + f1(x0) + ' ' + f1(y0) + 'H' + f1(c[0] - R8) + 'Q' + f1(c[0]) + ' ' + f1(y0) + ' ' + f1(c[0]) + ' ' + f1(y0 + R8) + 'V' + f1(c[1]);
-      eb.p.setAttribute('d', dd); eb.d.setAttribute('cx', f1(c[0])); eb.d.setAttribute('cy', f1(c[1]));
-      var ev = winV['win-in'] * seg(bt, B.labels[0] + .15, B.labels[0] + .6);
-      eb.p.style.opacity = ev.toFixed(3); eb.d.style.opacity = ev.toFixed(3);
+    // ---- S0 cards: six columns; each drops a straight leader to its object (or its product label, or the write-back arc)
+    var cv = em.cards * buildOf.cards * globalOp;
+    cardsEl.style.opacity = cv.toFixed(3);
+    var cardBottom = L.row.cardsBottom + 6 * L.k;
+    cards.forEach(function (c, n) {
+      var tgt = c.getAttribute('data-target'), x, y, h = cardLeads[n];
+      if (labelTop[tgt]) { x = labelTop[tgt][0]; y = labelTop[tgt][1] - 6 * L.t; }
+      else { var a = anchorPt(tgt, 'up'), s = project(cam, a[0], a[1]); x = s[0]; y = s[1]; }
+      var lv = cv * seg(bt, B.labels[0] + .1, B.labels[0] + .5);
+      hudPath(h, 'M' + f1(x) + ' ' + f1(cardBottom) + 'V' + f1(y), x, y, y > cardBottom + 4 ? lv : 0);
+      h.d.style.opacity = labelTop[tgt] ? 0 : h.p.style.opacity;           // the product label's own leader carries the end dot
     });
-    (function () {
-      var eb = elbows[3], xe = woX + 22 * L.k, y1 = woY + L.win.out[1];
-      eb.p.setAttribute('d', 'M' + f1(qr[0]) + ' ' + f1(qr[1]) + 'H' + f1(xe - R8) + 'Q' + f1(xe) + ' ' + f1(qr[1]) + ' ' + f1(xe) + ' ' + f1(qr[1] - R8) + 'V' + f1(y1));
-      eb.d.setAttribute('cx', f1(qr[0])); eb.d.setAttribute('cy', f1(qr[1]));
-      var ev = winV['win-out'] * seg(bt, B.labels[1] - .3, B.labels[1] + .1);
-      eb.p.style.opacity = ev.toFixed(3); eb.d.style.opacity = ev.toFixed(3);
-    })();
+
+    // ---- windows: INPUT feeds the source cluster from the left, OUTPUT takes qRx's result on the right
+    var R8 = 8 * L.k, ps = project(cam, GEO['src-ps'].left[0], GEO['src-ps'].left[1]);
+    var wiX = fr.x, wiY = ps[1] - 28 * L.t - L.row.win.in[1], xe = wiX + L.row.win.in[0] - 22 * L.t;
+    var vIn = em['win-in'] * buildOf['win-in'] * globalOp, vOut = em['win-out'] * buildOf['win-out'] * globalOp;
+    winIn.style.transform = 'translate(' + f1(wiX) + 'px,' + f1(wiY + 6 * (1 - buildOf['win-in'])) + 'px)'; winIn.style.opacity = vIn.toFixed(3);
+    hudPath(elbowIn, 'M' + f1(xe) + ' ' + f1(wiY + L.row.win.in[1]) + 'V' + f1(ps[1] - R8) + 'Q' + f1(xe) + ' ' + f1(ps[1]) + ' ' + f1(xe + R8) + ' ' + f1(ps[1]) + 'H' + f1(ps[0]), ps[0], ps[1], vIn * seg(bt, B.labels[0] + .2, B.labels[0] + .6));
+    var qr = project(cam, GEO.qrx.right[0], GEO.qrx.right[1]);
+    var woX = fr.x + fr.w - L.row.win.out[0], woY = qr[1] - 34 * L.t - L.row.win.out[1], xo = woX + 22 * L.t;
+    winOut.style.transform = 'translate(' + f1(woX) + 'px,' + f1(woY + 6 * (1 - buildOf['win-out'])) + 'px)'; winOut.style.opacity = vOut.toFixed(3);
+    hudPath(elbowOut, 'M' + f1(qr[0]) + ' ' + f1(qr[1]) + 'H' + f1(xo - R8) + 'Q' + f1(xo) + ' ' + f1(qr[1]) + ' ' + f1(xo) + ' ' + f1(qr[1] - R8) + 'V' + f1(woY + L.row.win.out[1]), qr[0], qr[1], vOut * seg(bt, B.labels[1] - .3, B.labels[1] + .1));
 
     // ---- headings, support text, panel: one continuous motion with the camera
     var hT = [st.heading === 0 ? 1 : 0, st.heading === 1 ? 1 : 0], head = [0, 0];
@@ -715,17 +745,17 @@ html,body{margin:0;background:#fff}
       heads[hi].style.opacity = head[hi].toFixed(3);
     }
     var supT = st.heading === 0 ? 1 : 0, supF = F ? F.support : supT;
-    var sup = supF === supT ? supT : rm ? (pe ? supT : supF) : supT > supF ? seg(p, .3, .8) : 1 - seg(p, 0, .45);
+    var sup = supF === supT ? supT : rm ? (pe ? supT : supF) : supT > supF ? seg(p, .3, .8) : 1 - seg(p, 0, .42);
     support.style.opacity = sup.toFixed(3);
     var pan = {};
     Object.keys(PAN).forEach(function (k2) {
-      var pt = st.panel === k2 ? 1 : 0, pf = F ? (F.pan[k2] || 0) : pt, v;
+      var pt = st.panel === k2 ? 1 : 0, pf = F ? (F.pan[k2] || 0) : pt, v, fromPanel = F && anyPanel(F.pan);
       if (!F || pf === pt) v = pt;
       else if (rm) v = pe ? pt : pf;
-      else if (pt > pf) v = pf + (pt - pf) * seg(p, F.pan && anyPanel(F.pan) ? .35 : .6, 1, eo);      // entering: last ~40% of the zoom (or crossfade between products)
+      else if (pt > pf) v = pf + (pt - pf) * seg(p, fromPanel ? .35 : .6, 1, eo);   // entering: last ~40% of the zoom (or crossfading between products)
       else v = pf + (pt - pf) * seg(p, 0, .4);
       pan[k2] = v;
-      var slide = F && !anyPanel(F.pan) && pt > pf ? 24 * L.k * (1 - v) : 0;
+      var slide = F && !fromPanel && pt > pf ? 24 * L.k * (1 - v) : 0;
       PAN[k2].el.style.opacity = v.toFixed(3);
       PAN[k2].el.style.transform = slide ? 'translateX(' + f1(slide) + 'px)' : '';
       PAN[k2].lines.forEach(function (li, n) { li.classList.toggle('is-on', st.panel === k2 && st.line.indexOf(n) >= 0); });
@@ -734,28 +764,28 @@ html,body{margin:0;background:#fff}
 
     S.cur = { cam: cam, frame: fr, em: em, head: head, pan: pan, support: sup };
     if (S.from && p >= 1) S.from = null;
-    if (DEBUG) debugDraw(cam, fr, tg);
+    if (DEBUG) debugDraw(cam, fr);
   }
   function anyPanel(pan) { for (var k in pan) if (pan[k] > .01) return true; return false; }
   var pt0 = svg.createSVGPoint();
   function inside(x, y) { pt0.x = x; pt0.y = y; return solids.some(function (e) { return e.isPointInFill(pt0); }); }
   function anchorPt(name, dir) {
     if (GEO[name]) { var g = GEO[name]; return dir === 'down' ? [g.bottom[0], g.bottom[1] + 3] : [g.peak[0], g.peak[1] - 5]; }
-    var a = POINTS[name]; return a ? G(a[0], a[1]) : [0, 0];
+    var a = POINTS[name]; return a ? G(a) : [0, 0];
   }
 
   // ---------------------------------------------------------------- debug
   var dbgHud = null;
-  function debugDraw(cam, fr, tg) {
+  function debugDraw(cam, fr) {
     if (!dbgHud) { dbg.hidden = false; dbgHud = document.createElement('div'); dbgHud.className = 'hud'; }
     var h = '', box = function (r, c) { return '<div class="r ' + (c || '') + '" style="left:' + f1(r.x) + 'px;top:' + f1(r.y) + 'px;width:' + f1(r.w) + 'px;height:' + f1(r.h) + 'px"></div>'; };
     h += box(fr) + box(usable(fr), 'u');
-    var cr = canvas.getBoundingClientRect(), sr = sticky.getBoundingClientRect();
-    h += box({ x: cr.left - sr.left + 120 * L.k, y: cr.top - sr.top + 140 * L.k, w: 1200 * L.k, h: 620 * L.k }, 's');
-    Object.keys(GEO).forEach(function (id) { var g = GEO[id], s = project(cam, g.top[0], g.top[1] + (g.bottom[1] - g.top[1]) - g.hw * TAN); h += '<div class="x" style="left:' + f1(s[0]) + 'px;top:' + f1(s[1]) + 'px"></div>'; });
+    var cr = rectOf(canvas);
+    h += box({ x: cr.x + 120 * L.k, y: cr.y + 140 * L.k, w: 1200 * L.k, h: 620 * L.k }, 's');
+    Object.keys(OBJ).forEach(function (id) { var s = project(cam, G(OBJ[id].at)[0], G(OBJ[id].at)[1]); h += '<div class="x" style="left:' + f1(s[0]) + 'px;top:' + f1(s[1]) + 'px"></div>'; });
     dbg.innerHTML = h;
     dbgHud.textContent = 'step ' + S.i + ' / ' + (SEQ.length - 1) + '  ' + SEQ[S.i].name + '\nlock ' + (locked() ? 'ON' : 'off') + (transitioning() ? ' (transition)' : '') +
-      '\nbuild ' + (S.build < 0 ? '-' : S.build.toFixed(2)) + '  zoom ' + (cam.z / L.k).toFixed(2) + '  k ' + L.k.toFixed(3);
+      '\nbuild ' + (S.build < 0 ? '-' : S.build.toFixed(2)) + '  zoom ' + (cam.z / L.k).toFixed(2) + ' (' + (cam.z / L.row.z).toFixed(2) + '× S0)  k ' + L.k.toFixed(3);
     dbg.appendChild(dbgHud);
   }
 
@@ -825,13 +855,11 @@ html,body{margin:0;background:#fff}
     root.style.height = wide ? (SEQ.length * 100) + 'vh' : '';
     if (!wide) { S.i = 0; S.from = null; S.build = CFG.build.end; }
     measure();
-    if (staticMode) { render(); }
-    else kick();
+    if (staticMode) render(); else kick();
   }
   var pend = 0;
   function relayout() { if (pend) return; pend = requestAnimationFrame(function () { pend = 0; var y = scrollY >= top() - 1 && scrollY <= stepY(SEQ.length - 1) + 1; applyMode(); if (y && enabled) syncScroll(); render(); }); }
   new ResizeObserver(relayout).observe(sticky);
-  [winIn, winOut].forEach(function (w) { new ResizeObserver(relayout).observe(w); });
   if (document.fonts) document.fonts.ready.then(relayout);
   new IntersectionObserver(function (es) {
     es.forEach(function (e) {
@@ -841,12 +869,10 @@ html,body{margin:0;background:#fff}
     });
   }, { threshold: .6 }).observe(sticky);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) kick(); });
-  reduce.addEventListener && reduce.addEventListener('change', relayout);
+  if (reduce.addEventListener) reduce.addEventListener('change', relayout);
 
   applyMode();
-  S.cur = null; render();
-  // S0 ambient clock starts once the build ends
-  S.stepT0 = now() + CFG.build.end;
+  render();
 
   // internal API for the Claude Design handoff (not wired to any UI); exposed on window only with ?debug=1
   var api = { goTo: function (n) { return goTo(n); }, next: next, prev: prev, steps: SEQ.map(function (s) { return s.name; }), state: function () { return { step: SEQ[S.i].name, locked: locked(), build: S.build }; }, onStep: function (f) { listeners.push(f); } };
