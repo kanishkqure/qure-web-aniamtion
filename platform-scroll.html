@@ -101,6 +101,10 @@ html,body{margin:0;background:#fff}
 .ps-lbl[data-dir="down"] .ps-leader::after{bottom:auto;top:-2px}
 .ps-lbl[data-align="start"]{align-items:flex-start}
 .ps-lbl[data-align="start"] .ps-leader{margin-left:calc(16 * var(--ut))}
+.ps-lbl[data-dir="left"]{flex-direction:row;align-items:center}
+.ps-lbl[data-dir="left"] .ps-over{padding:1px 2px;background:#fff;border-radius:2px;letter-spacing:.1em}
+.ps-lbl[data-dir="left"] .ps-leader{width:calc(var(--lead,18) * var(--ut));height:0;border-left:0;border-top:.75px solid #303030;margin:0 0 0 calc(3 * var(--ut))}
+.ps-lbl[data-dir="left"] .ps-leader::after{left:auto;right:-2px;bottom:auto;top:-2.4px}
 .ps-lbl.is-grey .ps-leader{border-color:#C9C9D4}
 .ps-lbl.is-grey .ps-leader::after{background:#C9C9D4}
 .ps-tag{display:inline-block;padding:1px calc(6 * var(--ut));border:.75px solid #FF7869;border-radius:999px;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(7.5 * var(--ut));font-weight:400;letter-spacing:.14em;color:#FF7869;background:#fff;line-height:1.5}
@@ -129,7 +133,6 @@ html,body{margin:0;background:#fff}
 .ps-sk-rows li{display:flex;align-items:center;justify-content:space-between;gap:calc(8 * var(--ut));height:calc(12 * var(--ut))}
 .ps-sk-rows li.is-on .ps-sk{background:#FF7869}
 .ps-sk-rows .ps-sk{transition:background-color .45s cubic-bezier(.33,1,.68,1)}
-.ps-finding{flex:none;padding:0 calc(6 * var(--ut));border:.75px solid #FF7869;border-radius:99px;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(7.5 * var(--ut));line-height:1.6;letter-spacing:.14em;color:#FF7869;opacity:0}
 .ps-cal{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:calc(6 * var(--ut))}
 .ps-cal i{height:calc(18 * var(--ut));border-radius:calc(4 * var(--ut));background:#ECECF2;transform-origin:50% 50%}
 .ps-cal i.is-booked{background:#FF7869}
@@ -180,6 +183,7 @@ html,body{margin:0;background:#fff}
       <div class="ps-el ps-lbl" id="ps-lbl-qlens" data-ps-el="lbl-qlens" data-anchor="qlens"><span class="ps-over">Finds</span><span class="ps-name">qLens</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-qtrack" data-ps-el="lbl-qtrack" data-anchor="qtrack"><span class="ps-over">Moves</span><span class="ps-name">qTrack</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-spec" data-ps-el="lbl-spec" data-anchor="spec"><span class="ps-over">Specialist</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl" id="ps-lbl-spec-side" data-ps-el="lbl-spec-side" data-anchor="spec" data-dir="left" style="--lead:7"><span class="ps-over">Specialist</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-qrx" data-ps-el="lbl-qrx" data-anchor="qrx"><span class="ps-over">Treats</span><span class="ps-name">qRx</span><i class="ps-leader"></i></div>
       <!-- qLens close-up: source names, trigger pill, artifact names -->
       <div class="ps-el ps-lbl is-grey" id="ps-lbl-emr" data-ps-el="lbl-emr" data-anchor="src-emr" data-dir="down" style="--lead:10"><span class="ps-over">EMR</span><i class="ps-leader"></i></div>
@@ -194,12 +198,11 @@ html,body{margin:0;background:#fff}
         <div class="ps-hwin-body">
           <div class="ps-ctx-id"><i class="ps-av"></i><span><b class="ps-sk" style="--w:92"></b><b class="ps-sk l" style="--w:56"></b></span></div>
           <div class="ps-rule"></div>
-          <ul class="ps-sk-rows" id="ps-ctx-rows"><li><b class="ps-sk" style="--w:150"></b></li><li><b class="ps-sk" style="--w:118"></b></li><li data-ps-gap><b class="ps-sk" style="--w:96"></b><span class="ps-finding">FINDING</span></li><li><b class="ps-sk" style="--w:162"></b></li><li><b class="ps-sk" style="--w:84"></b></li></ul>
+          <ul class="ps-sk-rows" id="ps-ctx-rows"><li><b class="ps-sk" style="--w:150"></b></li><li><b class="ps-sk" style="--w:118"></b></li><li data-ps-gap><b class="ps-sk" style="--w:96"></b></li><li><b class="ps-sk" style="--w:162"></b></li><li><b class="ps-sk" style="--w:84"></b></li></ul>
         </div>
       </div>
-      <!-- referral packet (S3–S4) and routing / scheduling pills -->
+      <!-- referral packet check (S3), scheduling pill (S5) -->
       <div class="ps-el ps-lbl" id="ps-pill-check" data-ps-el="pill-check" data-anchor="referral" style="--lead:14"><span class="ps-status ps-ok">GUIDELINE-CONCORDANT</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl" id="ps-pill-routed" data-ps-el="pill-routed" data-anchor="pt-routed" data-dir="down" style="--lead:22"><span class="ps-status">ROUTED</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-pill-scheduled" data-ps-el="pill-scheduled" data-anchor="spec" data-dir="down" style="--lead:18"><span class="ps-status">SCHEDULED</span><i class="ps-leader"></i></div>
       <!-- Specialist calendar (S5) -->
       <div class="ps-el ps-win ps-hwin ps-hwin-cal" id="ps-win-cal" data-ps-el="win-cal">
@@ -298,7 +301,7 @@ html,body{margin:0;background:#fff}
   var ART = { 'art-dicom': [QL[0] + .6, QL[1] + 2.8], 'art-doc': [QL[0] + 2.8, QL[1] + .6] };   // S1: in front of qLens
   var REC = [0, 1, 2, 3].map(function (k) { return [QL[0] - 1, QL[1] - 3.7 - 1.2 * k]; });        // S2: prior visits, older further back
   var REF = { beside: T.qlens + 1.75, edge: T.qlens + 5.4 };                                       // S3: referral packet stops on the row
-  var POINTS = { 'arc-corner': [OBJ.spec.at[0] - WB_BACK, OBJ.spec.at[1]], 'pt-routed': row(T.qtrack + 1.5) };
+  var POINTS = { 'arc-corner': [OBJ.spec.at[0] - WB_BACK, OBJ.spec.at[1]] };
 
   // steps. emphasis: listed in active → 1, dim → .5, faint → .2, otherwise hidden.
   // cam: { row } aligns S0 to the cards; { focus, at: [fx, fy] } puts a world point at a fraction of the unfaded frame;
@@ -328,13 +331,12 @@ html,body{margin:0;background:#fff}
       enter: ['referral', 'pill-check'] },
     { name: 'qtrack-route', frame: 'product', heading: 1, panel: 'qtrack', line: [0],
       cam: { focus: 'qtrack', at: [.4, .72] },
-      active: ['grid', 'qtrack', 'spec', 'conn-row', 'referral', 'lbl-qtrack', 'lbl-spec', 'pill-routed'],
+      active: ['grid', 'qtrack', 'spec', 'conn-row', 'referral', 'lbl-qtrack', 'lbl-spec-side'],
       dim: ['qlens', 'qrx', 'conn-sq', 'arc-wb', 'records', 'lbl-qlens'].concat(UPS),
-      enter: ['pill-routed'],
       ambient: 'qtrack-route' },
     { name: 'qtrack-schedule', frame: 'product', heading: 1, panel: 'qtrack', line: [1],
       cam: { focus: 'spec', at: [.46, .8] },
-      active: ['grid', 'qtrack', 'spec', 'arc-wb', 'win-cal', 'pill-scheduled', 'lbl-qtrack'],
+      active: ['grid', 'qtrack', 'spec', 'arc-wb', 'win-cal', 'pill-scheduled', 'lbl-qtrack', 'lbl-spec-side'],
       dim: ['qlens', 'qrx', 'conn-row', 'conn-sq'].concat(UPS),
       enter: ['win-cal', 'pill-scheduled'],
       ambient: 'qtrack-schedule' },
@@ -602,7 +604,7 @@ html,body{margin:0;background:#fff}
   reg('cards', cardsEl, { world: false });
   var cards = [].slice.call(cardsEl.querySelectorAll('.ps-card'));
   var winIn = $('ps-win-in'), winOut = $('ps-win-out'), winCtx = $('ps-win-context'), winCal = $('ps-win-cal');
-  var ctxBars = [].slice.call(winCtx.querySelectorAll('.ps-sk')), ctxGap = winCtx.querySelector('[data-ps-gap]'), ctxFinding = winCtx.querySelector('.ps-finding');
+  var ctxBars = [].slice.call(winCtx.querySelectorAll('.ps-sk')), ctxGap = winCtx.querySelector('[data-ps-gap]');
   var calSlots = [].slice.call(winCal.querySelectorAll('.ps-cal i')), calBooked = winCal.querySelector('[data-ps-booked]'), calBars = [].slice.call(winCal.querySelectorAll('.ps-sk'));
   var hudLine = function (cls) { return { p: mk('path', { 'class': cls }, hud), d: mk('circle', { 'class': 'dot ' + cls.split(' ').slice(1).join(' '), r: 2 }, hud) }; };
   var elbowIn = hudLine('elbow grey'), elbowOut = hudLine('elbow grey'), elbowCtx = hudLine('elbow grey'), elbowCal = hudLine('elbow grey');
@@ -866,14 +868,14 @@ html,body{margin:0;background:#fff}
     else ring.setAttribute('opacity', 0);
 
     // ---- HTML labels: projected from world anchors, faded by the same edge band as the mask
-    var labelTop = {}, c4 = clock('qtrack-route', amb), c5 = clock('qtrack-schedule', amb);
-    var gate = { 'pill-check': seg(c3, 1.35, 1.7, eo), 'pill-routed': seg(c4, 2.7, 3.05, eo), 'pill-scheduled': seg(c5, 1.75, 2.1, eo) };
+    var labelTop = {}, c5 = clock('qtrack-schedule', amb);
+    var gate = { 'pill-check': seg(c3, 1.35, 1.7, eo), 'pill-scheduled': seg(c5, 1.75, 2.1, eo) };
     Object.keys(E).forEach(function (id) {
       var o = E[id]; if (o.world || !o.anchor) return;
       var a = anchorPt(o.anchor, o.dir, refT), s = project(cam, a[0], a[1]);
       var v = em[id] * (buildOf[id] != null ? buildOf[id] : 1) * edgeAlpha(fr, s[0], s[1]) * (gate[id] != null ? gate[id] : 1);
       var lift = /^pill-/.test(id) ? 8 * (1 - cl(Math.min(em[id], gate[id] != null ? gate[id] : 1))) : 0;
-      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : '-100%') + ')';
+      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.dir === 'left' ? '-100%' : o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : o.dir === 'left' ? '-50%' : '-100%') + ')';
       o.els[0].style.opacity = v.toFixed(3);
       labelTop[id] = [s[0], s[1] - (L.leadH[id] || 0)];
     });
@@ -909,11 +911,9 @@ html,body{margin:0;background:#fff}
       place(winCtx, x, y + rise, v);
       var xe2 = ul[0] - 24 * L.t - 26 * L.t;
       hudPath(elbowCtx, 'M' + f1(ul[0]) + ' ' + f1(ul[1]) + 'H' + f1(xe2 + R8) + 'Q' + f1(xe2) + ' ' + f1(ul[1]) + ' ' + f1(xe2) + ' ' + f1(ul[1] - R8) + 'V' + f1(y + w[1] + rise), ul[0], ul[1], v);
-      // skeleton rows draw left → right, then the care gap turns peach and the FINDING tag appears
+      // skeleton rows draw left → right, then the care gap row turns peach
       ctxBars.forEach(function (b, n) { b.style.transform = 'scaleX(' + seg(c2, .75 + n * .07, 1.15 + n * .07, eo).toFixed(3) + ')'; });
       ctxGap.classList.toggle('is-on', c2 > 2);
-      ctxFinding.style.opacity = seg(c2, 2.25, 2.55, eo).toFixed(3);
-      scaleAt(ctxFinding, c2 > 2.25 ? bk(cl((c2 - 2.25) / .3)) : .001);
     })();
     (function () {
       var pk = project(cam, GEO.spec.peak[0], GEO.spec.peak[1] - 4), w = L.win.cal, rise = 10 * L.t * (1 - eo(cl(em['win-cal'])));
@@ -964,7 +964,7 @@ html,body{margin:0;background:#fff}
   function inside(x, y) { pt0.x = x; pt0.y = y; return solids.some(function (e) { return e.isPointInFill(pt0); }); }
   function anchorPt(name, dir, refT) {
     if (name === 'referral') { var r = rowPt(refT); return [r[0], r[1] - 15 - 17 * 1 - 5]; }
-    if (GEO[name]) { var g = GEO[name]; return dir === 'down' ? [g.bottom[0], g.bottom[1] + 3] : [g.peak[0], g.peak[1] - 5]; }
+    if (GEO[name]) { var g = GEO[name]; return dir === 'down' ? [g.bottom[0], g.bottom[1] + 3] : dir === 'left' ? [g.left[0] + 15, g.left[1] + 8] : [g.peak[0], g.peak[1] - 5]; }
     var a = POINTS[name]; return a ? G(a) : [0, 0];
   }
 
