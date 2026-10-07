@@ -101,10 +101,7 @@ html,body{margin:0;background:#fff}
 .ps-lbl[data-dir="down"] .ps-leader::after{bottom:auto;top:-2px}
 .ps-lbl[data-align="start"]{align-items:flex-start}
 .ps-lbl[data-align="start"] .ps-leader{margin-left:calc(16 * var(--ut))}
-.ps-lbl[data-dir="left"]{flex-direction:row;align-items:center}
-.ps-lbl[data-dir="left"] .ps-over{padding:1px 2px;background:#fff;border-radius:2px;letter-spacing:.1em}
-.ps-lbl[data-dir="left"] .ps-leader{width:calc(var(--lead,18) * var(--ut));height:0;border-left:0;border-top:.75px solid #303030;margin:0 0 0 calc(3 * var(--ut))}
-.ps-lbl[data-dir="left"] .ps-leader::after{left:auto;right:-2px;bottom:auto;top:-2.4px}
+.ps-lbl.ps-stacked .ps-leader{visibility:hidden}   /* sits under the Specialist label: spacer only, that label's leader does the pointing */
 .ps-lbl.is-grey .ps-leader{border-color:#C9C9D4}
 .ps-lbl.is-grey .ps-leader::after{background:#C9C9D4}
 .ps-tag{display:inline-block;padding:1px calc(6 * var(--ut));border:.75px solid #FF7869;border-radius:999px;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(7.5 * var(--ut));font-weight:400;letter-spacing:.14em;color:#FF7869;background:#fff;line-height:1.5}
@@ -183,7 +180,7 @@ html,body{margin:0;background:#fff}
       <div class="ps-el ps-lbl" id="ps-lbl-qlens" data-ps-el="lbl-qlens" data-anchor="qlens"><span class="ps-over">Finds</span><span class="ps-name">qLens</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-qtrack" data-ps-el="lbl-qtrack" data-anchor="qtrack"><span class="ps-over">Moves</span><span class="ps-name">qTrack</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-spec" data-ps-el="lbl-spec" data-anchor="spec"><span class="ps-over">Specialist</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl" id="ps-lbl-spec-side" data-ps-el="lbl-spec-side" data-anchor="spec" data-dir="left" style="--lead:7"><span class="ps-over">Specialist</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl" id="ps-lbl-spec-below" data-ps-el="lbl-spec-below" data-anchor="spec" data-dir="down" style="--lead:10"><span class="ps-over">Specialist</span><i class="ps-leader"></i></div>
       <div class="ps-el ps-lbl" id="ps-lbl-qrx" data-ps-el="lbl-qrx" data-anchor="qrx"><span class="ps-over">Treats</span><span class="ps-name">qRx</span><i class="ps-leader"></i></div>
       <!-- qLens close-up: source names, trigger pill, artifact names -->
       <div class="ps-el ps-lbl is-grey" id="ps-lbl-emr" data-ps-el="lbl-emr" data-anchor="src-emr" data-dir="down" style="--lead:10"><span class="ps-over">EMR</span><i class="ps-leader"></i></div>
@@ -203,7 +200,7 @@ html,body{margin:0;background:#fff}
       </div>
       <!-- referral packet check (S3), scheduling pill (S5) -->
       <div class="ps-el ps-lbl" id="ps-pill-check" data-ps-el="pill-check" data-anchor="referral" style="--lead:14"><span class="ps-status ps-ok">GUIDELINE-CONCORDANT</span><i class="ps-leader"></i></div>
-      <div class="ps-el ps-lbl" id="ps-pill-scheduled" data-ps-el="pill-scheduled" data-anchor="spec" data-dir="down" style="--lead:18"><span class="ps-status">SCHEDULED</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl ps-stacked" id="ps-pill-scheduled" data-ps-el="pill-scheduled" data-anchor="spec" data-dir="down" style="--lead:34"><span class="ps-status">SCHEDULED</span><i class="ps-leader"></i></div>
       <!-- Specialist calendar (S5) -->
       <div class="ps-el ps-win ps-hwin ps-hwin-cal" id="ps-win-cal" data-ps-el="win-cal">
         <div class="ps-win-head"><b class="ps-sk" style="--w:64"></b><span class="ps-win-dots"><i></i><i></i><i></i></span></div>
@@ -331,12 +328,12 @@ html,body{margin:0;background:#fff}
       enter: ['referral', 'pill-check'] },
     { name: 'qtrack-route', frame: 'product', heading: 1, panel: 'qtrack', line: [0],
       cam: { focus: 'qtrack', at: [.4, .72] },
-      active: ['grid', 'qtrack', 'spec', 'conn-row', 'referral', 'lbl-qtrack', 'lbl-spec-side'],
+      active: ['grid', 'qtrack', 'spec', 'conn-row', 'referral', 'lbl-qtrack', 'lbl-spec-below'],
       dim: ['qlens', 'qrx', 'conn-sq', 'arc-wb', 'records', 'lbl-qlens'].concat(UPS),
       ambient: 'qtrack-route' },
     { name: 'qtrack-schedule', frame: 'product', heading: 1, panel: 'qtrack', line: [1],
       cam: { focus: 'spec', at: [.46, .8] },
-      active: ['grid', 'qtrack', 'spec', 'arc-wb', 'win-cal', 'pill-scheduled', 'lbl-qtrack', 'lbl-spec-side'],
+      active: ['grid', 'qtrack', 'spec', 'arc-wb', 'wb-arrow', 'win-cal', 'pill-scheduled', 'lbl-qtrack', 'lbl-spec-below'],
       dim: ['qlens', 'qrx', 'conn-row', 'conn-sq'].concat(UPS),
       enter: ['win-cal', 'pill-scheduled'],
       ambient: 'qtrack-schedule' },
@@ -576,6 +573,9 @@ html,body{margin:0;background:#fff}
   feed('feeds-rec', REC[3], [REC[0][0], QL[1] - 1.25]);
   var ring = mk('ellipse', { 'class': 'ring', cx: f1(G(QL)[0]), cy: f1(G(QL)[1]), rx: 1, ry: 1, opacity: 0 }, gRing);
   var pkMain = mk('path', { d: PK, fill: INK, opacity: 0 }, gPk);
+  // reduced motion only: a static arrowhead on the arc's back run, between qTrack and the Specialist, heading to EMR
+  var WB_ARROW = G([POINTS['arc-corner'][0] - .55, POINTS['arc-corner'][1] + .55]);
+  reg('wb-arrow', mk('path', { d: PK, fill: PEACH, opacity: 0 }, gPk));
 
   // ambient packet loops (one packet at a time). start: s after the step begins; deepen: hero to deepen on arrival
   var rowPt = function (t) { return G(row(t)); };
@@ -862,6 +862,8 @@ html,body{margin:0;background:#fff}
       }
     }
     pkMain.style.opacity = (pkV * globalOp * (F ? (p >= 1 ? 1 : cl(1 - p * 3)) : 1)).toFixed(3);
+    E['wb-arrow'].els[0].setAttribute('transform', 'translate(' + P(WB_ARROW) + ') rotate(180) scale(' + (zs * CFG.packet * 1.3).toFixed(3) + ')');
+    E['wb-arrow'].els[0].style.opacity = reduce.matches ? em['wb-arrow'].toFixed(3) : 0;
     march.style.opacity = (marchV * em['arc-wb']).toFixed(3); march.style.strokeDashoffset = f1(-40 * amb % 1e4);
     E.qlens.obj.deepen.setAttribute('opacity', (.2 * deep * em.qlens).toFixed(3));
     if (ringP > 0 && ringP < 1) { var rv = GEO.qlens.hw * (1.05 + .9 * eo(ringP)); ring.setAttribute('rx', f1(rv)); ring.setAttribute('ry', f1(rv * TAN)); ring.setAttribute('opacity', (.45 * (1 - ringP)).toFixed(3)); }
@@ -875,7 +877,7 @@ html,body{margin:0;background:#fff}
       var a = anchorPt(o.anchor, o.dir, refT), s = project(cam, a[0], a[1]);
       var v = em[id] * (buildOf[id] != null ? buildOf[id] : 1) * edgeAlpha(fr, s[0], s[1]) * (gate[id] != null ? gate[id] : 1);
       var lift = /^pill-/.test(id) ? 8 * (1 - cl(Math.min(em[id], gate[id] != null ? gate[id] : 1))) : 0;
-      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.dir === 'left' ? '-100%' : o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : o.dir === 'left' ? '-50%' : '-100%') + ')';
+      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : '-100%') + ')';
       o.els[0].style.opacity = v.toFixed(3);
       labelTop[id] = [s[0], s[1] - (L.leadH[id] || 0)];
     });
@@ -964,7 +966,7 @@ html,body{margin:0;background:#fff}
   function inside(x, y) { pt0.x = x; pt0.y = y; return solids.some(function (e) { return e.isPointInFill(pt0); }); }
   function anchorPt(name, dir, refT) {
     if (name === 'referral') { var r = rowPt(refT); return [r[0], r[1] - 15 - 17 * 1 - 5]; }
-    if (GEO[name]) { var g = GEO[name]; return dir === 'down' ? [g.bottom[0], g.bottom[1] + 3] : dir === 'left' ? [g.left[0] + 15, g.left[1] + 8] : [g.peak[0], g.peak[1] - 5]; }
+    if (GEO[name]) { var g = GEO[name]; return dir === 'down' ? [g.bottom[0], g.bottom[1] + 3] : [g.peak[0], g.peak[1] - 5]; }
     var a = POINTS[name]; return a ? G(a) : [0, 0];
   }
 
