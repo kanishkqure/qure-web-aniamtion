@@ -76,6 +76,9 @@ html,body{margin:0;background:#fff}
 .ps-world .conn-wb{stroke:#2A288C;stroke-opacity:.55}
 .ps-world .spur{fill:none;stroke:#8A8A99;stroke-width:calc(1.25px * var(--iz));stroke-dasharray:3 3;stroke-linecap:round}
 .ps-world .jdot-up{fill:#8A8A99}
+.ps-world .small .edge{stroke-width:calc(1.25px * var(--iz))}
+.ps-world .small .inner{stroke:#2A288C;stroke-opacity:.15}
+.ps-world .conn-ret{fill:none;stroke:#2A288C;stroke-width:calc(1px * var(--iz));stroke-linejoin:round}
 .ps-world .march{fill:none;stroke:#FF7869;stroke-width:calc(1.5px * var(--iz));stroke-dasharray:4 6;stroke-linecap:round;opacity:0}
 .ps-world .feed{fill:none;stroke:#A9A8E8;stroke-width:calc(1.6px * var(--iz));stroke-dasharray:0 4.5;stroke-linecap:round}
 .ps-world .port{fill:#A9A8E8}
@@ -136,6 +139,8 @@ html,body{margin:0;background:#fff}
 .ps-cal-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:calc(9 * var(--ut))}
 .ps-cal-list li{display:flex;align-items:center;gap:calc(8 * var(--ut))}
 .ps-cal-list li::before{content:"";flex:none;width:calc(6 * var(--ut));height:calc(6 * var(--ut));border-radius:50%;background:#2A288C}
+.ps-lbl[data-dir="on"] .ps-leader{display:none}
+.ps-cite{flex:none;font-family:"DM Mono",ui-monospace,monospace;font-size:calc(9 * var(--ut));line-height:1;letter-spacing:.04em;color:#2A288C;opacity:0}
 .ps-status.ps-ok::before{content:"\2713";display:grid;place-items:center;width:calc(11 * var(--ut));height:calc(11 * var(--ut));color:#fff;font-size:calc(7 * var(--ut));line-height:1}
 .ps-win-out .ps-win-rows li::before{content:"";flex:none;width:calc(6 * var(--ut));height:calc(6 * var(--ut));border-radius:50%;background:#2A288C;transform:translateY(-1px)}
 
@@ -210,6 +215,20 @@ html,body{margin:0;background:#fff}
           <ul class="ps-cal-list"><li><b class="ps-sk" style="--w:126"></b></li><li><b class="ps-sk" style="--w:92"></b></li></ul>
         </div>
       </div>
+      <!-- qRx decision support (S7): evidence labels, treatment-plan window -->
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-ev-0" data-ps-el="lbl-ev-0" data-anchor="ev-0" data-align="start" style="--lead:44"><span class="ps-over">Evidence</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-ev-1" data-ps-el="lbl-ev-1" data-anchor="ev-1" data-align="start" style="--lead:26"><span class="ps-over">Guidelines</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-lbl is-grey" id="ps-lbl-ev-2" data-ps-el="lbl-ev-2" data-anchor="ev-2" data-align="start" style="--lead:8"><span class="ps-over">Real-world outcomes</span><i class="ps-leader"></i></div>
+      <div class="ps-el ps-win ps-hwin" id="ps-win-plan" data-ps-el="win-plan">
+        <div class="ps-win-head"><b class="ps-sk" style="--w:64"></b><span class="ps-win-dots"><i></i><i></i><i></i></span></div>
+        <div class="ps-hwin-body">
+          <ul class="ps-sk-rows" id="ps-plan-rows"><li><b class="ps-sk" style="--w:140"></b></li><li data-ps-best><b class="ps-sk" style="--w:122"></b><span class="ps-cite">[1]</span></li><li><b class="ps-sk" style="--w:158"></b></li><li><b class="ps-sk" style="--w:104"></b></li></ul>
+          <div class="ps-rule"></div>
+          <div class="ps-ctx-id"><i class="ps-av" style="width:calc(14 * var(--ut));height:calc(14 * var(--ut))"></i><span><b class="ps-sk l" style="--w:120"></b></span></div>
+        </div>
+      </div>
+      <!-- qRx → qTrack hand-off (S8) -->
+      <div class="ps-el ps-lbl" id="ps-pill-monitoring" data-ps-el="pill-monitoring" data-anchor="pt-monitor" data-dir="on"><span class="ps-status">MONITORING</span><i class="ps-leader"></i></div>
       <!-- overview windows -->
       <div class="ps-el ps-win ps-win-in" id="ps-win-in" data-ps-el="win-in">
         <div class="ps-win-head"><span class="ps-over">INPUT</span><span class="ps-win-dots"><i></i><i></i><i></i></span></div>
@@ -255,7 +274,7 @@ html,body{margin:0;background:#fff}
     entry: .55, stagger: .18,                   // qLens tempo: element entry, stagger between entries
     build: { grid: [0, .5], objects: [.35, 1.15], edge: .55, conns: [1.15, 1.7], labels: [1.6, 2.3], end: 2.35 },
     emphasis: { active: 1, dim: .5, faint: .2 },
-    zoomRel: 1.5,                               // product zoom relative to the S0 zoom
+    zoomRel: 1.5,                               // product zoom relative to the S0 zoom (steps may override with cam.zoom)
     lockQuiet: 150,                             // ms with no wheel event before the next gesture counts
     stroke: [.85, 1.15],                        // on-screen stroke scale clamp (lines stay ~constant through zooms)
     packet: 1.05,                               // packet size factor (arrowhead is 9 world px)
@@ -298,7 +317,13 @@ html,body{margin:0;background:#fff}
   var ART = { 'art-dicom': [QL[0] + .6, QL[1] + 2.8], 'art-doc': [QL[0] + 2.8, QL[1] + .6] };   // S1: in front of qLens
   var REC = [0, 1, 2, 3].map(function (k) { return [QL[0] - 1, QL[1] - 3.7 - 1.2 * k]; });        // S2: prior visits, older further back
   var REF = { beside: T.qlens + 1.75, edge: T.qlens + 5.4 };                                       // S3: referral packet stops on the row
-  var POINTS = { 'arc-corner': [OBJ.spec.at[0] - WB_BACK, OBJ.spec.at[1]] };
+  var QX = OBJ.qrx.at, RET_FRONT = 5.6;                                   // S8: the return runs this far in front of the row
+  // S7: evidence cubes set back behind qRx (back-right), each feeding qRx's back face along +y
+  var EV = [[QX[0] - .75, QX[1] - 3.0], [QX[0], QX[1] - 3.75], [QX[0] + .75, QX[1] - 4.5]];   // labels clear the plan window's elbow
+  // S8: qRx → forward (+x) → back along the row, in front of it → into qTrack's front face (−x)
+  var RET = [QX, [QX[0] + RET_FRONT, QX[1]], [T.qtrack + RET_FRONT, -T.qtrack], row(T.qtrack)];
+  var POINTS = { 'arc-corner': [OBJ.spec.at[0] - WB_BACK, OBJ.spec.at[1]],
+                 'pt-monitor': [(RET[1][0] + RET[2][0]) / 2, (RET[1][1] + RET[2][1]) / 2] };
 
   // steps. emphasis: listed in active → 1, dim → .5, faint → .2, otherwise hidden.
   // cam: { row } aligns S0 to the cards; { focus, at: [fx, fy] } puts a world point at a fraction of the unfaded frame;
@@ -337,12 +362,28 @@ html,body{margin:0;background:#fff}
       dim: ['qlens', 'qrx', 'conn-row', 'conn-sq'].concat(UPS),
       enter: ['win-cal', 'pill-scheduled'],
       ambient: 'qtrack-schedule' },
-    // declared, built after the S5 review
-    { name: 'qtrack-upcoming', todo: true }, { name: 'qrx-decide', todo: true }, { name: 'qrx-adhere', todo: true }
+    { name: 'qtrack-upcoming', frame: 'product', heading: 1, panel: 'qtrack', line: [2, 3],
+      cam: { focusT: 10.5, at: [.5, .74], zoom: 1.1 },                    // a touch wider: both set-back cubes and the Specialist label in frame
+      active: ['grid', 'qtrack', 'conn-row', 'lbl-qtrack', 'lbl-spec-below'].concat(UPS),
+      dim: ['qlens', 'spec', 'qrx', 'conn-sq', 'arc-wb', 'pill-scheduled', 'lbl-qlens'],
+      ambient: 'qtrack-upcoming' },
+    { name: 'qrx-decide', frame: 'product', heading: 1, panel: 'qrx', line: [0],
+      cam: { focus: 'qrx', at: [.46, .82] },
+      active: ['grid', 'qrx', 'conn-sq', 'lbl-qrx', 'lbl-spec-below', 'evidence', 'feeds-ev', 'lbl-ev-0', 'lbl-ev-1', 'lbl-ev-2', 'win-plan'],
+      dim: ['spec', 'qtrack', 'conn-row', 'arc-wb', 'pill-scheduled'].concat(UPS),
+      enter: ['evidence', 'feeds-ev', 'lbl-ev-0', 'lbl-ev-1', 'lbl-ev-2', 'win-plan'],
+      ambient: 'qrx-decide' },
+    { name: 'qrx-adhere', frame: 'product', heading: 1, panel: 'qrx', line: [1],
+      cam: { focusT: 15, at: [.47, .62], zoom: 1.3, pull: { from: 'qlens', to: 'ret-corner', at: [2.8, 4.3] } },
+      active: ['grid', 'qlens', 'qtrack', 'spec', 'qrx', 'conn-lens', 'conn-row', 'conn-sq', 'arc-wb', 'conn-return', 'ret-arrow', 'pill-monitoring',
+               'lbl-qlens', 'lbl-qtrack', 'lbl-qrx', 'win-out'],
+      dim: ['conn-src', 'evidence', 'feeds-ev', 'records', 'artifacts'].concat(SOURCES, UPS),   // Specialist label + SCHEDULED retire here: the return runs under them
+      enter: ['conn-return'],
+      ambient: 'qrx-adhere' }
   ];
   var SEQ = STEPS.filter(function (s) { return !s.todo; });
   var IDX = {}; SEQ.forEach(function (s, i) { IDX[s.name] = i; });
-  var FAST_OUT = { cards: 1, 'win-in': 1, 'win-out': 1, 'win-context': 1, 'pill-visit': 1 };   // annotations: gone in the first third of the move
+  var FAST_OUT = { cards: 1, 'win-in': 1, 'win-out': 1, 'win-context': 1, 'win-cal': 1, 'win-plan': 1, 'pill-visit': 1 };   // annotations: gone in the first third of the move
 
   // ---------------------------------------------------------------- helpers (io / eo / seg / bk copied from qlens-tech.html / qtrack-tech.html)
   var C = Math.cos(Math.PI / 6), TAN = Math.tan(Math.PI / 6), NS = 'http://www.w3.org/2000/svg';
@@ -464,17 +505,18 @@ html,body{margin:0;background:#fff}
   function cube(id, at, s, h, kind, glyph, z, gs, noSolid) {
     var c = G(at), r = s >= 60 ? 6 : s >= 40 ? 4 : 3;
     var geo = boxGeo(c[0], c[1] - (z || 0), s, h, r, .76, s >= 60 ? 3.7 : 2.4);
-    var g = mk('g', { id: 'ps-' + id, 'class': kind === 'hero' ? 'hero' : null }, gObj);
+    var g = mk('g', { id: 'ps-' + id, 'class': kind === 'hero' || kind === 'small' ? kind : null }, gObj);
     var o = { g: g, geo: geo, kind: kind, depth: at[0] + at[1] };
     if (kind === 'up') {
       mk('path', { d: geo.hex, fill: '#fff' }, g);                        // white body: lines behind a dashed cube stay hidden
       o.edge = mk('path', { 'class': 'up-edge', d: geo.edge }, g);
+      solids.push(mk('path', { d: geo.hex, fill: 'none', stroke: 'none' }, g));
     } else {
       mk('path', { d: geo.hex }, mk('clipPath', { id: 'ps-clip-' + id }, defs));
       var faces = mk('g', { 'clip-path': 'url(#ps-clip-' + id + ')' }, g), hero = kind === 'hero';
       mk('path', { d: geo.fl, fill: hero ? '#FFBCB4' : '#fff' }, faces);
       mk('path', { d: geo.fr, fill: hero ? '#FFAAA0' : '#fff' }, faces);
-      o.top = mk('path', { d: geo.ft, fill: hero ? '#FFD2CC' : '#fff' }, faces);
+      o.top = mk('path', { d: geo.ft, fill: hero ? '#FFD2CC' : kind === 'small' ? '#D9D9FF' : '#fff' }, faces);
       if (hero) o.deepen = mk('path', { d: geo.hex, fill: PEACH, opacity: 0 }, g);
       o.edge = mk('path', { 'class': 'edge', d: geo.edge }, g);
       o.fade = [faces, mk('path', { 'class': 'inner', d: geo.inner }, g)];
@@ -534,9 +576,15 @@ html,body{margin:0;background:#fff}
     reg('referral', refG);
   })();
 
+  // S7 evidence cubes (qLens evidence-cube style: 25 side, lavender top)
+  var evG = mk('g', { id: 'ps-evidence' }, gObj);
+  var evTiles = EV.map(function (at, k) { var t = cube('ev-' + k, at, 25, 25, 'small', null, 0, 0, true); evG.insertBefore(t.g, evG.firstChild); return t.g; });
+  reg('evidence', evG, { tiles: evTiles.slice().reverse() });
+
   // depth sort (back → front); records behind, artifacts in front of qLens
   objs.slice().sort(function (p, q) { return p.depth - q.depth; }).forEach(function (o) { gObj.appendChild(o.g); });
   gObj.insertBefore(recG, gObj.firstChild);
+  gObj.insertBefore(evG, gObj.firstChild);
   gObj.appendChild(artG);
   objs.forEach(function (o) { reg(o.id, o.g, { obj: o }); });
 
@@ -571,11 +619,18 @@ html,body{margin:0;background:#fff}
   feed('feeds-art', ART['art-dicom'], [ART['art-dicom'][0], QL[1] + 1.25]);
   feed('feeds-art', ART['art-doc'], [QL[0] + 1.25, ART['art-doc'][1]]);
   feed('feeds-rec', REC[3], [REC[0][0], QL[1] - 1.25]);
+  EV.forEach(function (a) { feed('feeds-ev', a, [a[0], QX[1] - .85]); });
+  // S8 return: its own thin connector in front of the row, drawn in only in that step
+  line('conn-return', 'conn-ret', RET, 12);
+  GEO['ret-corner'] = { top: G(RET[1]), peak: G(RET[1]), bottom: G(RET[1]), hw: 8 };
   var ring = mk('ellipse', { 'class': 'ring', cx: f1(G(QL)[0]), cy: f1(G(QL)[1]), rx: 1, ry: 1, opacity: 0 }, gRing);
   var pkMain = mk('path', { d: PK, fill: INK, opacity: 0 }, gPk);
   // reduced motion only: a static arrowhead on the arc's back run, between qTrack and the Specialist, heading to EMR
   var WB_ARROW = G([POINTS['arc-corner'][0] - .55, POINTS['arc-corner'][1] + .55]);
   reg('wb-arrow', mk('path', { d: PK, fill: PEACH, opacity: 0 }, gPk));
+  // reduced motion only: a static arrowhead on the S8 return, on the leg that turns into qTrack (clear of the MONITORING pill)
+  var RET_ARROW = G([RET[2][0] - RET_FRONT * .45, RET[2][1]]), RET_DIR = G([RET[3][0], RET[3][1]]), RET_ANG = Math.atan2(RET_DIR[1] - G(RET[2])[1], RET_DIR[0] - G(RET[2])[0]) * 180 / Math.PI;
+  reg('ret-arrow', mk('path', { d: PK, fill: IND, opacity: 0 }, gPk));
 
   // ambient packet loops (one packet at a time). start: s after the step begins; deepen: hero to deepen on arrival
   var rowPt = function (t) { return G(row(t)); };
@@ -594,7 +649,14 @@ html,body{margin:0;background:#fff}
     'qlens-context': { start: 1.2, leg: 1, gap: .25, rest: 1.6, deepen: 'qlens', legs: [3, 2, 1, 0].map(function (k) {
       return { poly: new Poly([G(REC[k]), G([REC[k][0], QL[1]])]), color: IND, s: .8 }; }) },
     'qtrack-route': { start: 3.6, leg: .9, gap: 0, rest: 2.8, legs: [{ poly: new Poly([rowPt(T.qtrack), rowPt(T.spec)]), color: IND }] },
-    'qtrack-schedule': { start: 2.1, leg: 2.2, gap: 0, rest: 1.8, march: true, legs: [{ poly: new Poly(WB.map(function (p) { return G(p); })), color: PEACH }] }
+    'qtrack-schedule': { start: 2.1, leg: 2.2, gap: 0, rest: 1.8, march: true, legs: [{ poly: new Poly(WB.map(function (p) { return G(p); })), color: PEACH }] },
+    // S6: one faint packet from the main connector up each spur into its cube, and back
+    'qtrack-upcoming': { start: 1.3, leg: .8, gap: .15, rest: 2.2, faint: .45, legs: [].concat.apply([], SPURS.map(function (sp) {
+      return [{ poly: new Poly([G(sp[1]), G(sp[0])]), color: IND, s: .85 }, { poly: new Poly([G(sp[0]), G(sp[1])]), color: IND, s: .85 }]; })) },
+    'qrx-decide': { start: 1.5, leg: .9, gap: .25, rest: 1.8, deepen: 'qrx', legs: EV.map(function (a) {
+      return { poly: new Poly([G(a), G([a[0], QX[1]])]), color: IND, s: .8 }; }) },
+    // S8: the hand-off runs once in the step's own timeline, then loops gently after the pull-back
+    'qrx-adhere': { start: 5.2, leg: 1.8, gap: 0, rest: 3, deepen: 'qtrack', legs: [{ poly: new Poly(RET.map(function (p) { return G(p); })), color: IND }] }
   };
 
   // ---- HTML elements
@@ -603,11 +665,12 @@ html,body{margin:0;background:#fff}
   });
   reg('cards', cardsEl, { world: false });
   var cards = [].slice.call(cardsEl.querySelectorAll('.ps-card'));
-  var winIn = $('ps-win-in'), winOut = $('ps-win-out'), winCtx = $('ps-win-context'), winCal = $('ps-win-cal');
+  var winIn = $('ps-win-in'), winOut = $('ps-win-out'), winCtx = $('ps-win-context'), winCal = $('ps-win-cal'), winPlan = $('ps-win-plan');
+  var planBars = [].slice.call(winPlan.querySelectorAll('.ps-sk')), planBest = winPlan.querySelector('[data-ps-best]'), planCite = winPlan.querySelector('.ps-cite');
   var ctxBars = [].slice.call(winCtx.querySelectorAll('.ps-sk')), ctxGap = winCtx.querySelector('[data-ps-gap]');
   var calSlots = [].slice.call(winCal.querySelectorAll('.ps-cal i')), calBooked = winCal.querySelector('[data-ps-booked]'), calBars = [].slice.call(winCal.querySelectorAll('.ps-sk'));
   var hudLine = function (cls) { return { p: mk('path', { 'class': cls }, hud), d: mk('circle', { 'class': 'dot ' + cls.split(' ').slice(1).join(' '), r: 2 }, hud) }; };
-  var elbowIn = hudLine('elbow grey'), elbowOut = hudLine('elbow grey'), elbowCtx = hudLine('elbow grey'), elbowCal = hudLine('elbow grey');
+  var elbowIn = hudLine('elbow grey'), elbowOut = hudLine('elbow grey'), elbowCtx = hudLine('elbow grey'), elbowCal = hudLine('elbow grey'), elbowPlan = hudLine('elbow grey');
   var cardLeads = cards.map(function (c) { var up = c.getAttribute('data-status') === 'upcoming', wb = c.getAttribute('data-target') === 'arc-corner'; return hudLine('lead' + (up ? ' up' : wb ? ' wb' : '')); });
 
   // panel DOM (one block per product; between products: pill → overline → title → lines crossfade)
@@ -655,7 +718,7 @@ html,body{margin:0;background:#fff}
     L.frames.overview = withFade({ x: fo.x, y: cardsBottom + 6 * k, w: fo.w, h: Math.max(floorY + 150 * t, vh - 30 * k) - cardsBottom - 6 * k }, 'overview');
     L.frames.product = withFade(rectOf(canvas.querySelector('[data-ps-frame="product"]')), 'product');
     L.leadH = {}; Object.keys(E).forEach(function (id) { if (!E[id].world && E[id].anchor) L.leadH[id] = E[id].els[0].offsetHeight; });
-    L.win = { ctx: [winCtx.offsetWidth, winCtx.offsetHeight], cal: [winCal.offsetWidth, winCal.offsetHeight] };
+    L.win = { ctx: [winCtx.offsetWidth, winCtx.offsetHeight], cal: [winCal.offsetWidth, winCal.offsetHeight], plan: [winPlan.offsetWidth, winPlan.offsetHeight] };
     L.targets = SEQ.map(target);
   }
   function usable(fr) { return { x: fr.x + fr.f[3], y: fr.y + fr.f[0], w: fr.w - fr.f[1] - fr.f[3], h: fr.h - fr.f[0] - fr.f[2] }; }
@@ -671,17 +734,25 @@ html,body{margin:0;background:#fff}
   function target(st) {
     var fr = L.frames[st.frame], c = st.cam;
     if (c.row) return { frame: fr, cam: { x: 0, y: 0, z: L.row.z, ux: L.row.x0 + L.row.pitch / 2, uy: L.row.floorY } };
-    var u = usable(fr), z = CFG.zoomRel * L.row.z, cx, cy, ux = u.x + u.w / 2, uy = u.y + u.h / 2;
+    var u = usable(fr), z = (c.zoom || CFG.zoomRel) * L.row.z, cx, cy, ux = u.x + u.w / 2, uy = u.y + u.h / 2;
     if (c.fit) {
       var b = bboxOf(c.fit, c.pad);
       z = Math.min(z, u.w / (b[2] - b[0]), u.h / (b[3] - b[1]));
       cx = (b[0] + b[2]) / 2; cy = (b[1] + b[3]) / 2;
       if (c.edge) ux = fr.x + fr.f[3] * c.edge[1] + (cx - GEO[c.edge[0]].top[0]) * z;   // an object's centre inside the left fade band
     } else {
-      var fp = G(OBJ[c.focus].at); cx = fp[0]; cy = fp[1];
+      var fp = c.focusT != null ? G(row(c.focusT)) : G(OBJ[c.focus].at); cx = fp[0]; cy = fp[1];
       ux = u.x + u.w * c.at[0]; uy = u.y + u.h * c.at[1];
     }
-    return { frame: fr, cam: { x: cx, y: cy, z: z, ux: ux, uy: uy } };
+    var out = { frame: fr, cam: { x: cx, y: cy, z: z, ux: ux, uy: uy } };
+    if (c.pull) {
+      // second camera inside the same step: pull back until qLens … the return corner fill the frame left of the OUTPUT window
+      var l = GEO[c.pull.from], r = GEO[c.pull.to], x0 = l.top[0] - l.hw, x1 = r.top[0] + r.hw;
+      var left = fr.x + fr.f[3] * .5, right = fr.x + fr.w - L.row.win.out[0] - 28 * L.t, z2 = Math.min((right - left) / (x1 - x0), z);
+      out.cam2 = { x: (x0 + x1) / 2, y: 0, z: z2, ux: (left + right) / 2, uy: u.y + u.h * .64 };
+      out.pull = c.pull.at;
+    }
+    return out;
   }
 
   // ---------------------------------------------------------------- state machine
@@ -771,6 +842,8 @@ html,body{margin:0;background:#fff}
     // camera + frame (easeInOutCubic)
     var pc = rm ? pe : io(p);
     var cam = F ? lerpCam(F.cam, tg.cam, pc) : tg.cam;
+    var pull = tg.pull ? seg(amb, tg.pull[0], tg.pull[1]) : 0;              // S8: the pull-back is part of the step's own timeline
+    if (pull > 0) cam = lerpCam(cam, tg.cam2, pull);
     var fr = F ? lerpFrame(F.frame, tg.frame, pc) : tg.frame;
     var zs = Math.min(Math.max(cam.z, CFG.stroke[0] * L.k), CFG.stroke[1] * L.k) / cam.z;
     world.setAttribute('transform', 'translate(' + f1(cam.ux - cam.x * cam.z) + ' ' + f1(cam.uy - cam.y * cam.z) + ') scale(' + +cam.z.toFixed(4) + ')');
@@ -827,9 +900,12 @@ html,body{margin:0;background:#fff}
     });
     var settle = function (g, q, rise) { g.setAttribute('transform', 'translate(0 ' + f1(-(rise || 14) * (1 - eo(q))) + ')'); g.style.opacity = eo(q).toFixed(3); };
     E.artifacts.tiles.forEach(function (g, n) { settle(g, cl(em.artifacts * 1.6 - n * .12)); });
-    var c2 = clock('qlens-context', amb);
+    var c2 = clock('qlens-context', amb), c7 = clock('qrx-decide', amb), c8 = clock('qrx-adhere', amb);
+    E.evidence.tiles.forEach(function (g, n) { settle(g, cl(em.evidence * 1.6 - n * .14), 12); });
+    // S8 return connector draws in from qRx toward qTrack (only in this step)
+    E['conn-return'].paths.forEach(function (pp) { if (!pp.draw) pp.draw = drawable(pp.el); pp.draw(S.i >= IDX['qrx-adhere'] ? seg(c8, .5, 1.5) : 0); });
     E.records.tiles.forEach(function (tl, n) { var q = cl(em.records * 1.6 - n * .14); settle(tl.g, q, 10); tl.g.style.opacity = (eo(q) * tl.base).toFixed(3); });
-    ['feeds-art', 'feeds-rec'].forEach(function (id) { E[id].els.forEach(function (e) { if (e.classList.contains('feed')) e.style.strokeDashoffset = f1(-18 * amb % 1e4); }); });
+    ['feeds-art', 'feeds-rec', 'feeds-ev'].forEach(function (id) { E[id].els.forEach(function (e) { if (e.classList.contains('feed')) e.style.strokeDashoffset = f1(-18 * amb % 1e4); }); });
 
     // ---- referral packet: assembles beside qLens (S3), carried to the frame edge, then to qTrack and the Specialist (S4)
     var refT = refTimeline(amb);
@@ -838,7 +914,8 @@ html,body{margin:0;background:#fff}
     refG.setAttribute('transform', 'translate(' + f1(rp[0]) + ' ' + f1(rp[1]) + ')');
     refG.style.opacity = refV.toFixed(3);
     refSheets.forEach(function (g, n) { settle(g, seg(c3, .55 + n * .14, .95 + n * .14, function (x) { return x; }), 16); });
-    E.qtrack.obj.deepen.setAttribute('opacity', (.2 * (seg(clock('qtrack-route', amb), 1.3, 1.6) - seg(clock('qtrack-route', amb), 1.9, 2.5)) * em.qtrack).toFixed(3));
+    var c4 = clock('qtrack-route', amb);
+    E.qtrack.obj.deepen.setAttribute('opacity', (S.i === IDX['qtrack-route'] ? .2 * (seg(c4, 1.3, 1.6) - seg(c4, 1.9, 2.5)) * em.qtrack : 0).toFixed(3));
 
     // ---- ambient: only the current step's packet path loops; one packet at a time
     var Am = AMB[st.ambient], pkV = 0, deep = 0, ringP = -1, marchV = 0;
@@ -861,23 +938,35 @@ html,body{margin:0;background:#fff}
         if (Am.ring) ringP = (tc - (Am.legs.length * (Am.leg + Am.gap) - Am.gap)) / 1.4;
       }
     }
+    if (st.name === 'qrx-adhere' && !reduce.matches && c8 > 1.3 && c8 < 3.1) {
+      var rq = AMB['qrx-adhere'].legs[0].poly.at(io(cl((c8 - 1.3) / 1.8)));
+      pkMain.setAttribute('transform', 'translate(' + f1(rq[0]) + ' ' + f1(rq[1]) + ') rotate(' + f1(rq[2]) + ') scale(' + (zs * CFG.packet).toFixed(3) + ')');
+      pkMain.setAttribute('fill', IND); pkV = inside(rq[0], rq[1]) ? 0 : 1;
+      if (c8 > 2.9) deep = Math.max(deep, seg(c8, 2.9, 3.1));
+    }
+    if (Am && Am.faint) pkV *= Am.faint;
     pkMain.style.opacity = (pkV * globalOp * (F ? (p >= 1 ? 1 : cl(1 - p * 3)) : 1)).toFixed(3);
     E['wb-arrow'].els[0].setAttribute('transform', 'translate(' + P(WB_ARROW) + ') rotate(180) scale(' + (zs * CFG.packet * 1.3).toFixed(3) + ')');
+    E['ret-arrow'].els[0].setAttribute('transform', 'translate(' + P(RET_ARROW) + ') rotate(' + f1(RET_ANG) + ') scale(' + (zs * CFG.packet * 1.3).toFixed(3) + ')');
+    E['ret-arrow'].els[0].style.opacity = reduce.matches ? em['ret-arrow'].toFixed(3) : 0;
     E['wb-arrow'].els[0].style.opacity = reduce.matches ? em['wb-arrow'].toFixed(3) : 0;
     march.style.opacity = (marchV * em['arc-wb']).toFixed(3); march.style.strokeDashoffset = f1(-40 * amb % 1e4);
-    E.qlens.obj.deepen.setAttribute('opacity', (.2 * deep * em.qlens).toFixed(3));
+    var dh = (Am && Am.deepen) || (st.name === 'qrx-adhere' ? 'qtrack' : null);
+    E.qlens.obj.deepen.setAttribute('opacity', (dh === 'qlens' ? .2 * deep * em.qlens : 0).toFixed(3));
+    E.qrx.obj.deepen.setAttribute('opacity', (dh === 'qrx' ? .2 * deep * em.qrx : 0).toFixed(3));
+    if (dh === 'qtrack') E.qtrack.obj.deepen.setAttribute('opacity', (.2 * deep * em.qtrack).toFixed(3));
     if (ringP > 0 && ringP < 1) { var rv = GEO.qlens.hw * (1.05 + .9 * eo(ringP)); ring.setAttribute('rx', f1(rv)); ring.setAttribute('ry', f1(rv * TAN)); ring.setAttribute('opacity', (.45 * (1 - ringP)).toFixed(3)); }
     else ring.setAttribute('opacity', 0);
 
     // ---- HTML labels: projected from world anchors, faded by the same edge band as the mask
     var labelTop = {}, c5 = clock('qtrack-schedule', amb);
-    var gate = { 'pill-check': seg(c3, 1.35, 1.7, eo), 'pill-scheduled': seg(c5, 1.75, 2.1, eo) };
+    var gate = { 'pill-check': seg(c3, 1.35, 1.7, eo), 'pill-scheduled': seg(c5, 1.75, 2.1, eo), 'pill-monitoring': seg(c8, 2.2, 2.55, eo) };
     Object.keys(E).forEach(function (id) {
       var o = E[id]; if (o.world || !o.anchor) return;
       var a = anchorPt(o.anchor, o.dir, refT), s = project(cam, a[0], a[1]);
       var v = em[id] * (buildOf[id] != null ? buildOf[id] : 1) * edgeAlpha(fr, s[0], s[1]) * (gate[id] != null ? gate[id] : 1);
-      var lift = /^pill-/.test(id) ? 8 * (1 - cl(Math.min(em[id], gate[id] != null ? gate[id] : 1))) : 0;
-      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : '-100%') + ')';
+      var lift = /^pill-/.test(id) && o.dir !== 'on' ? 8 * (1 - cl(Math.min(em[id], gate[id] != null ? gate[id] : 1))) : 0;
+      o.els[0].style.transform = 'translate(' + f1(s[0]) + 'px,' + f1(s[1] + lift) + 'px) translate(' + (o.start ? f1(-16 * L.t) + 'px' : '-50%') + ',' + (o.dir === 'down' ? '0' : o.dir === 'on' ? '-50%' : '-100%') + ')';
       o.els[0].style.opacity = v.toFixed(3);
       labelTop[id] = [s[0], s[1] - (L.leadH[id] || 0)];
     });
@@ -898,7 +987,7 @@ html,body{margin:0;background:#fff}
     // ---- S0 windows: INPUT feeds the source cluster from the left, OUTPUT takes qRx's result on the right
     var R8 = 8 * L.k, ps = project(cam, GEO['src-ps'].left[0], GEO['src-ps'].left[1]);
     var wiX = fr.x, wiY = ps[1] - 28 * L.t - L.row.win.in[1], xe = wiX + L.row.win.in[0] - 22 * L.t;
-    var vIn = em['win-in'] * buildOf['win-in'] * globalOp, vOut = em['win-out'] * buildOf['win-out'] * globalOp;
+    var vIn = em['win-in'] * buildOf['win-in'] * globalOp, vOut = em['win-out'] * buildOf['win-out'] * globalOp * (S.i === IDX['qrx-adhere'] ? seg(c8, 3.6, 4.3, eo) : 1);
     place(winIn, wiX, wiY + 6 * (1 - buildOf['win-in']), vIn);
     hudPath(elbowIn, 'M' + f1(xe) + ' ' + f1(wiY + L.row.win.in[1]) + 'V' + f1(ps[1] - R8) + 'Q' + f1(xe) + ' ' + f1(ps[1]) + ' ' + f1(xe + R8) + ' ' + f1(ps[1]) + 'H' + f1(ps[0]), ps[0], ps[1], vIn * seg(bt, B.labels[0] + .2, B.labels[0] + .6));
     var qr = project(cam, GEO.qrx.right[0], GEO.qrx.right[1]);
@@ -926,6 +1015,18 @@ html,body{margin:0;background:#fff}
       var bq = cl((c5 - 1.45) / .25);
       calBooked.classList.toggle('is-booked', c5 > 1.45); scaleAt(calBooked, c5 > 1.45 ? bk(bq) : 1);
       calBars.forEach(function (b, n) { b.style.transform = 'scaleX(' + seg(c5, .75 + n * .3, 1.1 + n * .3, eo).toFixed(3) + ')'; });
+    })();
+
+    (function () {
+      var ur = project(cam, GEO.qrx.ur[0], GEO.qrx.ur[1]), w = L.win.plan, rise = 10 * L.t * (1 - eo(cl(em['win-plan'])));
+      var evTop = Math.min(labelTop['lbl-ev-0'][1], labelTop['lbl-ev-1'][1], labelTop['lbl-ev-2'][1]) - 16 * L.t;
+      var x = ur[0] - 22 * L.t, y = evTop - w[1], v = em['win-plan'] * globalOp * edgeAlpha(fr, x + w[0] / 2, y + w[1]);
+      place(winPlan, x, y + rise, v);
+      hudPath(elbowPlan, 'M' + f1(ur[0]) + ' ' + f1(ur[1]) + 'V' + f1(y + w[1] + rise), ur[0], ur[1], v);
+      // rows draw in, then the best plan turns peach and its citation marker appears
+      planBars.forEach(function (b, n) { b.style.transform = 'scaleX(' + seg(c7, .8 + n * .07, 1.2 + n * .07, eo).toFixed(3) + ')'; });
+      planBest.classList.toggle('is-on', c7 > 2.1);
+      planCite.style.opacity = seg(c7, 2.35, 2.65, eo).toFixed(3);
     })();
 
     // ---- headings, support text, panel: one continuous motion with the camera
@@ -967,6 +1068,7 @@ html,body{margin:0;background:#fff}
   function anchorPt(name, dir, refT) {
     if (name === 'referral') { var r = rowPt(refT); return [r[0], r[1] - 15 - 17 * 1 - 5]; }
     if (GEO[name]) { var g = GEO[name]; return dir === 'down' ? [g.bottom[0], g.bottom[1] + 3] : [g.peak[0], g.peak[1] - 5]; }
+    if (dir === 'on') return G(POINTS[name]);
     var a = POINTS[name]; return a ? G(a) : [0, 0];
   }
 
@@ -995,7 +1097,7 @@ html,body{margin:0;background:#fff}
   function go(fn) { if (fn()) syncScroll(); }
   function pin(i) {            // entering the sequence: re-pin at a boundary step (from below: the last step, no build)
     if (i === SEQ.length - 1 && S.build < CFG.build.end) S.build = CFG.build.end;
-    if (S.i !== i) goTo(i);
+    if (S.i !== i) { goTo(i); if (i === SEQ.length - 1) S.stepT0 = S.t0 - 60; }   // from below: the last step at its settled end state
     syncScroll();
   }
   function onWheel(e) {
