@@ -8,6 +8,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500&display=swap" rel="stylesheet">
 <style>
+/* Aether Neue: headings and panel titles. Files in fonts/ (Thin 100, Light 300, Medium 500); DM Sans stays the fallback. */
+@font-face{font-family:"Aether Neue";font-weight:100;font-style:normal;font-display:swap;src:url("fonts/AetherNeueThin/font.woff2") format("woff2"),url("fonts/AetherNeueThin/font.woff") format("woff")}
+@font-face{font-family:"Aether Neue";font-weight:300;font-style:normal;font-display:swap;src:url("fonts/AetherNeueLight/font.woff2") format("woff2"),url("fonts/AetherNeueLight/font.woff") format("woff")}
+@font-face{font-family:"Aether Neue";font-weight:500;font-style:normal;font-display:swap;src:url("fonts/AetherNeueMedium/font.woff2") format("woff2"),url("fonts/AetherNeueMedium/font.woff") format("woff")}
 html,body{margin:0;background:#fff}
 /* demo-only page chrome around the section */
 .ps-demo{display:grid;place-items:center;height:70vh;font:400 14px/1.4 "DM Mono",ui-monospace,monospace;letter-spacing:.14em;color:#8A8A99;text-transform:uppercase}
@@ -27,7 +31,7 @@ html,body{margin:0;background:#fff}
 .ps-frame[data-ps-frame="overview"]{left:calc(70 * var(--u));top:calc(330 * var(--u));width:calc(1300 * var(--u));height:calc(530 * var(--u))}
 .ps-frame[data-ps-frame="product"]{left:calc(70 * var(--u));top:calc(278 * var(--u));width:calc(927 * var(--u));height:calc(557 * var(--u))}
 /* headings scale with viewport height (clamped) so heading + cards + row fit on short laptops */
-.ps-heading{position:absolute;left:calc(70 * var(--u));top:calc(72 * var(--u));margin:0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:400;font-size:clamp(40px,calc(9.09vh - 15.8px),calc(66 * var(--u)));line-height:1.1;letter-spacing:-.025em;color:#2A288C;white-space:nowrap}
+.ps-heading{position:absolute;left:calc(70 * var(--u));top:calc(72 * var(--u));margin:0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:300;font-size:clamp(40px,calc(9.09vh - 15.8px),calc(66 * var(--u)));line-height:1.1;letter-spacing:-.01em;color:#2A288C;white-space:nowrap}
 .ps-heading .ps-peach{color:#FF7869}
 .ps-support{position:absolute;left:calc(1060 * var(--u));top:0;width:calc(310 * var(--u));margin:0;font-size:max(13px,calc(16 * var(--u)));line-height:1.4;color:#303030}
 .ps-panel{position:absolute;left:calc(1060 * var(--u));top:calc(278 * var(--u));width:calc(312 * var(--u));height:calc(557 * var(--u))}
@@ -35,7 +39,7 @@ html,body{margin:0;background:#fff}
 .ps-pan-head{display:flex;align-items:center;gap:calc(20 * var(--u))}
 .ps-pill{display:inline-flex;align-items:center;height:calc(46 * var(--u));padding:0 calc(20 * var(--u));border-radius:999px;background:#FF7869;color:#fff;font-weight:500;font-size:calc(20 * var(--u));letter-spacing:-.01em}
 .ps-pan-over{font-size:calc(13 * var(--ut));letter-spacing:.06em;color:#2A288C}
-.ps-pan-title{margin:calc(30 * var(--u)) 0 0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:400;font-size:calc(30 * var(--u));line-height:1.27;letter-spacing:-.01em;color:#2A288C;text-transform:uppercase}
+.ps-pan-title{margin:calc(30 * var(--u)) 0 0;font-family:"Aether Neue","DM Sans",system-ui,sans-serif;font-weight:300;font-size:calc(30 * var(--u));line-height:1.27;letter-spacing:-.01em;color:#2A288C;text-transform:uppercase}
 .ps-lines{list-style:none;margin:auto 0 0;padding:0;display:flex;flex-direction:column;gap:calc(20 * var(--u))}
 .ps-line{font-size:calc(15 * var(--ut));line-height:1.3;color:#303030;opacity:.55;transition:opacity .45s cubic-bezier(.33,1,.68,1),background-color .45s cubic-bezier(.33,1,.68,1)}
 .ps-line.is-on{opacity:1}
@@ -267,7 +271,8 @@ html,body{margin:0;background:#fff}
     minWidth: 1024,                             // below: no pinning, static S0
     fade: {                                     // edge fade per frame: [top, right, bottom, left], fraction of frame size
       overview: [.12, .13, .14, .13],
-      product: [.12, .22, .12, .13]             // wider right fade keeps the scene off the panel
+      product: [.12, .22, .12, .13],            // wider right fade keeps the scene off the panel
+      closing: [.12, .10, .12, .13]             // S8: the scene runs closer to the panel edge; OUTPUT sits above qRx
     },
     row: { pitch: 3, labelGap: 64 },            // S0: grid units between columns along the diagonal; card → object top room (text px)
     step: 1.4,                                  // s: camera + mask + heading + cards + panel, one continuous motion
@@ -317,7 +322,7 @@ html,body{margin:0;background:#fff}
   var ART = { 'art-dicom': [QL[0] + .6, QL[1] + 2.8], 'art-doc': [QL[0] + 2.8, QL[1] + .6] };   // S1: in front of qLens
   var REC = [0, 1, 2, 3].map(function (k) { return [QL[0] - 1, QL[1] - 3.7 - 1.2 * k]; });        // S2: prior visits, older further back
   var REF = { beside: T.qlens + 1.75, edge: T.qlens + 5.4 };                                       // S3: referral packet stops on the row
-  var QX = OBJ.qrx.at, RET_FRONT = 5.6;                                   // S8: the return runs this far in front of the row
+  var QX = OBJ.qrx.at, RET_FRONT = 2.8;                                   // S8: the return runs this far in front of the row (clear of the cubes' front corners)
   // S7: evidence cubes set back behind qRx (back-right), each feeding qRx's back face along +y
   var EV = [[QX[0] - .75, QX[1] - 3.0], [QX[0], QX[1] - 3.75], [QX[0] + .75, QX[1] - 4.5]];   // labels clear the plan window's elbow
   // S8: qRx → forward (+x) → back along the row, in front of it → into qTrack's front face (−x)
@@ -373,7 +378,7 @@ html,body{margin:0;background:#fff}
       dim: ['spec', 'qtrack', 'conn-row', 'arc-wb', 'pill-scheduled'].concat(UPS),
       enter: ['evidence', 'feeds-ev', 'lbl-ev-0', 'lbl-ev-1', 'lbl-ev-2', 'win-plan'],
       ambient: 'qrx-decide' },
-    { name: 'qrx-adhere', frame: 'product', heading: 1, panel: 'qrx', line: [1],
+    { name: 'qrx-adhere', frame: 'closing', heading: 1, panel: 'qrx', line: [1],
       cam: { focusT: 15, at: [.47, .62], zoom: 1.3, pull: { from: 'qlens', to: 'ret-corner', at: [2.8, 4.3] } },
       active: ['grid', 'qlens', 'qtrack', 'spec', 'qrx', 'conn-lens', 'conn-row', 'conn-sq', 'arc-wb', 'conn-return', 'ret-arrow', 'pill-monitoring',
                'lbl-qlens', 'lbl-qtrack', 'lbl-qrx', 'win-out'],
@@ -717,6 +722,7 @@ html,body{margin:0;background:#fff}
     L.row = { x0: x0, pitch: pitch, z: z, floorY: floorY, cardsBottom: cardsBottom, win: { in: wi, out: wo } };
     L.frames.overview = withFade({ x: fo.x, y: cardsBottom + 6 * k, w: fo.w, h: Math.max(floorY + 150 * t, vh - 30 * k) - cardsBottom - 6 * k }, 'overview');
     L.frames.product = withFade(rectOf(canvas.querySelector('[data-ps-frame="product"]')), 'product');
+    L.frames.closing = withFade(rectOf(canvas.querySelector('[data-ps-frame="product"]')), 'closing');
     L.leadH = {}; Object.keys(E).forEach(function (id) { if (!E[id].world && E[id].anchor) L.leadH[id] = E[id].els[0].offsetHeight; });
     L.win = { ctx: [winCtx.offsetWidth, winCtx.offsetHeight], cal: [winCal.offsetWidth, winCal.offsetHeight], plan: [winPlan.offsetWidth, winPlan.offsetHeight] };
     L.targets = SEQ.map(target);
@@ -746,10 +752,11 @@ html,body{margin:0;background:#fff}
     }
     var out = { frame: fr, cam: { x: cx, y: cy, z: z, ux: ux, uy: uy } };
     if (c.pull) {
-      // second camera inside the same step: pull back until qLens … the return corner fill the frame left of the OUTPUT window
-      var l = GEO[c.pull.from], r = GEO[c.pull.to], x0 = l.top[0] - l.hw, x1 = r.top[0] + r.hw;
-      var left = fr.x + fr.f[3] * .5, right = fr.x + fr.w - L.row.win.out[0] - 28 * L.t, z2 = Math.min((right - left) / (x1 - x0), z);
-      out.cam2 = { x: (x0 + x1) / 2, y: 0, z: z2, ux: (left + right) / 2, uy: u.y + u.h * .64 };
+      // second camera inside the same step: pull back to (at least) the S0 zoom, qLens centred in the left fade band,
+      // the frame filled from qTrack onward to the return corner; the OUTPUT window sits above qRx
+      var x0 = GEO[c.pull.from].top[0], x1 = GEO[c.pull.to].top[0];
+      var left = fr.x + fr.f[3] * .5, right = fr.x + fr.w - fr.f[1] * .75, z2 = Math.max(L.row.z, (right - left) / (x1 - x0));
+      out.cam2 = { x: x0, y: 0, z: z2, ux: left, uy: u.y + u.h * .8 };
       out.pull = c.pull.at;
     }
     return out;
@@ -776,7 +783,7 @@ html,body{margin:0;background:#fff}
     if (j == null || j < 0 || j >= SEQ.length) return false;
     if (S.build < CFG.build.end) S.build = CFG.build.end;                   // a gesture during (or before) the build snaps it to its end state
     if (j === S.i && S.from === null) return false;
-    S.back = j < S.i;                                                      // stepping back: the step's timeline shows its end state, nothing replays
+    S.prev = S.i; S.back = j < S.i;                                                      // stepping back: the step's timeline shows its end state, nothing replays
     S.from = snapshot(); S.i = j; S.t0 = now(); S.stepT0 = S.back ? S.t0 - 60 : S.t0;
     S.dur = (opt && opt.instant) ? 0 : CFG.step;
     listeners.forEach(function (f) { f(SEQ[j].name); });
@@ -992,8 +999,16 @@ html,body{margin:0;background:#fff}
     hudPath(elbowIn, 'M' + f1(xe) + ' ' + f1(wiY + L.row.win.in[1]) + 'V' + f1(ps[1] - R8) + 'Q' + f1(xe) + ' ' + f1(ps[1]) + ' ' + f1(xe + R8) + ' ' + f1(ps[1]) + 'H' + f1(ps[0]), ps[0], ps[1], vIn * seg(bt, B.labels[0] + .2, B.labels[0] + .6));
     var qr = project(cam, GEO.qrx.right[0], GEO.qrx.right[1]);
     var woX = fr.x + fr.w - L.row.win.out[0], woY = qr[1] - 34 * L.t - L.row.win.out[1], xo = woX + 22 * L.t;
-    place(winOut, woX, woY + 6 * (1 - buildOf['win-out']), vOut);
-    hudPath(elbowOut, 'M' + f1(qr[0]) + ' ' + f1(qr[1]) + 'H' + f1(xo - R8) + 'Q' + f1(xo) + ' ' + f1(qr[1]) + ' ' + f1(xo) + ' ' + f1(qr[1] - R8) + 'V' + f1(woY + L.row.win.out[1]), qr[0], qr[1], vOut * seg(bt, B.labels[1] - .3, B.labels[1] + .1));
+    if (S.i === IDX['qrx-adhere'] || (F && S.prev === IDX['qrx-adhere'])) {
+      // closing view: OUTPUT rises above qRx (clear of its label and the evidence cubes); straight elbow up from qRx's top corner
+      var ur = project(cam, GEO.qrx.ur[0], GEO.qrx.ur[1]), evTop = Math.min.apply(null, [0, 1, 2].map(function (k) { return project(cam, GEO['ev-' + k].peak[0], GEO['ev-' + k].peak[1])[1]; }));
+      woY = Math.min(labelTop['lbl-qrx'][1], evTop) - 18 * L.t - L.row.win.out[1];
+      place(winOut, woX, woY + 6 * (1 - cl(vOut * 2)), vOut);
+      hudPath(elbowOut, 'M' + f1(ur[0]) + ' ' + f1(ur[1]) + 'V' + f1(woY + L.row.win.out[1]), ur[0], ur[1], vOut);
+    } else {
+      place(winOut, woX, woY + 6 * (1 - buildOf['win-out']), vOut);
+      hudPath(elbowOut, 'M' + f1(qr[0]) + ' ' + f1(qr[1]) + 'H' + f1(xo - R8) + 'Q' + f1(xo) + ' ' + f1(qr[1]) + ' ' + f1(xo) + ' ' + f1(qr[1] - R8) + 'V' + f1(woY + L.row.win.out[1]), qr[0], qr[1], vOut * seg(bt, B.labels[1] - .3, B.labels[1] + .1));
+    }
 
     // ---- hover windows that rise beside a hero: qLens context (left of qLens), Specialist calendar (right of the Specialist)
     (function () {
