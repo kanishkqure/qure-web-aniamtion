@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qure.ai footer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400&display=swap" rel="stylesheet">
+<style>
+  /* Footer, built from the Figma frame "Background" (1440 x 645). Positions at 1440px match
+     the Figma pixel values; the band geometry lives in src/figma-band.ts. */
+  :root {
+    --ink: #303030;
+    --indigo: #2a2892;
+    --peach: #ff7869;
+    --lavender: #d9d9ff;
+    --heading: "Aether Neue", "DM Sans", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, monospace;
+    --sans: "DM Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; }
+
+  .qf {
+    position: relative;
+    height: 645px;
+    background: #fff;
+    box-shadow: inset 0 1px 0 var(--lavender); /* Figma: 1px inside top stroke */
+    color: var(--ink);
+    font-family: var(--sans);
+    overflow: hidden;
+  }
+  .qf a { color: inherit; text-decoration: none; }
+  .qf a:hover, .qf a:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* newsletter */
+  .qf__news { position: absolute; left: 72px; top: 71.4px; }
+  .qf__news h2 {
+    margin: 0; width: 162px;
+    font: 300 22px/26.4px var(--heading); letter-spacing: -0.24px;
+  }
+  .qf__form { display: flex; gap: 14px; margin: 49.8px 0 0 -3px; }
+  .qf__form input {
+    width: 194.16px; height: 33px; padding: 0 13.5px;
+    border: 1px solid var(--lavender); border-radius: 999px; background: transparent;
+    font: 400 11.3px/1 var(--sans); color: var(--ink);
+  }
+  .qf__form input::placeholder { color: #757575; }
+  .qf__form button {
+    width: 123px; height: 33px; border: 0; border-radius: 999px; background: var(--peach); color: #fff;
+    font: 500 16px/1 var(--mono); letter-spacing: 0.36px; text-transform: uppercase; cursor: pointer;
+  }
+
+  /* link columns */
+  .qf__links {
+    position: absolute; left: 50.6944%; top: 80.6px; width: min(639px, calc(49.3056% - 71px));
+    display: flex; justify-content: space-between;
+  }
+  .qf__links h3 {
+    margin: 0 0 20px; font: 400 12px/16px var(--mono); letter-spacing: 6px; text-transform: uppercase; color: var(--indigo);
+  }
+  .qf__links ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 20.6px; }
+  .qf__links li { font: 500 16px/14.4px var(--mono); letter-spacing: 3px; white-space: nowrap; }
+  .qf__links .upper li { text-transform: uppercase; }
+
+  /* animated band: canvas behind the real logo and tagline */
+  /* Figma band clip is y 294.8-462.8; the canvas starts on a whole pixel so its bitmap is never
+     resampled, and the logo/tagline offsets below absorb the 0.8px. */
+  .qf__band { position: absolute; left: 0; right: 0; top: 294px; height: 170px; }
+  .qf__band canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .qf__logo {
+    position: absolute; left: 12.0139%; top: 84.65px; transform: translateY(-50%);
+    width: min(415px, 28.8195vw); height: auto; display: block;
+  }
+  .qf__tagline {
+    position: absolute; left: 50.6944%; top: 44.6px; margin: 0;
+    width: min(421px, calc(49.3056% - 71px));
+    font: 300 32px/38.4px var(--heading); letter-spacing: -0.24px; color: var(--indigo);
+  }
+
+  /* legal */
+  .qf__legal {
+    position: absolute; left: 53px; right: 52px; top: 527.6px; height: 33.38px;
+    border-top: 1px solid var(--indigo); padding-top: 20.75px;
+    display: flex; justify-content: space-between;
+    font: 400 9px/1 var(--mono); letter-spacing: 0.36px; color: var(--indigo);
+  }
+  .qf__legal p { margin: 0; }
+  .qf__legal nav { display: flex; gap: 23.68px; }
+  .qf__disclaimer {
+    position: absolute; left: 52.5px; top: 581.97px; margin: 0; max-width: 721px;
+    font: 400 13.5px/20.25px var(--sans); color: var(--indigo);
+  }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  @media (max-width: 1100px) {
+    .qf__links li { font-size: 14px; letter-spacing: 2px; }
+    .qf__links h3 { letter-spacing: 4px; }
+  }
+
+  /* Mobile: no mobile frame exists in the Figma file, so the layout stacks and the band
+     falls back to every other row with half the segments (see src/band-model.ts). */
+  @media (max-width: 799px) {
+    .qf { height: auto; padding: 48px 24px 32px; }
+    .qf__news, .qf__links, .qf__band, .qf__tagline, .qf__legal, .qf__disclaimer { position: static; }
+    .qf__news h2 { width: auto; }
+    .qf__form { margin: 24px 0 0; }
+    .qf__form input { flex: 1; min-width: 0; }
+    .qf__links { width: auto; margin-top: 48px; flex-wrap: wrap; gap: 32px 24px; justify-content: flex-start; }
+    .qf__links > div { min-width: 120px; }
+    .qf__links li { font-size: 14px; letter-spacing: 2px; }
+    /* band: 170px of pills around the logo, tagline below it (outside the pill rows) */
+    .qf__band { position: relative; top: auto; height: auto; margin: 40px -24px 0; padding: 186px 24px 0; }
+    .qf__logo { left: 50%; transform: translate(-50%, -50%); width: min(44vw, 200px); }
+    .qf__tagline { width: auto; font-size: 26px; line-height: 31.2px; }
+    .qf__legal { flex-direction: column; gap: 12px; height: auto; margin-top: 40px; padding-top: 16px; }
+    .qf__disclaimer { margin-top: 16px; }
+  }
+</style>
+</head>
+<body>
+<footer class="qf">
+  <section class="qf__news" aria-labelledby="qf-news">
+    <h2 id="qf-news">Subscribe to our newsletter.</h2>
+    <form class="qf__form" onsubmit="event.preventDefault()">
+      <label class="sr-only" for="qf-email">Email address</label>
+      <input id="qf-email" type="email" name="email" placeholder="Enter your email" autocomplete="email" required>
+      <button type="submit">Subscribe</button>
+    </form>
+  </section>
+
+  <nav class="qf__links" aria-label="Footer">
+    <div>
+      <h3>Platform</h3>
+      <ul><li><a href="#">qLens</a></li><li><a href="#">qTrack</a></li><li><a href="#">qRx</a></li></ul>
+    </div>
+    <div>
+      <h3>Company</h3>
+      <ul class="upper"><li><a href="#">About</a></li><li><a href="#">Careers</a></li><li><a href="#">Newsroom</a></li></ul>
+    </div>
+    <div>
+      <h3>Support</h3>
+      <ul class="upper"><li><a href="#">Contact</a></li><li><a href="#">Trust centre</a></li><li><a href="#">Regulatory</a></li></ul>
+    </div>
+  </nav>
+
+  <div class="qf__band">
+    <canvas id="qf-pills" aria-hidden="true"></canvas>
+    <svg class="qf__logo" id="qf-logo" viewBox="0 0 415 141.707" role="img" aria-label="qure.ai">
+      <path fill="#FF7869" d="M75.4 123.08L75.4 31.52L75.4 31.36C75.4 28.66 72.99 26.64 70.08 26.64C67.34 26.64 65 28.59 64.84 31.14L64.84 35.87C59.2 28.51 50.72 24.76 39.68 24.76C28.22 24.76 18.63 28.66 11.13 36.47C3.79 44.2 0 54.78 0 67.92C0 80.22 3.31 90.13 9.84 97.49C16.45 104.92 25.24 108.67 36.05 108.67C48.63 108.67 58.3 104.32 64.84 95.84L64.84 123.83C66.37 122.63 68.47 121.88 70.64 121.88C72.34 121.8 74.03 122.25 75.4 123.08ZM64.84 72.27C64.84 79.85 62.34 86.38 57.5 91.56C52.74 96.74 45.64 99.36 36.53 99.36C28.95 99.36 22.91 96.66 18.14 91.03C13.39 85.4 10.89 77.52 10.89 67.54C10.89 56.88 13.63 48.55 19.03 42.7C24.43 36.84 31.05 33.99 39.2 33.99C47.34 33.99 53.47 36.24 58.07 40.97C62.58 45.62 64.84 51.7 64.84 58.98L64.84 72.27ZM90.47 116.32C89.1 116.32 87.81 116.85 86.84 117.67L76.53 127.35C76.53 127.35 76.2 127.72 75.72 127.57C75.48 127.5 75.4 127.27 75.4 127.12C74.35 125.62 72.58 124.72 70.64 124.72C67.5 124.72 65.01 127.05 64.84 129.89C64.84 130.05 64.84 130.2 64.84 130.2C64.84 131.62 65.41 132.9 66.54 133.8L66.7 133.94L71.37 138.37L71.61 138.6L71.69 138.6C71.69 138.6 71.69 138.6 71.69 138.67C71.77 138.74 71.85 138.82 72.01 138.97C72.17 139.05 72.26 139.19 72.42 139.27C72.58 139.34 72.66 139.42 72.82 139.5C72.98 139.57 73.06 139.64 73.22 139.64L73.3 139.64C73.46 139.72 73.54 139.72 73.71 139.79L73.79 139.79C73.95 139.87 74.03 139.87 74.19 139.87L74.27 139.87C74.43 139.87 74.51 139.95 74.67 139.95C74.75 139.95 74.75 139.95 74.83 139.95C75 139.95 75.16 139.95 75.4 139.95C75.56 139.95 75.72 139.95 75.96 139.95C76.04 139.95 76.04 139.95 76.12 139.95C76.29 139.95 76.37 139.95 76.53 139.87L76.61 139.87C76.77 139.87 76.85 139.79 77.01 139.79L77.09 139.79C77.25 139.72 77.41 139.72 77.49 139.64C77.66 139.57 77.82 139.5 77.9 139.42C78.38 139.19 78.78 138.89 79.11 138.52L94.09 124.5C95.06 123.6 95.62 122.4 95.62 121.05C95.7 118.57 93.36 116.32 90.47 116.32ZM151.88 26.76C149.06 26.76 146.57 28.79 146.48 31.41L146.48 72.44C146.48 76.57 145.84 80.32 144.63 83.7C143.42 87.07 141.64 89.99 139.47 92.4C137.3 94.79 134.63 96.67 131.57 98.02C128.51 99.37 125.13 100.05 121.5 100.05C113.92 100.05 108.36 97.72 104.65 93.14C101.03 88.57 99.17 81.52 99.17 71.92L99.17 38.69L99.17 31.56L99.17 31.41C99.17 28.71 96.75 26.69 93.86 26.69C91.11 26.69 88.78 28.64 88.62 31.19L88.62 31.26L88.45 73.72C88.45 96.9 98.69 108.52 119.08 108.52C130.52 108.52 139.63 104.02 145.51 94.94C145.84 94.42 146.64 94.65 146.64 95.24C146.64 95.24 146.72 103.8 146.72 103.87C146.72 106.57 149.06 108.75 151.96 108.75C154.87 108.75 157.2 106.57 157.2 103.87L157.28 31.26C157.04 28.71 154.7 26.76 151.88 26.76ZM407.98 31.69L407.98 31.53C407.98 28.83 405.56 26.81 402.66 26.81C399.91 26.81 397.58 28.76 397.41 31.31L397.41 31.39L397.5 103.8L397.5 103.95C397.5 106.65 399.91 108.68 402.82 108.68C405.56 108.68 407.9 106.73 408.06 104.25L408.06 104.18L407.98 31.69ZM208.39 25.39C207.26 25.25 206.05 25.17 204.68 25.17C202.02 25.17 199.52 25.62 197.19 26.45C194.77 27.27 192.59 28.47 190.58 30.05C188.57 31.62 186.79 33.57 185.26 35.9C183.73 38.22 182.44 40.85 181.47 43.77L181.15 43.77L181.15 31.55L181.15 31.4C181.15 28.7 178.73 26.67 175.83 26.67C173.09 26.67 170.76 28.62 170.6 31.17L170.6 31.25L170.52 103.99C170.52 106.69 172.93 108.72 175.83 108.72C178.58 108.72 180.91 106.76 181.07 104.29L181.07 104.21L181.15 67.54C181.15 65.3 181.31 63.79 181.63 61.32C181.96 58.84 182.44 56.37 183.17 53.89C183.89 51.42 184.78 49.09 185.91 46.84C187.03 44.59 188.49 42.57 190.09 40.85C191.71 39.12 193.64 37.77 195.82 36.72C197.99 35.67 200.49 34.92 203.39 34.92C204.44 34.92 204.6 34.85 207.26 35.07C207.5 35.07 207.74 35.15 207.98 35.15C210.89 35.15 213.22 32.97 213.22 30.27C213.14 27.72 211.05 25.62 208.39 25.39ZM285.97 47.38C284.44 42.58 282.27 38.52 279.36 35.22C276.46 31.92 272.91 29.29 268.64 27.57C264.36 25.76 259.52 24.86 253.96 24.86C248.31 24.86 243.07 25.92 238.31 28.02C233.56 30.12 229.44 33.05 225.98 36.8C222.51 40.55 219.77 44.9 217.83 50C215.9 55.11 214.93 60.66 214.93 66.67C214.93 73.35 215.82 79.27 217.59 84.46C219.36 89.63 221.94 94.06 225.25 97.59C228.56 101.19 232.59 103.89 237.27 105.77C241.94 107.64 247.19 108.54 252.99 108.54C263.31 108.54 272.27 106.44 279.85 102.17C279.93 102.09 280.09 102.02 280.17 101.94C280.41 101.79 280.65 101.64 280.89 101.57C281.3 101.27 281.62 100.89 281.86 100.52C282.27 99.92 282.59 99.09 282.59 98.34C282.59 96.54 281.3 94.96 279.52 94.44C279.12 94.29 278.64 94.21 278.15 94.21C277.51 94.21 276.86 94.36 276.46 94.51C276.06 94.66 275.89 94.81 275.58 94.96C274.6 95.49 273.56 95.94 272.51 96.39C267.02 98.72 261.3 99.92 255.33 99.92C250.81 99.92 246.14 99.47 242.51 97.96C238.88 96.54 235.81 94.44 233.31 91.73C230.81 89.03 228.88 85.73 227.51 81.83C226.3 78.3 225.9 74.33 226.06 69.97C226.06 69.14 226.78 68.39 227.67 68.39L281.86 68.39C281.86 68.39 282.67 68.32 282.91 68.32C285.73 68.32 287.99 66.29 288.15 63.67C288.15 63.67 288.15 63.14 288.15 63.07C288.15 57.36 287.43 52.11 285.97 47.38ZM275.49 59.76L228.31 59.76C227.27 59.76 226.54 58.94 226.71 57.96C227.35 54.58 228.31 51.51 229.61 48.8C231.14 45.58 233.07 42.8 235.41 40.55C237.75 38.3 240.5 36.57 243.56 35.37C246.7 34.17 250.01 33.57 253.64 33.57C260.89 33.57 266.62 35.9 270.65 40.48C274.44 44.75 276.62 50.68 276.94 58.26C277.1 59.01 276.38 59.76 275.49 59.76ZM384.38 99.23L384.38 54.73C384.38 44.83 382.12 37.32 377.29 32.37C372.37 27.34 365.19 24.86 355.6 24.86L357.61 24.94C347.29 24.94 338.34 27.04 330.76 31.32C330.68 31.39 330.52 31.47 330.44 31.54C330.2 31.69 329.95 31.84 329.71 31.92C329.31 32.22 328.99 32.6 328.74 32.97C328.34 33.64 328.02 34.4 328.02 35.15C328.02 36.95 329.31 38.52 331.08 39.05C331.49 39.2 331.97 39.27 332.45 39.27C332.94 39.27 333.42 39.2 333.82 39.05C340.11 35.52 346.73 33.72 353.66 33.57C353.98 33.57 354.31 33.57 354.55 33.57C354.55 33.57 354.63 33.57 354.71 33.57C367.12 33.57 373.58 40.77 373.9 55.33C373.9 56.08 373.33 56.76 372.53 56.83L347.86 60.14C337.94 61.34 330.68 64.19 325.84 68.47C321 72.74 318.66 78.52 318.66 85.8C318.66 89.18 319.31 92.25 320.52 95.11C321.81 97.88 323.58 100.36 325.92 102.31C328.26 104.34 331.08 105.84 334.39 106.96C337.7 108.09 341.49 108.61 345.59 108.61C351.73 108.61 357.13 107.19 361.96 104.41C366.16 101.93 369.87 98.78 372.61 94.66C372.93 94.21 373.74 94.35 373.74 94.96L373.74 99.31L373.74 103.89L373.74 104.04C373.74 106.74 376.16 108.76 379.06 108.76C381.8 108.76 384.14 106.81 384.3 104.26L384.3 104.18L384.3 99.23L384.38 99.23ZM373.82 72.89C373.82 76.79 373.17 80.4 371.88 83.77C370.59 87.08 368.74 90 366.4 92.41C364.06 94.8 361.32 96.68 358.17 98.03C354.95 99.38 351.48 100.06 347.69 100.06C344.87 100.06 342.37 99.68 340.19 98.93C338.02 98.18 336.08 97.21 334.55 95.86C333.02 94.5 331.81 92.93 331 91.13C330.2 89.33 329.79 87.3 329.79 85.2C329.79 82.35 330.2 79.95 331.08 77.99C331.89 76.05 333.26 74.39 335.03 73.04C336.81 71.69 339.07 70.64 341.81 69.89C344.55 69.14 347.86 68.47 351.73 67.94L372.04 65.31C373.01 65.16 373.9 65.92 373.9 66.81L373.9 72.89L373.82 72.89ZM306.37 95.61C305.65 94.94 304.76 94.42 303.79 94.04C302.83 93.67 301.78 93.44 300.65 93.44C298.39 93.44 296.46 94.19 294.93 95.61C293.4 97.04 292.59 98.84 292.59 101.01C292.59 103.11 293.4 104.84 294.93 106.34C296.46 107.76 298.39 108.51 300.65 108.51C301.78 108.51 302.83 108.29 303.79 107.91C304.76 107.54 305.65 107.01 306.37 106.34C307.09 105.66 307.66 104.84 308.15 103.94C308.63 103.04 308.79 102.07 308.79 101.01C308.79 99.89 308.55 98.92 308.15 97.94C307.74 96.96 307.09 96.29 306.37 95.61ZM410.09 6.17C409.6 5.27 409.04 4.44 408.31 3.77C407.59 3.09 406.7 2.57 405.74 2.19C404.85 1.89 403.8 1.67 402.68 1.67C400.42 1.67 398.49 2.42 396.95 3.84C395.42 5.27 394.62 7.07 394.62 9.24C394.62 11.34 395.42 13.06 396.95 14.57C398.49 15.99 400.42 16.74 402.68 16.74C403.8 16.74 404.85 16.52 405.82 16.14C406.78 15.76 407.67 15.24 408.4 14.57C409.12 13.89 409.69 13.06 410.17 12.16C410.65 11.26 410.81 10.29 410.81 9.24C410.81 8.11 410.57 7.14 410.09 6.17Z"/>
+    </svg>
+    <p class="qf__tagline" id="qf-tagline">Connecting care from detection to intervention.</p>
+  </div>
+
+  <div class="qf__legal">
+    <p>© 2026 Qure.ai Technologies Private Limited</p>
+    <nav aria-label="Legal"><a href="#">Privacy policy</a><a href="#">Terms &amp; conditions</a></nav>
+  </div>
+  <p class="qf__disclaimer">Qure AI supports clinical decision-making; it does not replace clinical judgment. Regulatory status varies by market.</p>
+</footer>
+
+<script src="dist/pill-band.js"></script>
+<script>
+  // Thin wrapper: the site is plain HTML + vanilla JS, so this is all the glue needed.
+  // Tunables: QurePillBand.DEFAULT_CONFIG (KEYFRAME_MS, OP_RATIO, PEACH_DRIFT, INK_TOLERANCE, ...).
+  window.qureFooterBand = QurePillBand.createPillBand({
+    canvas: document.getElementById('qf-pills'),
+    logo: document.getElementById('qf-logo'),
+    tagline: document.getElementById('qf-tagline'),
+    config: {},
+  });
+</script>
+</body>
+</html>
