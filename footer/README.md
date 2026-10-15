@@ -44,7 +44,7 @@ unzip Qure_footer.fig -d /tmp/qf && npm run extract:footer -- /tmp/qf/canvas.fig
 | Logo | x 173, y 307.8, 415 × 141.707, fill #FF7869 | `Container` |
 | Logo clear zone | x 151 – 610, full band height (logo ± 22 px) | gap between the two clip frames |
 | Right inset | 8 px (band ends at x 1432) | right clip frame |
-| Tagline | x 730, y 338.6, 421 × 76, Aether Neue Light 32/38.4; text "Making the incidental intentional." | **no clear zone** (decided); pills run behind it |
+| Tagline | x 730, y 338.6, 421 × 76, Aether Neue Light 32/38.4; text "Connecting care from detection to intervention." | **no clear zone** (decided); pills run behind it |
 
 ### Verification against Figma's own render
 
@@ -61,9 +61,8 @@ frame). Per-channel difference, 0–255:
 | Legal row | 6.27 | 129 | 3,937 | glyph rasterisation (9 px text) |
 | Disclaimer | 7.89 | 131 | 2,422 | glyph rasterisation |
 | Newsletter heading (Aether Neue) | 9.68 | 166 | 1,335 | glyph rasterisation |
-| Tagline box (shipping) | 32.7 | 215 | 7,351 | **different text by decision** |
+| Tagline | 6.73 | 172 | 3,349 | glyph rasterisation |
 
-- The like-for-like run (a copy with Figma's tagline and #FF6D61 peach) gives a 6.73 mean in the tagline box, matching the other text. The other rows are identical in both runs.
 - The brand-peach deviation is invisible at band opacity: #FF7869 against #FF6D61 at 17% composites to under 2/255 per channel, so the band row changes by one pixel.
 - **Text position:** best-fit sub-pixel shift per text region is within 0.5 px of Figma everywhere. Chrome snaps text baselines to whole pixels, so 0.5 px is the floor.
   - Reaching it took measured nudges in `footer.html`: legal row +2 px, disclaimer +1 px, tagline and button label −0.5 px, placeholder −0.75 px x. Figma and Chrome place glyphs differently inside identical line boxes.
@@ -73,7 +72,7 @@ frame). Per-channel difference, 0–255:
 
 ### Decisions
 
-- **Tagline** is "Making the incidental intentional." (the current design). The Figma frame (live as of this check) still reads "Connecting care from detection to intervention.", so the tagline is a deliberate content difference from the file.
+- **Tagline** is "Connecting care from detection to intervention.", matching the Figma frame.
 - **No tagline clear zone.** Pills run behind the tagline, as in Figma. `TAGLINE_CLEAR_ZONE: true` carves one out (logo-style ±22 px padding), at the cost of first-frame parity.
 - **Pill widths stay as drawn.** They vary continuously (13.12 – 24.27). The unit is the step size for operations only.
 - **Band peach is the brand #FF7869**, an intentional deviation from Figma's #FF6D61.
@@ -113,15 +112,15 @@ QurePillBand.createPillBand({ canvas, logo, tagline, config: { KEYFRAME_MS: 900,
 
 | Key | Default | Effect |
 |---|---|---|
-| `KEYFRAME_MS` | 850 | Tween length. Higher = calmer. |
-| `OP_RATIO` | 0.25 | Share of lavender pills that move per keyframe. Lower = stiller texture. |
-| `PEACH_DRIFT` | 0.85 | Chance a peach advances on a keyframe. At 850 ms a peach crosses 1440 px in roughly 70–80 s. |
+| `KEYFRAME_MS` | 300 | Tween length. Higher = calmer. |
+| `OP_RATIO` | 0.35 | Share of lavender pills that move per keyframe. Lower = stiller texture. |
+| `PEACH_DRIFT` | 0.85 | Chance a peach advances on a keyframe. A peach takes about 57 keyframes to cross 1440 px: ~17 s at 300 ms. |
 | `INK_TOLERANCE` | 0.10 | Allowed density drift per row. |
 | `MERGE_GAP` | 2 × min gap | How close two pills must be to merge. |
 | `MAX_W` | 2.5 units | Longest pill a stretch/merge may make. |
 | `PEACH_MIN_W` | 0.4 units | How far a peach squeezes to fit a gap. |
 | `HOME_PULL` | 4 units | Strength of the pull back to Figma positions (smaller = stronger). |
-| `PEACH_PATIENCE` | 40 (≈34 s at 850 ms) | Keyframes a blocked peach waits before fading out in place. |
+| `PEACH_PATIENCE` | 40 (12 s at 300 ms) | Keyframes a blocked peach waits before fading out in place. |
 | `TAGLINE_CLEAR_ZONE` | false | Carve a clear zone around the tagline. |
 | `MOBILE_MAX` | 799 | Fallback-layout breakpoint. |
 | `MOBILE_DENSITY` | 0.5 | Mobile fallback density, 0–1: the evenly spread share of rows, and of lavender pills within each kept row, that survive at ≤ `MOBILE_MAX`. 0.5 = every other row, every other pill (identical to the earlier fallback). 1 = all rows and pills. |

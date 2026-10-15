@@ -53,8 +53,8 @@ export interface BandConfig {
 }
 
 export const DEFAULT_CONFIG: BandConfig = {
-  KEYFRAME_MS: 850,
-  OP_RATIO: 0.25,
+  KEYFRAME_MS: 300,
+  OP_RATIO: 0.35,
   PEACH_DRIFT: 0.85,
   INK_TOLERANCE: 0.1,
   UNIT: F.unit,

@@ -601,8 +601,8 @@ var QurePillBand = (() => {
 
   // footer/src/band-model.ts
   var DEFAULT_CONFIG = {
-    KEYFRAME_MS: 850,
-    OP_RATIO: 0.25,
+    KEYFRAME_MS: 300,
+    OP_RATIO: 0.35,
     PEACH_DRIFT: 0.85,
     INK_TOLERANCE: 0.1,
     UNIT: FIGMA_BAND.unit,
