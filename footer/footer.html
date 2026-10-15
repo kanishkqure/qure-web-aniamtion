@@ -30,6 +30,10 @@
     --sans: "DM Sans", system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
+  /* Text offsets below were tuned against Figma's own 1x render of the frame: Figma and Chrome
+     place glyphs differently inside the same line box (legal row +2px, disclaimer +1px,
+     tagline and button label -0.5px, placeholder -0.75px x). Offsets under 0.5px are left:
+     Chrome snaps text baselines to whole pixels. */
   body { margin: 0; background: #fff; }
 
   .qf {
@@ -52,13 +56,13 @@
   }
   .qf__form { display: flex; gap: 14px; margin: 49.8px 0 0 -3px; }
   .qf__form input {
-    width: 194.16px; height: 33px; padding: 0 13.5px;
+    width: 194.16px; height: 33px; padding: 0 13.5px 0 12.75px; /* text nudged to Figma's render */
     border: 1px solid var(--lavender); border-radius: 999px; background: transparent;
     font: 400 11.3px/1 var(--sans); color: var(--ink);
   }
   .qf__form input::placeholder { color: #757575; }
   .qf__form button {
-    width: 123px; height: 33px; border: 0; border-radius: 999px; background: var(--peach); color: #fff;
+    width: 123px; height: 33px; padding: 0 0 1px; border: 0; border-radius: 999px; background: var(--peach); color: #fff;
     font: 500 16px/1 var(--mono); letter-spacing: 0.36px; text-transform: uppercase; cursor: pointer;
   }
 
@@ -89,7 +93,7 @@
     width: min(415px, 28.8195vw); height: auto; display: block;
   }
   .qf__tagline {
-    position: absolute; left: 50.6944%; top: 44.6px; margin: 0;
+    position: absolute; left: 50.6944%; top: 44.1px; margin: 0;
     width: min(421px, calc(49.3056% - 71px));
     font: 300 32px/38.4px var(--heading); letter-spacing: -0.24px; color: var(--indigo);
   }
@@ -97,14 +101,14 @@
   /* legal */
   .qf__legal {
     position: absolute; left: 53px; right: 52px; top: 527.6px; height: 33.38px;
-    border-top: 1px solid var(--indigo); padding-top: 20.75px;
+    border-top: 1px solid var(--indigo); padding-top: 22.75px;
     display: flex; justify-content: space-between;
     font: 400 9px/1 var(--mono); letter-spacing: 0.36px; color: var(--indigo);
   }
   .qf__legal p { margin: 0; }
   .qf__legal nav { display: flex; gap: 23.68px; }
   .qf__disclaimer {
-    position: absolute; left: 52.5px; top: 581.97px; margin: 0; max-width: 721px;
+    position: absolute; left: 52.5px; top: 582.97px; margin: 0; max-width: 721px;
     font: 400 13.5px/20.25px var(--sans); color: var(--indigo);
   }
 

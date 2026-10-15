@@ -46,20 +46,34 @@ unzip Qure_footer.fig -d /tmp/qf && npm run extract:footer -- /tmp/qf/canvas.fig
 | Right inset | 8 px (band ends at x 1432) | right clip frame |
 | Tagline | x 730, y 338.6, 421 × 76, Aether Neue Light 32/38.4; text "Making the incidental intentional." | **no clear zone** (decided); pills run behind it |
 
-The first rendered frame at 1440 px is the Figma geometry: the test checks all 250 pills by
-position and width, and a screenshot diff against an SVG render of the extracted geometry
-(peach at #FF7869 on both sides) differs on 13 of 241,920 band pixels by more than 2/255
-(max 7/255, all antialiasing on pill edges). Against Figma's own render, the 8 peach pills
-differ by design (#FF7869 vs #FF6D61).
+### Verification against Figma's own render
 
-Static text, measured in the browser with Aether Neue loaded against the Figma text boxes:
-every x/y offset is 0.0 px (link rows within 0.7 px of inline-box rounding), DM Mono widths
-match within 0.4 px (Figma excludes the trailing letter-spacing), and both Aether Neue texts
-break onto the same lines.
+Figma frame: `qGZKvMzrfmVPmh2GyixLl0`, node `4:6639`, exported at 1x through the Figma
+connector, compared with a Chrome screenshot of `footer.html` at 1440 × 645 (static first
+frame). Per-channel difference, 0–255:
+
+| Region | Mean | Max | Pixels > 16 | What remains |
+|---|---|---|---|---|
+| Band (pills, excluding logo/tagline boxes) | 0.16 | 8 | 0 | edge antialiasing only |
+| Logo | 1.22 | 98 | 1,559 | path edge antialiasing |
+| Link columns | 3.03 | 157 | 3,565 | glyph rasterisation |
+| Email + button | 4.69 | 95 | 976 | glyph rasterisation |
+| Legal row | 6.27 | 129 | 3,937 | glyph rasterisation (9 px text) |
+| Disclaimer | 7.89 | 131 | 2,422 | glyph rasterisation |
+| Newsletter heading (Aether Neue) | 9.68 | 166 | 1,335 | glyph rasterisation |
+| Tagline box (shipping) | 32.7 | 215 | 7,351 | **different text by decision** |
+
+- The like-for-like run (a copy with Figma's tagline and #FF6D61 peach) gives a 6.73 mean in the tagline box, matching the other text. The other rows are identical in both runs.
+- The brand-peach deviation is invisible at band opacity: #FF7869 against #FF6D61 at 17% composites to under 2/255 per channel, so the band row changes by one pixel.
+- **Text position:** best-fit sub-pixel shift per text region is within 0.5 px of Figma everywhere. Chrome snaps text baselines to whole pixels, so 0.5 px is the floor.
+  - Reaching it took measured nudges in `footer.html`: legal row +2 px, disclaimer +1 px, tagline and button label −0.5 px, placeholder −0.75 px x. Figma and Chrome place glyphs differently inside identical line boxes.
+- **What's left in text regions** is the outline of every glyph: Figma's text rasteriser against Chrome's. CSS can't remove it.
+
+**Geometry:** the live file's 2,602 pill vectors match `figma-band.ts`'s source exactly (same ids, x, y, width, height; max difference 0 px). The connector's metadata doesn't expose fills or opacities, but the band row above (max 8/255) confirms those too. The test also checks all 250 visible pills by position and width.
 
 ### Decisions
 
-- **Tagline** is "Making the incidental intentional." (the current design). The constants above were extracted from the earlier file, whose tagline read "Connecting care from detection to intervention."; re-run the extractor on the updated file to confirm nothing else moved.
+- **Tagline** is "Making the incidental intentional." (the current design). The Figma frame (live as of this check) still reads "Connecting care from detection to intervention.", so the tagline is a deliberate content difference from the file.
 - **No tagline clear zone.** Pills run behind the tagline, as in Figma. `TAGLINE_CLEAR_ZONE: true` carves one out (logo-style ±22 px padding), at the cost of first-frame parity.
 - **Pill widths stay as drawn.** They vary continuously (13.12 – 24.27). The unit is the step size for operations only.
 - **Band peach is the brand #FF7869**, an intentional deviation from Figma's #FF6D61.
