@@ -35,7 +35,8 @@ var FIGMA_BAND = {
   minGap: 4.372,
   rowPitch: 15.933,
   layerOpacity: 0.17,
-  peachColor: "#FF6D61",
+  peachColor: "#FF7869",
+  figmaPeachColor: "#FF6D61",
   peachCount: 8,
   visiblePillCount: 250,
   lavenderTintCount: 49,
@@ -120,7 +121,7 @@ var FIGMA_BAND = {
           [860.285, 19.403, 7.05, "#CAC2E1", 0.57],
           [894.79, 17.921, 7.05, "#C9C2E1", 0.57],
           [917.158, 13.123, 7.05, "#C9C2E1", 0.57],
-          [948.763, 16.581, 7.05, "#FF6D61", 1],
+          [948.763, 16.581, 7.05, "#FF7869", 1],
           [995.401, 19.544, 7.05, "#CAC3E2", 0.56],
           [1043.594, 18.062, 7.05, "#C4BCDD", 0.61],
           [1117.248, 16.439, 7.05, "#C6BFDF", 0.59],
@@ -150,7 +151,7 @@ var FIGMA_BAND = {
           [-57.875, 20.038, 7.05, "#CCC4E3", 0.55],
           [-32.469, 15.381, 7.05, "#C9C1E1", 0.57],
           [15.508, 19.967, 7.05, "#C8C1E0", 0.58],
-          [48.172, 17.639, 7.05, "#FF6D61", 1],
+          [48.172, 17.639, 7.05, "#FF7869", 1],
           [70.328, 19.544, 7.05, "#C7C0E0", 0.59],
           [111.109, 15.311, 7.05, "#C5BEDE", 0.6],
           [138.344, 20.391, 7.05, "#C4BCDD", 0.61]
@@ -203,7 +204,7 @@ var FIGMA_BAND = {
           [-28.875, 13.335, 7.05, "#CBC3E2", 0.56],
           [-10.461, 20.814, 7.05, "#C8C1E0", 0.58],
           [23.617, 17.78, 7.05, "#C8C0E0", 0.58],
-          [91.563, 16.792, 7.05, "#FF6D61", 1],
+          [91.563, 16.792, 7.05, "#FF7869", 1],
           [113.086, 21.237, 7.05, "#C6BEDF", 0.6],
           [139.75, 17.074, 7.05, "#C6BEDF", 0.6]
         ]
@@ -282,7 +283,7 @@ var FIGMA_BAND = {
           [1195.496, 16.933, 7.05, "#C4BCDD", 0.61],
           [1242.202, 22.931, 7.05, "#B8B0D5", 0.68],
           [1270.712, 15.663, 7.05, "#BDB5D9", 0.65],
-          [1310.786, 14.534, 7.05, "#FF6D61", 1]
+          [1310.786, 14.534, 7.05, "#FF7869", 1]
         ]
       }
     },
@@ -415,7 +416,7 @@ var FIGMA_BAND = {
           [24.398, 13.97, 7.05, "#CAC2E1", 0.57],
           [44.008, 21.661, 7.05, "#A199C6", 0.81],
           [70.68, 19.121, 7.05, "#ADA4CD", 0.75],
-          [112.445, 21.661, 7.05, "#FF6D61", 1],
+          [112.445, 21.661, 7.05, "#FF7869", 1],
           [139.188, 22.507, 7.05, "#AEA6CE", 0.74]
         ]
       },
@@ -432,8 +433,8 @@ var FIGMA_BAND = {
           [840.6, 14.182, 7.05, "#C6BEDF", 0.6],
           [898.032, 20.108, 7.05, "#C5BEDE", 0.6],
           [938.461, 15.804, 7.05, "#CAC2E1", 0.57],
-          [986.231, 19.121, 7.05, "#FF6D61", 1],
-          [1009.797, 13.547, 7.05, "#FF6D61", 1],
+          [986.231, 19.121, 7.05, "#FF7869", 1],
+          [1009.797, 13.547, 7.05, "#FF7869", 1],
           [1073.011, 14.958, 7.05, "#CAC3E2", 0.57],
           [1098.488, 14.887, 7.05, "#CAC2E1", 0.57],
           [1137.575, 19.191, 7.05, "#C9C1E1", 0.57],
@@ -477,7 +478,7 @@ var FIGMA_BAND = {
         segs: [
           [621.315, 17.357, 7.05, "#B3ABD2", 0.71],
           [643.892, 15.593, 7.05, "#B1A8D0", 0.73],
-          [679.523, 18.133, 7.05, "#FF6D61", 1],
+          [679.523, 18.133, 7.05, "#FF7869", 1],
           [703.517, 15.522, 7.05, "#BBB3D7", 0.67],
           [737.381, 16.439, 7.05, "#C9C1E1", 0.58],
           [783.734, 20.461, 7.05, "#C9C2E1", 0.57],
@@ -570,7 +571,7 @@ var FIGMA_BAND = {
 
 // footer/src/band-model.ts
 var DEFAULT_CONFIG = {
-  KEYFRAME_MS: 600,
+  KEYFRAME_MS: 850,
   OP_RATIO: 0.25,
   PEACH_DRIFT: 0.85,
   INK_TOLERANCE: 0.1,
@@ -580,10 +581,12 @@ var DEFAULT_CONFIG = {
   MAX_W: FIGMA_BAND.unit * 2.5,
   PEACH_MIN_W: FIGMA_BAND.unit * 0.4,
   HOME_PULL: FIGMA_BAND.unit * 4,
+  PEACH_PATIENCE: 40,
   ZONE_PAD: FIGMA_BAND.logoZonePadX,
   RIGHT_INSET: FIGMA_BAND.rightInset,
   TAGLINE_CLEAR_ZONE: false,
   MOBILE_MAX: 799,
+  MOBILE_DENSITY: 0.5,
   BG: "#ffffff"
 };
 function mulberry32(seed) {
@@ -603,6 +606,10 @@ function parseHex(hex) {
 function composite(fill, alpha, bg) {
   return [0, 1, 2].map((i) => bg[i] + (fill[i] - bg[i]) * alpha);
 }
+function keepNth(i, density) {
+  const d = clamp(density, 0, 1);
+  return Math.floor(i * d + 1e-9) > Math.floor((i - 1) * d + 1e-9);
+}
 var clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 var right = (s) => s.xb + s.wb;
 var EPS = 1e-6;
@@ -613,6 +620,8 @@ var BandModel = class {
     this.peachWidths = [];
     this.peachTarget = 0;
     this.pendingSpawns = 0;
+    /** peaches retired by PEACH_PATIENCE rather than by reaching the right edge (for tests) */
+    this.stallFades = 0;
     /** lavender pills asked to make way for a peach stuck behind them */
     this.yielders = /* @__PURE__ */ new Set();
     this.mobile = false;
@@ -650,7 +659,7 @@ var BandModel = class {
     }
     FIGMA_BAND.rows.forEach((figRow, ri) => {
       var _a, _b;
-      if (this.mobile && ri % 2) return;
+      if (this.mobile && !keepNth(ri, c.MOBILE_DENSITY)) return;
       const cy = logoCy + (figRow.right.cy - figLogoCy);
       const half = FIGMA_BAND.pillHeight / 2;
       const src = [];
@@ -681,7 +690,7 @@ var BandModel = class {
           if (x + w <= sp.L || x >= sp.R) continue;
           if (rowZones.some((z) => z.strict && x < z.x1 && x + w > z.x0)) continue;
           const peach = fill.toUpperCase() === FIGMA_BAND.peachColor.toUpperCase();
-          if (this.mobile && !peach && lavIndex++ % 2) continue;
+          if (this.mobile && !peach && !keepNth(lavIndex++, c.MOBILE_DENSITY)) continue;
           const prev = segs[segs.length - 1];
           if (prev && x < right(prev) + c.GAP - 0.01) continue;
           const col = composite(parseHex(fill), alpha * FIGMA_BAND.layerOpacity, this.bg);
@@ -728,7 +737,8 @@ var BandModel = class {
       link: null,
       busy: false,
       dying: false,
-      crossing: false
+      crossing: false,
+      stall: 0
     };
   }
   // ------------------------------------------------------------- keyframes
@@ -832,6 +842,24 @@ var BandModel = class {
         }
       }
     }
+    this.retireStalledPeaches();
+  }
+  /** A peach blocked for PEACH_PATIENCE keyframes fades out where it is; a new one spawns. */
+  retireStalledPeaches() {
+    for (const row of this.rows) {
+      for (const lane of row.lanes) {
+        for (const p of lane.segs) {
+          if (!p.peach || p.dying || p.crossing || p.oa < 1) continue;
+          p.stall = Math.abs(p.xb - p.xa) < 0.5 ? p.stall + 1 : 0;
+          if (p.stall < this.cfg.PEACH_PATIENCE) continue;
+          p.dying = true;
+          p.busy = true;
+          p.ob = 0;
+          this.pendingSpawns++;
+          this.stallFades++;
+        }
+      }
+    }
   }
   /** Free width at a lane's left entry, against both ends of every neighbour's tween. */
   entryRoom(lane) {
@@ -886,7 +914,7 @@ var BandModel = class {
     if (p.xb < Math.max(lane.L, lane.lb)) return null;
     const i = lane.segs.indexOf(p);
     const s = lane.segs.slice(i + 1).find((o) => o.xb > p.xb);
-    if (!s || s.peach || s.busy || s.link || this.yielders.has(s)) return null;
+    if (!s || s.peach || s.busy || s.link) return null;
     if (lane.segs.some((o) => {
       var _a;
       return ((_a = o.link) == null ? void 0 : _a.to) === s;
@@ -961,7 +989,7 @@ var BandModel = class {
     let count = row.lanes.reduce((n, l) => n + l.segs.filter((s) => !s.peach).length, 0);
     for (const lane of row.lanes) {
       lane.segs.sort((a, b) => a.xb - b.xb);
-      if (lane.yieldEntry) {
+      if (lane.yieldEntry && !this.openEntry(lane)) {
         const first = lane.segs.find((s) => right(s) > lane.L);
         if (first) this.yielders.add(first);
       }
@@ -970,12 +998,11 @@ var BandModel = class {
         if (s.peach || s.busy || this.rng() >= c.OP_RATIO) continue;
         const segs = lane.segs;
         const i = segs.indexOf(s);
-        const prev = segs[i - 1];
-        const next = segs[i + 1];
-        const hidden = (n) => n && n.peach && (right(n) <= lane.L || n.xb >= lane.R);
-        let leftLim = prev && !hidden(prev) ? Math.max(right(prev), prev.xa + prev.wa) + c.GAP : lane.lb;
+        const prev = this.neighbour(lane, i, -1);
+        const next = this.neighbour(lane, i, 1);
+        let leftLim = prev ? Math.max(right(prev), prev.xa + prev.wa) + c.GAP : lane.lb;
         if (!prev && s.xb >= lane.reserve) leftLim = Math.max(leftLim, lane.reserve);
-        const rightLim = next && !hidden(next) ? Math.min(next.xb, next.xa) - c.GAP : lane.rb;
+        const rightLim = next ? Math.min(next.xb, next.xa) - c.GAP : lane.rb;
         if (leftLim > s.xb + EPS || rightLim < right(s) - EPS) continue;
         const dev = (ink - row.inkTarget) / row.inkTarget / c.INK_TOLERANCE;
         const cdev = (count - row.lavCount0) / Math.max(4, row.lavCount0 * 0.15);
@@ -1066,8 +1093,7 @@ var BandModel = class {
   makeWay(lane, s, inkBudget) {
     const c = this.cfg;
     if (s.peach || s.busy) return 0;
-    const i = lane.segs.indexOf(s);
-    const next = lane.segs[i + 1];
+    const next = this.neighbour(lane, lane.segs.indexOf(s), 1);
     const rightLim = next ? Math.min(next.xb, next.xa) - c.GAP : lane.rb;
     const dx = Math.min(c.UNIT, rightLim - right(s));
     if (dx >= 1) {
@@ -1081,6 +1107,49 @@ var BandModel = class {
     s.wb -= d;
     s.busy = true;
     return d;
+  }
+  /**
+   * A peach is waiting on the other side of a clear zone: shift the run of pills at this lane's
+   * entry up to one unit right, pushing neighbours along only as far as the min gap requires.
+   * Ink is unchanged. Returns false if the run cannot move (then the single-pill nudge runs).
+   */
+  openEntry(lane) {
+    const c = this.cfg;
+    const segs = lane.segs;
+    const i0 = segs.findIndex((s) => Math.max(right(s), s.xa + s.wa) > lane.L);
+    if (i0 < 0) return true;
+    const room = Math.min(segs[i0].xa, segs[i0].xb) - c.GAP - lane.L;
+    const shift = Math.min(c.UNIT, c.UNIT + c.PEACH_MIN_W - room);
+    if (shift <= 0) return true;
+    const moves = [];
+    let edge = -Infinity;
+    for (let j = i0; j < segs.length; j++) {
+      const s = segs[j];
+      const d = j === i0 ? shift : edge + c.GAP - Math.min(s.xa, s.xb);
+      if (d <= 0) break;
+      if (s.peach || s.busy || s.link) return false;
+      if (right(s) + d > lane.rb) return false;
+      moves.push([s, d]);
+      edge = Math.max(right(s), s.xa + s.wa) + d;
+    }
+    for (const [s, d] of moves) {
+      s.xb += d;
+      s.busy = true;
+    }
+    return true;
+  }
+  /**
+   * Nearest segment on one side of lane.segs[i] that constrains a lavender pill. A peach that
+   * is fading out, sliding under a zone edge or still hidden can sit over a lavender pill, so it
+   * must never stand in for the real neighbour behind it.
+   */
+  neighbour(lane, i, dir) {
+    for (let j = i + dir; j >= 0 && j < lane.segs.length; j += dir) {
+      const n = lane.segs[j];
+      if (!n.peach) return n;
+      if (!n.dying && !n.crossing && right(n) > lane.L && n.xb < lane.R) return n;
+    }
+    return void 0;
   }
   pick(w) {
     const keys = Object.keys(w);

@@ -14,7 +14,10 @@ export interface FigmaBand {
   logo: Box;
   tagline: Box & { text: string };
   pillHeight: number; pillRadius: number; unit: number; minGap: number; rowPitch: number;
-  layerOpacity: number; peachColor: string; peachCount: number;
+  layerOpacity: number; peachCount: number;
+  /** Brand peach #FF7869: an intentional deviation from the Figma fill (figmaPeachColor). */
+  peachColor: string;
+  figmaPeachColor: string;
   visiblePillCount: number; lavenderTintCount: number;
   rows: FigmaRow[];
   logoZonePadX: number; logoZonePadXRight: number; rightInset: number;
@@ -56,7 +59,8 @@ export const FIGMA_BAND: FigmaBand = {
   minGap: 4.372,
   rowPitch: 15.933,
   layerOpacity: 0.17,
-  peachColor: "#FF6D61",
+  peachColor: "#FF7869",
+  figmaPeachColor: "#FF6D61",
   peachCount: 8,
   visiblePillCount: 250,
   lavenderTintCount: 49,
@@ -141,7 +145,7 @@ export const FIGMA_BAND: FigmaBand = {
           [860.285, 19.403, 7.05, "#CAC2E1", 0.57],
           [894.79, 17.921, 7.05, "#C9C2E1", 0.57],
           [917.158, 13.123, 7.05, "#C9C2E1", 0.57],
-          [948.763, 16.581, 7.05, "#FF6D61", 1],
+          [948.763, 16.581, 7.05, "#FF7869", 1],
           [995.401, 19.544, 7.05, "#CAC3E2", 0.56],
           [1043.594, 18.062, 7.05, "#C4BCDD", 0.61],
           [1117.248, 16.439, 7.05, "#C6BFDF", 0.59],
@@ -171,7 +175,7 @@ export const FIGMA_BAND: FigmaBand = {
           [-57.875, 20.038, 7.05, "#CCC4E3", 0.55],
           [-32.469, 15.381, 7.05, "#C9C1E1", 0.57],
           [15.508, 19.967, 7.05, "#C8C1E0", 0.58],
-          [48.172, 17.639, 7.05, "#FF6D61", 1],
+          [48.172, 17.639, 7.05, "#FF7869", 1],
           [70.328, 19.544, 7.05, "#C7C0E0", 0.59],
           [111.109, 15.311, 7.05, "#C5BEDE", 0.6],
           [138.344, 20.391, 7.05, "#C4BCDD", 0.61]
@@ -224,7 +228,7 @@ export const FIGMA_BAND: FigmaBand = {
           [-28.875, 13.335, 7.05, "#CBC3E2", 0.56],
           [-10.461, 20.814, 7.05, "#C8C1E0", 0.58],
           [23.617, 17.78, 7.05, "#C8C0E0", 0.58],
-          [91.563, 16.792, 7.05, "#FF6D61", 1],
+          [91.563, 16.792, 7.05, "#FF7869", 1],
           [113.086, 21.237, 7.05, "#C6BEDF", 0.6],
           [139.75, 17.074, 7.05, "#C6BEDF", 0.6]
         ]
@@ -303,7 +307,7 @@ export const FIGMA_BAND: FigmaBand = {
           [1195.496, 16.933, 7.05, "#C4BCDD", 0.61],
           [1242.202, 22.931, 7.05, "#B8B0D5", 0.68],
           [1270.712, 15.663, 7.05, "#BDB5D9", 0.65],
-          [1310.786, 14.534, 7.05, "#FF6D61", 1]
+          [1310.786, 14.534, 7.05, "#FF7869", 1]
         ]
       }
     },
@@ -436,7 +440,7 @@ export const FIGMA_BAND: FigmaBand = {
           [24.398, 13.97, 7.05, "#CAC2E1", 0.57],
           [44.008, 21.661, 7.05, "#A199C6", 0.81],
           [70.68, 19.121, 7.05, "#ADA4CD", 0.75],
-          [112.445, 21.661, 7.05, "#FF6D61", 1],
+          [112.445, 21.661, 7.05, "#FF7869", 1],
           [139.188, 22.507, 7.05, "#AEA6CE", 0.74]
         ]
       },
@@ -453,8 +457,8 @@ export const FIGMA_BAND: FigmaBand = {
           [840.6, 14.182, 7.05, "#C6BEDF", 0.6],
           [898.032, 20.108, 7.05, "#C5BEDE", 0.6],
           [938.461, 15.804, 7.05, "#CAC2E1", 0.57],
-          [986.231, 19.121, 7.05, "#FF6D61", 1],
-          [1009.797, 13.547, 7.05, "#FF6D61", 1],
+          [986.231, 19.121, 7.05, "#FF7869", 1],
+          [1009.797, 13.547, 7.05, "#FF7869", 1],
           [1073.011, 14.958, 7.05, "#CAC3E2", 0.57],
           [1098.488, 14.887, 7.05, "#CAC2E1", 0.57],
           [1137.575, 19.191, 7.05, "#C9C1E1", 0.57],
@@ -498,7 +502,7 @@ export const FIGMA_BAND: FigmaBand = {
         segs: [
           [621.315, 17.357, 7.05, "#B3ABD2", 0.71],
           [643.892, 15.593, 7.05, "#B1A8D0", 0.73],
-          [679.523, 18.133, 7.05, "#FF6D61", 1],
+          [679.523, 18.133, 7.05, "#FF7869", 1],
           [703.517, 15.522, 7.05, "#BBB3D7", 0.67],
           [737.381, 16.439, 7.05, "#C9C1E1", 0.58],
           [783.734, 20.461, 7.05, "#C9C2E1", 0.57],

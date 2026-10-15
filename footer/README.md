@@ -7,6 +7,7 @@ drift left to right across the band. Everything else in the footer is static HTM
 ```
 footer/
   footer.html          the footer component (static markup + CSS + 10-line wrapper)
+  fonts/               Aether Neue Light (woff2 + woff), the only weight the footer uses
   src/figma-band.ts    GENERATED Figma constants (every pill, row, zone)
   src/band-model.ts    the motion model, DOM-free
   src/pill-band.ts     canvas renderer + lifecycle (rAF, IntersectionObserver, resize, reduced motion)
@@ -37,25 +38,32 @@ unzip Qure_footer.fig -d /tmp/qf && npm run extract:footer -- /tmp/qf/canvas.fig
 | Base unit | 13.123 px (shortest full-height visible pill) | |
 | Min gap | 4.372 px | |
 | Visible pills | 250 = 242 lavender + 8 peach | inside the clips |
-| Fills | 49 lavender tints (#A199C6 … #D8D1EB), paint opacity 0.41 – 1.0; peach #FF6D61 at 1.0 | per pill |
+| Fills | 49 lavender tints (#A199C6 … #D8D1EB), paint opacity 0.41 – 1.0 | per pill |
+| Peach | **#FF7869 (brand) — intentional deviation.** Figma draws the band peach with its "Peach" style #FF6D61, kept as `figmaPeachColor`; the extractor rewrites the 8 peach pills to #FF7869 (`PEACH_OVERRIDE`). | decision, not measurement |
 | Layer opacity | 0.20 (frame) × 0.85 (`capsules`, multiply) = 0.17 | |
 | Logo | x 173, y 307.8, 415 × 141.707, fill #FF7869 | `Container` |
 | Logo clear zone | x 151 – 610, full band height (logo ± 22 px) | gap between the two clip frames |
 | Right inset | 8 px (band ends at x 1432) | right clip frame |
-| Tagline | x 730, y 338.6, 421 × 76, Aether Neue Light 32/38.4 | **no clear zone**; Figma runs pills behind it |
+| Tagline | x 730, y 338.6, 421 × 76, Aether Neue Light 32/38.4; text "Making the incidental intentional." | **no clear zone** (decided); pills run behind it |
 
-The first rendered frame at 1440 px is the Figma frame: the test checks all 250 pills by
-position and width, and a screenshot diff against an SVG render of the extracted
-geometry differs on 13 of 241,920 band pixels by more than 2/255 (max 7/255, all
-antialiasing on pill edges).
+The first rendered frame at 1440 px is the Figma geometry: the test checks all 250 pills by
+position and width, and a screenshot diff against an SVG render of the extracted geometry
+(peach at #FF7869 on both sides) differs on 13 of 241,920 band pixels by more than 2/255
+(max 7/255, all antialiasing on pill edges). Against Figma's own render, the 8 peach pills
+differ by design (#FF7869 vs #FF6D61).
 
-### Where the Figma file and the brief disagree (the Figma file wins)
+Static text, measured in the browser with Aether Neue loaded against the Figma text boxes:
+every x/y offset is 0.0 px (link rows within 0.7 px of inline-box rounding), DM Mono widths
+match within 0.4 px (Figma excludes the trailing letter-spacing), and both Aether Neue texts
+break onto the same lines.
 
-- **Tagline text** is "Connecting care from detection to intervention.", not "Making the incidental intentional."
-- **No tagline clear zone.** Pills run behind the tagline in Figma. `TAGLINE_CLEAR_ZONE: true` carves one out (logo-style ±22 px padding), at the cost of first-frame parity.
-- **Pill widths are not unit multiples.** They vary continuously (13.12 – 24.27). The unit is used as the step size for operations; starting widths stay exact.
-- **Band peach is #FF6D61** (the file's "Peach" style). #FF7869 is only the logo and button.
-- **No mobile frame** exists, so ≤799 px uses the fallback: every other row, every other lavender segment.
+### Decisions
+
+- **Tagline** is "Making the incidental intentional." (the current design). The constants above were extracted from the earlier file, whose tagline read "Connecting care from detection to intervention."; re-run the extractor on the updated file to confirm nothing else moved.
+- **No tagline clear zone.** Pills run behind the tagline, as in Figma. `TAGLINE_CLEAR_ZONE: true` carves one out (logo-style ±22 px padding), at the cost of first-frame parity.
+- **Pill widths stay as drawn.** They vary continuously (13.12 – 24.27). The unit is the step size for operations only.
+- **Band peach is the brand #FF7869**, an intentional deviation from Figma's #FF6D61.
+- **No mobile frame** exists yet, so ≤799 px uses the fallback, tuned with one value: `MOBILE_DENSITY`.
 
 ## Motion model
 
@@ -77,7 +85,8 @@ antialiasing on pill edges).
 - Peach pills keep their `id`. Each keyframe a peach advances 1–2 units with probability `PEACH_DRIFT`.
 - It lands in the nearest gap at or past its target, shrinking to fit a tight gap (down to `PEACH_MIN_W`) and regrowing by up to a unit per keyframe.
 - When the pill in front blocks it, the two **swap places** over one keyframe (`[peach][gap][pill]` becomes `[pill][gap][peach]`). The lavender pill passes under the peach. This is the one deliberate exception to "segments never cross": without it a peach would plough every pill ahead of it into the clear-zone edge. Ink and spacing are unchanged by a swap.
-- At a clear zone the peach waits at the edge until the far side's entry has room, nudging the far lane's first pill to make space. It then slides under the edge and emerges on the far side the next keyframe.
+- At a clear zone the peach waits at the edge until the far side's entry has room. Meanwhile the run of pills at the far lane's entry shifts up to one unit right per keyframe, each pushing the next only as far as the min gap requires, with ink unchanged. The peach then slides under the edge and emerges on the far side the next keyframe.
+- Safety valve: a peach that hasn't moved for `PEACH_PATIENCE` keyframes fades out in place and a replacement fades in at the left. On desktop this fires 0–1 times per ~2,000 keyframes (the test fails above 1% of exits). It exists for lanes too packed to ever admit a peach, such as mobile at `MOBILE_DENSITY: 1`.
 - At the far right edge it fades out over one keyframe. A replacement fades in at the left edge of a random row in the same keyframe, so the count stays at the Figma count (8 at desktop). Narrow layouts that crop peaches away keep the Figma peach:lavender ratio, with at least one.
 
 ## Tuning the feel
@@ -90,16 +99,18 @@ QurePillBand.createPillBand({ canvas, logo, tagline, config: { KEYFRAME_MS: 900,
 
 | Key | Default | Effect |
 |---|---|---|
-| `KEYFRAME_MS` | 600 | Tween length. Higher = calmer. 800–900 reads noticeably more ambient. |
+| `KEYFRAME_MS` | 850 | Tween length. Higher = calmer. |
 | `OP_RATIO` | 0.25 | Share of lavender pills that move per keyframe. Lower = stiller texture. |
-| `PEACH_DRIFT` | 0.85 | Chance a peach advances on a keyframe. At 600 ms a peach crosses 1440 px in roughly 50–60 s. |
+| `PEACH_DRIFT` | 0.85 | Chance a peach advances on a keyframe. At 850 ms a peach crosses 1440 px in roughly 70–80 s. |
 | `INK_TOLERANCE` | 0.10 | Allowed density drift per row. |
 | `MERGE_GAP` | 2 × min gap | How close two pills must be to merge. |
 | `MAX_W` | 2.5 units | Longest pill a stretch/merge may make. |
 | `PEACH_MIN_W` | 0.4 units | How far a peach squeezes to fit a gap. |
 | `HOME_PULL` | 4 units | Strength of the pull back to Figma positions (smaller = stronger). |
+| `PEACH_PATIENCE` | 40 (≈34 s at 850 ms) | Keyframes a blocked peach waits before fading out in place. |
 | `TAGLINE_CLEAR_ZONE` | false | Carve a clear zone around the tagline. |
 | `MOBILE_MAX` | 799 | Fallback-layout breakpoint. |
+| `MOBILE_DENSITY` | 0.5 | Mobile fallback density, 0–1: the evenly spread share of rows, and of lavender pills within each kept row, that survive at ≤ `MOBILE_MAX`. 0.5 = every other row, every other pill (identical to the earlier fallback). 1 = all rows and pills. |
 | `SEED` | random | Fix it for reproducible motion (tests, screenshots). |
 
 ## Runtime behaviour
@@ -116,9 +127,8 @@ QurePillBand.createPillBand({ canvas, logo, tagline, config: { KEYFRAME_MS: 900,
 
 - **Lanes** are `[0, logo.left − 22]` and `[logo.right + 22, width − 8]`. Each side's Figma pattern is anchored to the logo-side edge.
 - Widths below 1440 crop the pattern. The left side has 822 px of real Figma pills beyond the page edge to draw on, and the right side tiles with the 822 px frame period.
-- **≤799 px:** every other row, every other lavender segment. The logo is centred, and the tagline drops below the band. This is the literal fallback, and with the logo centred on a phone it leaves about two pills per lane per row. A real mobile frame in Figma would do better.
+- **≤799 px:** `MOBILE_DENSITY` (default 0.5 = every other row, every other lavender segment). The logo is centred, and the tagline drops below the band. At 0.5 a phone gets about two pills per lane per row. A real mobile frame in Figma would do better; tune `MOBILE_DENSITY` against it until then.
 
 ## Known gaps
 
-- **Aether Neue** (headings, tagline) is not in the repo. It falls back to DM Sans until the font files are added via `@font-face`. The band is unaffected, but static text won't match Figma metrics until then.
 - The lavender **count** isn't constrained by the brief, only ink. It drifts up to about +13% because splits outnumber merges once pills stretch. Ink stays within ±10%.

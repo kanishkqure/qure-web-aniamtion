@@ -105,10 +105,13 @@ function run(name: string, layout: BandLayoutInput, keyframes: number, cfg = {})
     maxLav = Math.max(maxLav, lav);
   }
   if (maxDev > m.cfg.INK_TOLERANCE + 1e-9) fail(`${name}: ink drifted ${(maxDev * 100).toFixed(1)}%`);
-  if (peach0 && !exits) fail(`${name}: no peach ever reached the right edge`);
+  if (peach0 && exits <= m.stallFades) fail(`${name}: no peach ever reached the right edge`);
+  // PEACH_PATIENCE is a safety valve, not the normal way out: outside the packed mobile lanes
+  // almost every peach must leave by the right edge.
+  if (!m.mobile && m.stallFades > Math.max(2, exits * 0.01)) fail(`${name}: ${m.stallFades} peaches stalled out of ${exits}`);
   console.log(
     `${name}: ${keyframes} keyframes, peach ${peach0}, exits ${exits}, zone crossings ${crossings}, ` +
-      `max ink drift ${(maxDev * 100).toFixed(1)}%, lavender count ${lav0} -> [${minLav}, ${maxLav}]`,
+      `max ink drift ${(maxDev * 100).toFixed(1)}%, lavender count ${lav0} -> [${minLav}, ${maxLav}], stall fades ${m.stallFades}`,
   );
 }
 
@@ -127,6 +130,7 @@ run('1280', scaled(1280, 1280 * 0.28819, 1280 * 0.120139), 1500);
 run('1920', scaled(1920, 415, 1920 * 0.120139), 1500);
 run('375 mobile', scaled(375, 210, (375 - 210) / 2), 1500);
 run('1440 tagline zone', desktop, 1500, { TAGLINE_CLEAR_ZONE: true });
+for (const d of [0.25, 0.75, 1]) run(`375 mobile density ${d}`, scaled(375, 210, (375 - 210) / 2), 800, { MOBILE_DENSITY: d });
 for (const seed of [1, 2, 3, 4, 5, 6]) run(`1440 seed ${seed}`, desktop, 2000, { SEED: seed });
 
 if (failures) {

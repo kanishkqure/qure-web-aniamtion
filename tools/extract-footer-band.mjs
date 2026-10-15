@@ -128,6 +128,10 @@ for (const l of lanes) for (const r of rowCenters.keys()) {
 const peach = visiblePills.filter((p) => !p.color.startsWith('#A') && !p.color.startsWith('#B') && !p.color.startsWith('#C') && !p.color.startsWith('#D'));
 const peachColors = [...new Set(peach.map((p) => p.color))];
 if (peachColors.length !== 1) throw new Error('expected one peach fill, got ' + peachColors);
+// INTENTIONAL DEVIATION from Figma: the band's peach pills use the brand peach #FF7869
+// instead of the file's "Peach" style (#FF6D61). The Figma value is kept as figmaPeachColor.
+const PEACH_OVERRIDE = '#FF7869';
+for (const r of rows) for (const lane of [r.left, r.right]) for (const s of lane.segs) if (s[3] === peachColors[0]) s[3] = PEACH_OVERRIDE;
 const pitch = (rowCenters.at(-1) - rowCenters[0]) / (rowCenters.length - 1);
 const logoBox = bounds(logo.transform, logo.size);
 const tagBox = bounds(tagline.transform, tagline.size);
@@ -145,7 +149,8 @@ const data = {
   minGap: r3(minGap),
   rowPitch: r3(pitch),
   layerOpacity: r3(layerOpacity),
-  peachColor: peachColors[0],
+  peachColor: PEACH_OVERRIDE,
+  figmaPeachColor: peachColors[0],
   peachCount: peach.length,
   visiblePillCount: visiblePills.length,
   lavenderTintCount: new Set(visiblePills.map((p) => p.color)).size - 1,
@@ -173,7 +178,10 @@ export interface FigmaBand {
   logo: Box;
   tagline: Box & { text: string };
   pillHeight: number; pillRadius: number; unit: number; minGap: number; rowPitch: number;
-  layerOpacity: number; peachColor: string; peachCount: number;
+  layerOpacity: number; peachCount: number;
+  /** Brand peach #FF7869: an intentional deviation from the Figma fill (figmaPeachColor). */
+  peachColor: string;
+  figmaPeachColor: string;
   visiblePillCount: number; lavenderTintCount: number;
   rows: FigmaRow[];
   logoZonePadX: number; logoZonePadXRight: number; rightInset: number;

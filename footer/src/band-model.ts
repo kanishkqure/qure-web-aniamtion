@@ -27,6 +27,11 @@ export interface BandConfig {
   PEACH_MIN_W: number;
   /** Lavender slides lean back toward their Figma position over roughly this distance (px). */
   HOME_PULL: number;
+  /**
+   * Keyframes a peach may stay blocked (e.g. a lane too packed to enter) before it fades out
+   * in place and a replacement fades in at the left edge. Keeps the thread moving in any layout.
+   */
+  PEACH_PATIENCE: number;
   /** Clear-zone padding left/right of the logo (px). */
   ZONE_PAD: number;
   /** Inset of the band from the right edge (px). */
@@ -35,6 +40,12 @@ export interface BandConfig {
   TAGLINE_CLEAR_ZONE: boolean;
   /** Width at or below which the mobile fallback layout is used. */
   MOBILE_MAX: number;
+  /**
+   * Mobile fallback density, 0..1: the share of rows, and of lavender pills within each
+   * kept row, that survive at or below MOBILE_MAX. 0.5 = every other row, every other pill.
+   * Placeholder until a mobile frame exists in Figma.
+   */
+  MOBILE_DENSITY: number;
   /** Background the pills sit on; fills are pre-composited over it. */
   BG: string;
   /** Optional RNG seed for reproducible motion. */
@@ -42,7 +53,7 @@ export interface BandConfig {
 }
 
 export const DEFAULT_CONFIG: BandConfig = {
-  KEYFRAME_MS: 600,
+  KEYFRAME_MS: 850,
   OP_RATIO: 0.25,
   PEACH_DRIFT: 0.85,
   INK_TOLERANCE: 0.1,
@@ -52,10 +63,12 @@ export const DEFAULT_CONFIG: BandConfig = {
   MAX_W: F.unit * 2.5,
   PEACH_MIN_W: F.unit * 0.4,
   HOME_PULL: F.unit * 4,
+  PEACH_PATIENCE: 40,
   ZONE_PAD: F.logoZonePadX,
   RIGHT_INSET: F.rightInset,
   TAGLINE_CLEAR_ZONE: false,
   MOBILE_MAX: 799,
+  MOBILE_DENSITY: 0.5,
   BG: '#ffffff',
 };
 
@@ -86,6 +99,8 @@ export interface Seg {
   busy: boolean;
   dying: boolean;
   crossing: boolean;
+  /** consecutive keyframes a peach has not moved */
+  stall: number;
 }
 
 export interface Lane {
@@ -125,6 +140,12 @@ function composite(fill: RGB, alpha: number, bg: RGB): RGB {
   return [0, 1, 2].map((i) => bg[i] + (fill[i] - bg[i]) * alpha) as RGB;
 }
 
+/** Keep an evenly spread `density` share of indices 0, 1, 2, ...; index 0 is always kept. */
+function keepNth(i: number, density: number): boolean {
+  const d = clamp(density, 0, 1);
+  return Math.floor(i * d + 1e-9) > Math.floor((i - 1) * d + 1e-9);
+}
+
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const right = (s: Seg) => s.xb + s.wb;
 const EPS = 1e-6;
@@ -140,6 +161,8 @@ export class BandModel {
   private peachWidths: number[] = [];
   peachTarget = 0;
   private pendingSpawns = 0;
+  /** peaches retired by PEACH_PATIENCE rather than by reaching the right edge (for tests) */
+  stallFades = 0;
   /** lavender pills asked to make way for a peach stuck behind them */
   private yielders = new Set<Seg>();
   mobile = false;
@@ -185,7 +208,7 @@ export class BandModel {
     }
 
     F.rows.forEach((figRow, ri) => {
-      if (this.mobile && ri % 2) return; // fallback: every other row
+      if (this.mobile && !keepNth(ri, c.MOBILE_DENSITY)) return; // fallback: thin the rows
       const cy = logoCy + (figRow.right.cy - figLogoCy);
       const half = F.pillHeight / 2;
 
@@ -224,7 +247,7 @@ export class BandModel {
           // A strict zone (tagline) drops anything touching it.
           if (rowZones.some((z) => z.strict && x < z.x1 && x + w > z.x0)) continue;
           const peach = fill.toUpperCase() === F.peachColor.toUpperCase();
-          if (this.mobile && !peach && lavIndex++ % 2) continue; // fallback: halve segments
+          if (this.mobile && !peach && !keepNth(lavIndex++, c.MOBILE_DENSITY)) continue; // and the pills
           const prev = segs[segs.length - 1];
           if (prev && x < right(prev) + c.GAP - 0.01) continue; // tiling seam
           const col = composite(parseHex(fill), alpha * F.layerOpacity, this.bg);
@@ -263,7 +286,7 @@ export class BandModel {
       xb: x, wb: w, cb: col, ob: 1,
       minW: peach ? this.cfg.PEACH_MIN_W : Math.min(this.cfg.UNIT, w),
       home: x, baseW: w,
-      link: null, busy: false, dying: false, crossing: false,
+      link: null, busy: false, dying: false, crossing: false, stall: 0,
     };
   }
 
@@ -373,6 +396,25 @@ export class BandModel {
         }
       }
     }
+    this.retireStalledPeaches();
+  }
+
+  /** A peach blocked for PEACH_PATIENCE keyframes fades out where it is; a new one spawns. */
+  private retireStalledPeaches(): void {
+    for (const row of this.rows) {
+      for (const lane of row.lanes) {
+        for (const p of lane.segs) {
+          if (!p.peach || p.dying || p.crossing || p.oa < 1) continue;
+          p.stall = Math.abs(p.xb - p.xa) < 0.5 ? p.stall + 1 : 0;
+          if (p.stall < this.cfg.PEACH_PATIENCE) continue;
+          p.dying = true;
+          p.busy = true;
+          p.ob = 0;
+          this.pendingSpawns++;
+          this.stallFades++;
+        }
+      }
+    }
   }
 
   /** Free width at a lane's left entry, against both ends of every neighbour's tween. */
@@ -437,7 +479,7 @@ export class BandModel {
     if (p.xb < Math.max(lane.L, lane.lb)) return null; // still emerging from a clear zone
     const i = lane.segs.indexOf(p);
     const s = lane.segs.slice(i + 1).find((o) => o.xb > p.xb);
-    if (!s || s.peach || s.busy || s.link || this.yielders.has(s)) return null;
+    if (!s || s.peach || s.busy || s.link) return null;
     if (lane.segs.some((o) => o.link?.to === s)) return null;
     return { seg: s, x1: right(s) };
   }
@@ -516,7 +558,7 @@ export class BandModel {
 
     for (const lane of row.lanes) {
       lane.segs.sort((a, b) => a.xb - b.xb);
-      if (lane.yieldEntry) {
+      if (lane.yieldEntry && !this.openEntry(lane)) {
         const first = lane.segs.find((s) => right(s) > lane.L);
         if (first) this.yielders.add(first);
       }
@@ -527,12 +569,11 @@ export class BandModel {
         if (s.peach || s.busy || this.rng() >= c.OP_RATIO) continue;
         const segs = lane.segs;
         const i = segs.indexOf(s);
-        const prev = segs[i - 1];
-        const next = segs[i + 1];
-        const hidden = (n: Seg | undefined) => n && n.peach && (right(n) <= lane.L || n.xb >= lane.R);
-        let leftLim = prev && !hidden(prev) ? Math.max(right(prev), prev.xa + prev.wa) + c.GAP : lane.lb;
+        const prev = this.neighbour(lane, i, -1);
+        const next = this.neighbour(lane, i, 1);
+        let leftLim = prev ? Math.max(right(prev), prev.xa + prev.wa) + c.GAP : lane.lb;
         if (!prev && s.xb >= lane.reserve) leftLim = Math.max(leftLim, lane.reserve);
-        const rightLim = next && !hidden(next) ? Math.min(next.xb, next.xa) - c.GAP : lane.rb;
+        const rightLim = next ? Math.min(next.xb, next.xa) - c.GAP : lane.rb;
         if (leftLim > s.xb + EPS || rightLim < right(s) - EPS) continue; // already squeezed
 
         const dev = (ink - row.inkTarget) / row.inkTarget / c.INK_TOLERANCE; // -1..1 at the limits
@@ -604,8 +645,7 @@ export class BandModel {
   private makeWay(lane: Lane, s: Seg, inkBudget: number): number {
     const c = this.cfg;
     if (s.peach || s.busy) return 0;
-    const i = lane.segs.indexOf(s);
-    const next = lane.segs[i + 1];
+    const next = this.neighbour(lane, lane.segs.indexOf(s), 1);
     const rightLim = next ? Math.min(next.xb, next.xa) - c.GAP : lane.rb;
     const dx = Math.min(c.UNIT, rightLim - right(s));
     if (dx >= 1) {
@@ -619,6 +659,51 @@ export class BandModel {
     s.wb -= d;
     s.busy = true;
     return d;
+  }
+
+  /**
+   * A peach is waiting on the other side of a clear zone: shift the run of pills at this lane's
+   * entry up to one unit right, pushing neighbours along only as far as the min gap requires.
+   * Ink is unchanged. Returns false if the run cannot move (then the single-pill nudge runs).
+   */
+  private openEntry(lane: Lane): boolean {
+    const c = this.cfg;
+    const segs = lane.segs;
+    const i0 = segs.findIndex((s) => Math.max(right(s), s.xa + s.wa) > lane.L);
+    if (i0 < 0) return true;
+    const room = Math.min(segs[i0].xa, segs[i0].xb) - c.GAP - lane.L;
+    const shift = Math.min(c.UNIT, c.UNIT + c.PEACH_MIN_W - room);
+    if (shift <= 0) return true;
+    const moves: [Seg, number][] = [];
+    let edge = -Infinity; // new right end of the previous pushed pill
+    for (let j = i0; j < segs.length; j++) {
+      const s = segs[j];
+      const d = j === i0 ? shift : edge + c.GAP - Math.min(s.xa, s.xb);
+      if (d <= 0) break;
+      if (s.peach || s.busy || s.link) return false;
+      if (right(s) + d > lane.rb) return false;
+      moves.push([s, d]);
+      edge = Math.max(right(s), s.xa + s.wa) + d;
+    }
+    for (const [s, d] of moves) {
+      s.xb += d;
+      s.busy = true;
+    }
+    return true;
+  }
+
+  /**
+   * Nearest segment on one side of lane.segs[i] that constrains a lavender pill. A peach that
+   * is fading out, sliding under a zone edge or still hidden can sit over a lavender pill, so it
+   * must never stand in for the real neighbour behind it.
+   */
+  private neighbour(lane: Lane, i: number, dir: 1 | -1): Seg | undefined {
+    for (let j = i + dir; j >= 0 && j < lane.segs.length; j += dir) {
+      const n = lane.segs[j];
+      if (!n.peach) return n;
+      if (!n.dying && !n.crossing && right(n) > lane.L && n.xb < lane.R) return n;
+    }
+    return undefined;
   }
 
   private pick<K extends string>(w: Record<K, number>): K {
