@@ -1,0 +1,2238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Hospital, One Year with QCT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<!--
+  Your Hospital, One Year with QCT — RSNA booth prototype (qure.ai)
+
+  One file, two views, kept in sync with BroadcastChannel (+ localStorage fallback):
+    qct-one-year.html#tablet   visitor input screen, designed at 1180×820
+    qct-one-year.html#wall     LED wall, designed at 1920×1080
+    qct-one-year.html#preview  both views side by side (desk testing)
+    qct-one-year.html          launcher
+  Press D in either view for the dev panel.
+
+  Sections (search for "=== "):
+    STYLE    every colour, font, size and timing as CSS custom properties
+    MARKUP   structure only; copy is injected from CONFIG.copy
+    CONFIG   every assumption (PLACEHOLDER), copy text, intro flag
+    ENGINE   pure deterministic model; never touches the DOM
+    TIMELINE pure phase clock
+    SYNC     cross-window state
+    RENDER   reads engine output only (shared helpers, wall, tablet)
+    DEV      dev panel
+    BOOT     router + frame loop
+-->
+<style>
+/* =====================================================================
+   === STYLE: designer may restyle everything in this block ===
+   All colours, fonts, sizes and timings live in :root below. RENDER
+   reads the numeric ones (iso unit, particle sizes, phase timings) at
+   runtime, so changing them here changes the show.
+   ===================================================================== */
+:root{
+  /* --- Brand colours --- */
+  --c-dark-ai:#303030;
+  --c-bold-indigo:#2A288C;
+  --c-qure-peach:#FF7869;
+  --c-ambitious-lavender:#D9D9FF;
+  --c-optimistic-yellow:#FFE9AE;
+
+  /* --- Supporting tints --- */
+  --c-white:#FFFFFF;
+  --c-paper:#FCFCFF;
+  --c-lavender-050:#F5F5FF;
+  --c-lavender-300:#A9A8E8;
+  --c-grey-500:#8A8A99;
+  --c-grey-300:#C9C9D4;
+  --c-grey-200:#E6E6F0;
+  --c-peach-100:#FFE1DD;
+  --c-peach-150:#FFD0C9;
+  --c-peach-200:#FFBCB4;
+  --c-peach-edge:#E0574A;
+
+  /* --- Semantic roles (restyle these first) --- */
+  --c-letterbox:#E9E9F1;
+  --c-bg:var(--c-paper);
+  --c-text:var(--c-dark-ai);
+  --c-text-muted:var(--c-grey-500);
+  --c-heading:var(--c-bold-indigo);
+  --c-accent:var(--c-qure-peach);
+  --c-line:var(--c-grey-200);
+  --c-veil:rgba(252,252,255,.86);
+  --c-floor:var(--c-lavender-050);
+  --c-floor-grid:var(--c-ambitious-lavender);
+  --c-box-top:var(--c-white);
+  --c-box-left:#F4F4FA;
+  --c-box-right:#E9E9F3;
+  --c-box-edge:var(--c-dark-ai);
+  --c-ward-left:#F0F0FA;
+  --c-ward-right:#E3E3F1;
+  --c-hero-top:var(--c-peach-100);
+  --c-hero-left:var(--c-peach-150);
+  --c-hero-right:var(--c-peach-200);
+  --c-hero-edge:var(--c-peach-edge);
+  --c-blueprint-line:var(--c-lavender-300);
+  --c-blueprint-fill:rgba(217,217,255,.18);
+  --c-connector:var(--c-dark-ai);
+  --c-lane-qct:var(--c-qure-peach);
+  --c-particle:var(--c-lavender-300);
+  --c-particle-finding:var(--c-bold-indigo);
+  --c-particle-ring:var(--c-dark-ai);
+  --c-particle-qct:var(--c-qure-peach);
+  --c-particle-lost:var(--c-dark-ai);
+  --c-particle-closed:var(--c-bold-indigo);
+  --c-sample-bg:var(--c-optimistic-yellow);
+  --c-bar-without:var(--c-grey-300);
+  --c-bar-with:var(--c-qure-peach);
+  --c-intro-panel:var(--c-dark-ai);
+  --c-intro-slice:var(--c-ambitious-lavender);
+  --c-intro-slice-edge:var(--c-lavender-300);
+  --c-intro-active:var(--c-bold-indigo);
+  --c-intro-scan:var(--c-ambitious-lavender);
+  --c-intro-finding:var(--c-qure-peach);
+  --c-dev-bg:rgba(30,30,36,.94);
+  --c-dev-text:#F2F2F8;
+
+  /* --- Fonts --- */
+  --f-heading:"Aether Neue","DM Sans",sans-serif;
+  --f-number:"Aether Neue","DM Sans",sans-serif;
+  --f-body:"DM Sans",sans-serif;
+  --f-label:"DM Mono",ui-monospace,monospace;
+  --fw-heading:400;
+  --fw-number:400;
+  --ls-heading:-.02em;
+  --ls-overline:.08em;
+
+  /* --- Canvas sizes --- */
+  --wall-w:1920px;
+  --wall-h:1080px;
+  --tablet-w:1180px;
+  --tablet-h:820px;
+
+  /* --- Isometric geometry (unitless numbers are read by RENDER) --- */
+  --iso-unit:50;              /* px per grid unit on the wall */
+  --iso-unit-preview:24;      /* px per grid unit on tablet previews */
+  --wall-scene-area:110 250 1700 760;   /* x y w h the hospital is centred in */
+  --edge-w:1.5px;
+  --connector-w:1.2px;
+  --build-drop:44;            /* px a block falls while assembling */
+  --particle-r:3.4;
+  --particle-finding-r:5.6;
+  --particle-ring-gap:3.2;
+  --pulse-r:30;
+  --particle-speed:4.6;       /* grid units per second */
+
+  /* --- Wall layout & type --- */
+  --wall-pad:72px;
+  --wall-pad-top:56px;
+  --fs-wall-hero:116px;
+  --fs-wall-title:52px;
+  --fs-wall-lead:28px;
+  --fs-wall-spec:120px;
+  --fs-wall-number:112px;
+  --fs-wall-counter:60px;
+  --fs-wall-label:17px;
+  --fs-wall-small:16px;
+  --fs-wall-assump:16px;
+  --fs-node-over:12px;
+  --fs-node-name:17px;
+  --fs-particle-label:12px;
+  --fs-intro-label:15px;
+  --w-counter:250px;
+  --scene-attract:translate(330px,40px) scale(.86);
+  --scene-attract-opacity:.5;
+  --scene-inputs:translate(340px,30px) scale(.9);
+
+  /* --- Tablet layout & type --- */
+  --tab-pad:56px;
+  --tab-header-h:72px;
+  --fs-tab-hero:68px;
+  --fs-tab-title:44px;
+  --fs-tab-lead:20px;
+  --fs-tab-number:46px;
+  --fs-tab-body:17px;
+  --fs-tab-label:13px;
+  --fs-tab-button:19px;
+  --fs-overline:13px;
+  --fs-sample:11px;
+  --fs-pill:13px;
+  --btn-h:60px;
+  --btn-pad:34px;
+  --radius-s:8px;
+  --radius-m:14px;
+  --radius-l:22px;
+
+  /* --- Timing: phase lengths (RENDER reads these; total ≈ 90s) --- */
+  --t-build:10s;
+  --t-year-title:2.2s;
+  --t-month:2.5s;             /* ×12 per year */
+  --t-outcome:15.6s;
+  /* build choreography, as fractions of --t-build */
+  --build-floor-end:.12;
+  --build-boxes-start:.1;
+  --build-boxes-end:.6;
+  --build-box-dur:.07;
+  --build-connectors-start:.6;
+  --build-labels-start:.74;
+  --build-facts-start:.3;
+  /* particles */
+  --t-lead:1.6s;
+  --t-dwell-scan:.45s;
+  --t-dwell-read:.6s;
+  --t-dwell-desk:1s;
+  --t-dwell-clinic:.7s;
+  --t-drift:1.7s;
+  --t-pulse:1.2s;
+  /* outcome */
+  --t-countup:2.4s;
+  --t-countup-stagger:.35s;
+  /* intro */
+  --t-scan-sweep:1.8s;
+  /* UI */
+  --t-ui:.35s;
+  --t-screen:.6s;
+  --t-scene:1.2s;
+  --t-qct-switch:1.2s;
+  --ease-io:cubic-bezier(.65,0,.35,1);
+  --ease-out:cubic-bezier(.33,1,.68,1);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--c-letterbox);color:var(--c-text);font-family:var(--f-body);-webkit-font-smoothing:antialiased;overflow:hidden}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input{font:inherit}
+em{font-style:normal;color:var(--c-accent)}
+.overline{font-family:var(--f-label);font-size:var(--fs-overline);letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--c-text-muted)}
+.mono{font-family:var(--f-label)}
+.num{font-family:var(--f-number);font-weight:var(--fw-number);font-variant-numeric:tabular-nums}
+.sample{display:inline-block;font-family:var(--f-label);font-size:var(--fs-sample);letter-spacing:.1em;line-height:1;padding:.45em .7em;border-radius:999px;background:var(--c-sample-bg);color:var(--c-text)}
+.pill{display:inline-flex;align-items:center;gap:.6em;padding:.5em 1em;border:1px solid var(--c-line);border-radius:999px;background:var(--c-white);font-family:var(--f-label);font-size:var(--fs-pill);letter-spacing:.06em;text-transform:uppercase;color:var(--c-text)}
+.pill .dot{width:.6em;height:.6em;border-radius:50%;background:var(--c-heading);transition:background var(--t-ui)}
+.pill.is-found .dot{background:var(--c-accent)}
+
+/* --- Buttons --- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;height:var(--btn-h);padding:0 var(--btn-pad);border-radius:999px;font-family:var(--f-body);font-weight:500;font-size:var(--fs-tab-button);text-decoration:none;transition:background var(--t-ui) var(--ease-io),color var(--t-ui),opacity var(--t-ui),transform var(--t-ui)}
+.btn-primary{background:var(--c-heading);color:var(--c-white)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary[disabled]{opacity:.3;cursor:default}
+.btn-secondary{background:var(--c-white);color:var(--c-heading);border:1.5px solid var(--c-heading)}
+.btn-ghost{color:var(--c-heading);height:auto;padding:0;text-decoration:underline;text-underline-offset:4px}
+
+/* --- Viewport + scaled stage --- */
+.viewport{position:fixed;inset:0;overflow:hidden;background:var(--c-letterbox)}
+.stage{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;background:var(--c-bg)}
+.wall{width:var(--wall-w);height:var(--wall-h)}
+.tablet{width:var(--tablet-w);height:var(--tablet-h)}
+
+/* --- Isometric hospital (shared by wall + tablet previews) --- */
+.hospital .floor-plate{fill:var(--c-floor)}
+.hospital .floor-grid{fill:none;stroke:var(--c-floor-grid);stroke-width:1px}
+.hospital .connector{fill:none;stroke:var(--c-connector);stroke-width:var(--connector-w);stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.hospital .lane-qct{fill:none;stroke:var(--c-lane-qct);stroke-width:2px;stroke-linecap:round;stroke-dasharray:1 7;opacity:0;transition:opacity var(--t-qct-switch) var(--ease-io)}
+.hospital .face{stroke:var(--c-box-edge);stroke-width:var(--edge-w);stroke-linejoin:round;transition:fill var(--t-qct-switch) var(--ease-io),stroke var(--t-qct-switch) var(--ease-io)}
+.hospital .face-top{fill:var(--c-box-top)}
+.hospital .face-left{fill:var(--c-box-left)}
+.hospital .face-right{fill:var(--c-box-right)}
+.hospital .ward .face-left{fill:var(--c-ward-left)}
+.hospital .ward .face-right{fill:var(--c-ward-right)}
+.hospital .face-inner{fill:none;stroke:var(--c-box-edge);stroke-width:1px;opacity:.12}
+.hospital .glyph{fill:none;stroke:var(--c-box-edge);stroke-width:1.3px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;transition:stroke var(--t-qct-switch)}
+.hospital.qct-on .is-qct .face-top{fill:var(--c-hero-top);stroke:var(--c-hero-edge)}
+.hospital.qct-on .is-qct .face-left{fill:var(--c-hero-left);stroke:var(--c-hero-edge)}
+.hospital.qct-on .is-qct .face-right{fill:var(--c-hero-right);stroke:var(--c-hero-edge)}
+.hospital.qct-on .is-qct .face-inner{stroke:var(--c-hero-edge);opacity:.35}
+.hospital.qct-on .is-qct .glyph{stroke:var(--c-hero-edge)}
+.hospital.qct-on .lane-qct{opacity:.9}
+.hospital.blueprint .face{fill:var(--c-blueprint-fill);stroke:var(--c-blueprint-line);stroke-dasharray:4 4}
+.hospital.blueprint .glyph,.hospital.blueprint .face-inner{stroke:var(--c-blueprint-line)}
+.hospital.blueprint .connector{stroke:var(--c-blueprint-line);stroke-dasharray:3 5;opacity:1}
+
+/* --- Node labels (HTML, positioned by RENDER) --- */
+.node-labels{position:absolute;inset:0;pointer-events:none;transition:opacity var(--t-screen) var(--ease-io)}
+.node-label{position:absolute;width:0;height:0}
+.nl-text{position:absolute;left:0;bottom:calc(var(--lift) + 8px);transform:translateX(-50%);text-align:center;white-space:nowrap}
+.nl-over{font-family:var(--f-label);font-size:var(--fs-node-over);letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--c-text-muted)}
+.nl-name{font-family:var(--f-body);font-size:var(--fs-node-name);color:var(--c-text);margin-top:2px}
+.nl-qct{display:inline-block;margin-top:5px;font-family:var(--f-label);font-size:11px;letter-spacing:.08em;color:var(--c-white);background:var(--c-accent);border-radius:999px;padding:3px 8px;opacity:0;transform:translateY(4px);transition:opacity var(--t-qct-switch),transform var(--t-qct-switch) var(--ease-out)}
+.node-labels.qct-on .nl-qct{opacity:1;transform:none}
+.nl-leader{position:absolute;left:-.5px;bottom:0;width:1px;height:var(--lift);background:var(--c-grey-300)}
+.nl-dot{position:absolute;left:-3px;top:-3px;width:6px;height:6px;border-radius:50%;background:var(--c-dark-ai)}
+
+/* --- Wall layers: visible per data-phase --- */
+.wall .layer{position:absolute;opacity:0;visibility:hidden;transition:opacity var(--t-screen) var(--ease-io),visibility 0s linear var(--t-screen)}
+.wall[data-phase="attract"] .on-attract,
+.wall[data-phase="intro"] .on-intro,
+.wall[data-phase="inputs"] .on-inputs,
+.wall[data-phase="build"] .on-build,
+.wall[data-phase="without"] .on-without,
+.wall[data-phase="with"] .on-with,
+.wall[data-phase="outcome"] .on-outcome,
+.wall .layer.show{opacity:1;visibility:visible;transition-delay:0s}
+
+.scene{position:absolute;inset:0;transform-origin:50% 50%;transition:transform var(--t-scene) var(--ease-io),opacity var(--t-screen) var(--ease-io)}
+.scene>svg,.scene>canvas{position:absolute;left:0;top:0;width:var(--wall-w);height:var(--wall-h)}
+.wall[data-phase="attract"] .scene{transform:var(--scene-attract);opacity:var(--scene-attract-opacity)}
+.wall[data-phase="inputs"] .scene{transform:var(--scene-inputs)}
+.wall[data-phase="intro"] .scene,.wall[data-phase="outcome"] .scene{opacity:0}
+.wall[data-phase="attract"] .node-labels,.wall[data-phase="inputs"] .node-labels{opacity:0}
+
+.w-title{font-family:var(--f-heading);font-weight:var(--fw-heading);letter-spacing:var(--ls-heading);font-size:var(--fs-wall-title);line-height:1.04;color:var(--c-heading)}
+.w-lead{font-size:var(--fs-wall-lead);line-height:1.35;color:var(--c-text)}
+.wall .overline{font-size:var(--fs-wall-label)}
+
+/* attract */
+.w-attract{left:var(--wall-pad);top:200px;width:820px}
+.w-hero{font-family:var(--f-heading);font-weight:var(--fw-heading);letter-spacing:var(--ls-heading);font-size:var(--fs-wall-hero);line-height:.98;color:var(--c-heading);margin:24px 0 36px}
+.w-attract .w-lead{max-width:640px}
+.w-attract .pill{margin-top:44px}
+
+/* inputs */
+.w-inputs{left:var(--wall-pad);top:170px;width:760px}
+.w-specs{margin-top:36px;display:grid;gap:30px}
+.w-specs dt{font-family:var(--f-label);font-size:var(--fs-wall-label);letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--c-text-muted)}
+.w-specs dd{font-family:var(--f-number);font-weight:var(--fw-number);font-size:var(--fs-wall-spec);line-height:1;color:var(--c-heading);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.w-specs dd small{font-family:var(--f-label);font-size:var(--fs-wall-label);letter-spacing:.06em;color:var(--c-text-muted);margin-left:14px;text-transform:uppercase}
+.w-specs .is-region{font-size:calc(var(--fs-wall-spec) * .55)}
+
+/* intro */
+.w-intro{inset:0}
+.w-intro canvas{position:absolute;left:0;top:0;width:var(--wall-w);height:var(--wall-h)}
+.w-intro-copy{position:absolute;left:var(--wall-pad);top:var(--wall-pad-top);width:900px}
+.w-intro-copy .w-title{margin:14px 0 14px}
+.w-intro-status{position:absolute;left:1100px;top:196px}
+.w-intro-note{position:absolute;left:var(--wall-pad);bottom:44px;font-size:var(--fs-wall-small);color:var(--c-text-muted);letter-spacing:.04em}
+
+/* build headline */
+.w-buildhead{left:var(--wall-pad);top:var(--wall-pad-top);width:1200px}
+.w-buildhead .w-title{margin-top:12px}
+.w-build-facts{list-style:none;display:flex;gap:36px;margin-top:20px;font-family:var(--f-label);font-size:var(--fs-wall-label);letter-spacing:.04em;text-transform:uppercase}
+.w-build-facts li{opacity:0;transform:translateY(8px);transition:opacity var(--t-screen) var(--ease-out),transform var(--t-screen) var(--ease-out)}
+.w-build-facts li.show{opacity:1;transform:none}
+.w-build-facts li::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c-heading);margin-right:10px;vertical-align:middle}
+
+/* year top bar */
+.w-topbar{left:var(--wall-pad);right:var(--wall-pad);top:var(--wall-pad-top);display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:72px;align-items:start}
+.w-topbar>div:first-child{grid-column:1;grid-row:1}
+.w-counters{grid-column:2;grid-row:1 / span 2}
+.w-topbar .w-title{font-size:calc(var(--fs-wall-title) * .84);margin-top:10px}
+.w-ticker{grid-column:1;grid-row:2;padding-top:30px}
+.w-ticker-track{position:relative;height:2px;background:var(--c-grey-200)}
+.w-ticker-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-heading)}
+.w-ticker-head{position:absolute;top:50%;left:0;width:16px;height:16px;border-radius:50%;background:var(--c-white);border:2px solid var(--c-heading);transform:translate(-50%,-50%)}
+.w-ticker-months{list-style:none;display:grid;grid-template-columns:repeat(12,1fr);margin-top:16px;font-family:var(--f-label);font-size:var(--fs-wall-small);letter-spacing:.06em;text-transform:uppercase;color:var(--c-grey-300);text-align:center}
+.w-ticker-months li{transition:color var(--t-ui)}
+.w-ticker-months li.is-past{color:var(--c-text-muted)}
+.w-ticker-months li.is-current{color:var(--c-heading)}
+.w-counters{display:flex;gap:36px}
+.w-counter{width:var(--w-counter)}
+.w-counter .c-label{font-family:var(--f-label);font-size:var(--fs-wall-small);letter-spacing:.06em;text-transform:uppercase;color:var(--c-text)}
+.w-counter .c-value{font-family:var(--f-number);font-weight:var(--fw-number);font-size:var(--fs-wall-counter);line-height:1.08;margin-top:6px;color:var(--c-dark-ai);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.w-counter .c-value small{font-size:.4em;letter-spacing:0;margin-left:6px;color:var(--c-text-muted)}
+.wall[data-phase="with"] .w-counter .c-value{color:var(--c-heading)}
+.w-counter .c-sub{font-size:var(--fs-wall-small);color:var(--c-text-muted)}
+.w-counter .c-vs{font-family:var(--f-label);font-size:14px;letter-spacing:.04em;color:var(--c-accent);min-height:1.4em;margin-top:4px}
+
+.w-yearcard{inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--c-veil);text-align:center}
+.w-yearcard .w-title{font-size:calc(var(--fs-wall-title) * 1.6)}
+
+.w-legend{left:var(--wall-pad);bottom:40px;display:flex;gap:34px;font-family:var(--f-label);font-size:14px;letter-spacing:.03em;color:var(--c-text)}
+.w-legend span{display:inline-flex;align-items:center;gap:9px}
+.w-legend svg{overflow:visible}
+.w-legend .lg-qct{transition:opacity var(--t-ui)}
+.wall[data-phase="without"] .w-legend .lg-qct{opacity:.25}
+.w-sample-tag{right:var(--wall-pad);bottom:40px;display:flex;align-items:center;gap:12px;font-family:var(--f-label);font-size:14px;color:var(--c-text-muted)}
+
+/* outcome */
+.w-outcome{inset:0;padding:var(--wall-pad-top) var(--wall-pad) 40px;display:flex;flex-direction:column}
+.w-outcome .w-title{font-size:calc(var(--fs-wall-title) * 1.1);margin-top:12px}
+.w-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;margin-top:44px}
+.w-metric{border-top:2px solid var(--c-heading);padding-top:18px}
+.m-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.m-label{font-family:var(--f-label);font-size:var(--fs-wall-label);letter-spacing:.06em;text-transform:uppercase}
+.m-value{font-family:var(--f-number);font-weight:var(--fw-number);font-size:var(--fs-wall-number);line-height:1;margin:22px 0 22px;color:var(--c-heading);font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.m-bars{display:grid;gap:8px}
+.m-bar{display:grid;grid-template-columns:118px 1fr 92px;align-items:center;gap:12px;font-family:var(--f-label);font-size:14px;color:var(--c-text-muted)}
+.m-bar i{display:block;height:8px;border-radius:4px;background:var(--c-bar-without);transform-origin:left center}
+.m-bar.is-with i{background:var(--c-bar-with)}
+.m-bar b{font-weight:500;color:var(--c-text);text-align:right;font-variant-numeric:tabular-nums}
+.m-delta{margin-top:14px;font-size:19px;color:var(--c-text)}
+.w-assumptions{margin-top:auto;border-top:1px solid var(--c-line);padding-top:20px}
+.w-assumptions h3{font-family:var(--f-label);font-weight:400;font-size:var(--fs-wall-small);letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--c-text-muted);margin-bottom:10px}
+.w-assumptions .assump-list{columns:2;column-gap:72px;font-size:var(--fs-wall-assump)}
+.w-assumptions .disclaimer{margin-top:12px;font-family:var(--f-label);font-size:14px;color:var(--c-text-muted)}
+
+.assump-list{list-style:none;font-family:var(--f-label)}
+.assump-list li{display:flex;gap:12px;align-items:baseline;break-inside:avoid;padding:5px 0;border-bottom:1px dashed var(--c-grey-200)}
+.assump-list .a-label{flex:1;color:var(--c-text)}
+.assump-list .a-value{color:var(--c-heading);font-weight:500;white-space:nowrap}
+.assump-list .a-tag{font-size:.7em;letter-spacing:.08em;color:var(--c-accent);white-space:nowrap}
+.assump-list .is-note .a-label{color:var(--c-text-muted)}
+.assump-list .is-note .a-tag{color:var(--c-text-muted)}
+
+/* --- Tablet --- */
+.tablet .t-header{position:absolute;left:0;right:0;top:0;height:var(--tab-header-h);padding:0 var(--tab-pad);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--c-line)}
+.t-brand{font-family:var(--f-heading);font-size:22px;color:var(--c-heading);letter-spacing:-.01em}
+.t-screen{position:absolute;left:0;right:0;top:var(--tab-header-h);bottom:0;padding:var(--tab-pad);opacity:0;visibility:hidden;transition:opacity var(--t-screen) var(--ease-io),visibility 0s linear var(--t-screen)}
+.tablet[data-screen="welcome"] .t-welcome,
+.tablet[data-screen="intro"] .t-intro,
+.tablet[data-screen="inputs"] .t-inputs,
+.tablet[data-screen="playing"] .t-playing,
+.tablet[data-screen="results"] .t-results{opacity:1;visibility:visible;transition-delay:0s}
+.t-hero{font-family:var(--f-heading);font-weight:var(--fw-heading);letter-spacing:var(--ls-heading);font-size:var(--fs-tab-hero);line-height:1;color:var(--c-heading);margin:18px 0 26px}
+.t-title{font-family:var(--f-heading);font-weight:var(--fw-heading);letter-spacing:var(--ls-heading);font-size:var(--fs-tab-title);line-height:1.05;color:var(--c-heading);margin:12px 0 16px}
+.t-lead{font-size:var(--fs-tab-lead);line-height:1.45;max-width:520px}
+.t-body{font-size:var(--fs-tab-body);line-height:1.5;color:var(--c-text)}
+.t-welcome{display:grid;grid-template-columns:1fr 470px;gap:24px;align-items:center}
+.t-welcome .btn{margin-top:40px;min-width:220px}
+.t-art{width:470px;height:520px}
+
+.t-intro{display:grid;grid-template-columns:1fr 300px;gap:56px}
+.t-intro-status{margin-top:28px;display:flex;align-items:center;gap:12px;font-size:var(--fs-tab-body);min-height:30px}
+.t-intro-status i{width:10px;height:10px;border-radius:50%;background:var(--c-grey-300);transition:background var(--t-ui)}
+.t-intro-status.is-reading i{background:var(--c-heading)}
+.t-intro-status.is-found i{background:var(--c-accent)}
+.t-intro-actions{display:flex;align-items:center;gap:28px;margin-top:40px}
+.t-slicer{display:flex;flex-direction:column;align-items:center;gap:16px}
+.t-slicer-track{position:relative;width:132px;height:560px;border-radius:var(--radius-l);background:var(--c-lavender-050);border:1.5px solid var(--c-ambitious-lavender);touch-action:none;cursor:grab;overflow:hidden}
+.t-slicer-lines{position:absolute;inset:16px 22px;background:repeating-linear-gradient(to bottom,var(--c-ambitious-lavender) 0 1px,transparent 1px 22px)}
+.t-slicer-fill{position:absolute;left:0;right:0;top:0;background:rgba(42,40,140,.08)}
+.t-slicer-handle{position:absolute;left:10px;right:10px;height:60px;border-radius:var(--radius-m);background:var(--c-white);border:2px solid var(--c-heading);box-shadow:0 6px 18px rgba(42,40,140,.16);display:flex;align-items:center;justify-content:center;gap:5px}
+.t-slicer-handle span{width:30px;height:2px;background:var(--c-heading);box-shadow:0 -6px 0 var(--c-heading),0 6px 0 var(--c-heading)}
+.t-slicer-readout{font-size:var(--fs-tab-label);letter-spacing:.08em;color:var(--c-text-muted)}
+
+.t-inputs{display:grid;grid-template-columns:1fr 470px;gap:40px}
+.t-form .field{margin-top:26px}
+.field-head{display:flex;justify-content:space-between;align-items:baseline}
+.field-label{font-family:var(--f-label);font-size:var(--fs-tab-label);letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--c-text-muted)}
+.field-value{font-family:var(--f-number);font-size:var(--fs-tab-number);color:var(--c-heading);font-variant-numeric:tabular-nums;letter-spacing:-.02em;line-height:1}
+.field-value small{font-family:var(--f-label);font-size:12px;letter-spacing:.06em;color:var(--c-text-muted);margin-left:8px;text-transform:uppercase}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:44px;background:transparent;cursor:pointer;--fill:50%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--c-heading) var(--fill),var(--c-grey-200) var(--fill))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:34px;height:34px;margin-top:-15px;border-radius:50%;background:var(--c-white);border:2px solid var(--c-heading);box-shadow:0 3px 10px rgba(42,40,140,.18)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--c-grey-200)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--c-heading)}
+input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--c-white);border:2px solid var(--c-heading)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.seg button{height:58px;border:1.5px solid var(--c-grey-300);border-radius:var(--radius-m);font-size:16px;color:var(--c-text);background:var(--c-white);transition:border-color var(--t-ui),background var(--t-ui),color var(--t-ui)}
+.seg button[aria-checked="true"]{border-color:var(--c-heading);background:var(--c-ambitious-lavender);color:var(--c-heading)}
+.t-note{margin-top:22px;font-size:14px;color:var(--c-text-muted)}
+.t-form .btn{margin-top:26px;min-width:260px}
+.t-preview{border:1px solid var(--c-line);border-radius:var(--radius-l);background:var(--c-white);display:flex;flex-direction:column;overflow:hidden}
+.t-preview svg{width:100%;flex:1}
+.t-preview-caption{padding:14px 20px;border-top:1px solid var(--c-line);font-size:var(--fs-tab-label);letter-spacing:.06em;text-transform:uppercase;color:var(--c-text-muted)}
+
+.t-playing{display:flex;flex-direction:column}
+.t-steps{list-style:none;margin-top:30px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.t-steps li{border-top:3px solid var(--c-grey-200);padding-top:14px;font-size:var(--fs-tab-body);color:var(--c-text-muted);transition:border-color var(--t-ui),color var(--t-ui)}
+.t-steps li .mono{display:block;font-size:12px;letter-spacing:.08em;margin-bottom:6px}
+.t-steps li.is-done{border-color:var(--c-lavender-300);color:var(--c-text)}
+.t-steps li.is-active{border-color:var(--c-accent);color:var(--c-heading)}
+.t-progress{margin-top:56px;height:6px;border-radius:3px;background:var(--c-grey-200);overflow:hidden}
+.t-progress-fill{height:100%;width:0;background:var(--c-heading)}
+.t-progress-meta{display:flex;justify-content:space-between;margin-top:14px;font-size:var(--fs-tab-label);letter-spacing:.06em;text-transform:uppercase;color:var(--c-text-muted)}
+.t-playing .btn{margin-top:auto;align-self:flex-start;min-width:240px}
+
+.t-results{display:grid;grid-template-columns:1fr 440px;gap:32px;padding-top:32px;padding-bottom:32px}
+.t-results-main{display:flex;flex-direction:column;min-width:0}
+.t-results .t-title{font-size:36px;margin-bottom:20px}
+.t-metrics{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.t-metric{border:1px solid var(--c-line);border-radius:var(--radius-m);padding:14px 18px;background:var(--c-white)}
+.t-metric .m-head .m-label{font-size:12px}
+.t-metric .m-value{font-size:var(--fs-tab-number);margin:10px 0 4px}
+.t-metric .m-sub{font-size:14px;color:var(--c-text-muted)}
+.t-share{display:grid;grid-template-columns:1fr 132px;gap:18px;align-items:center;margin-top:18px;border:1px solid var(--c-line);border-radius:var(--radius-m);padding:16px 18px;background:var(--c-white)}
+.t-share form{display:flex;gap:10px;margin-top:10px}
+.t-share input{flex:1;min-width:0;height:48px;border:1.5px solid var(--c-grey-300);border-radius:var(--radius-s);padding:0 14px;font-size:16px;color:var(--c-text);background:var(--c-white)}
+.t-share .btn{height:48px;padding:0 22px;font-size:16px}
+.t-share .t-note{margin-top:8px;font-size:12px;font-family:var(--f-label)}
+.t-qr{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:var(--f-label);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--c-text-muted);text-align:center}
+.t-results-main .btn-secondary{margin-top:auto;align-self:flex-start;height:52px}
+.t-assumptions{border:1px solid var(--c-line);border-radius:var(--radius-m);background:var(--c-white);padding:18px 20px;display:flex;flex-direction:column;min-height:0}
+.t-assumptions h3{font-family:var(--f-label);font-weight:500;font-size:var(--fs-tab-label);letter-spacing:var(--ls-overline);text-transform:uppercase;color:var(--c-heading);margin-bottom:8px}
+.t-assumptions .assump-list{font-size:11px;line-height:1.3;overflow:auto;min-height:0}
+.t-assumptions .assump-list li{padding:3.5px 0}
+.t-assumptions .disclaimer{margin-top:10px;font-size:12px;line-height:1.45;color:var(--c-text-muted)}
+
+/* --- Launcher + preview (dev only) --- */
+.launcher{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--c-bg)}
+.launcher-card{max-width:760px;padding:48px}
+.launcher h1{font-family:var(--f-heading);font-weight:var(--fw-heading);letter-spacing:var(--ls-heading);font-size:64px;line-height:1;color:var(--c-heading);margin:16px 0 20px}
+.launcher p{font-size:18px;line-height:1.5}
+.launcher-actions{display:flex;flex-wrap:wrap;gap:14px;margin:32px 0 22px}
+.launcher-actions .btn{font-size:17px;height:54px}
+.preview{position:fixed;inset:0;display:grid;grid-template-columns:38fr 62fr;gap:16px;padding:16px;background:var(--c-letterbox)}
+.preview figure{display:flex;flex-direction:column;gap:8px;min-width:0}
+.preview figcaption{font-family:var(--f-label);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--c-text-muted)}
+.preview iframe{flex:1;width:100%;border:0;border-radius:8px;background:var(--c-white)}
+
+/* --- Dev panel --- */
+.dev{position:fixed;right:12px;top:12px;z-index:100;width:340px;max-height:calc(100vh - 24px);overflow:auto;padding:14px 16px;border-radius:12px;background:var(--c-dev-bg);color:var(--c-dev-text);font-family:var(--f-label);font-size:12px;line-height:1.4;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.dev-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+.dev-row{margin-top:10px}
+.dev-row>label,.dev-row>.dev-k{display:flex;justify-content:space-between;opacity:.75;margin-bottom:4px}
+.dev-btns{display:flex;flex-wrap:wrap;gap:5px}
+.dev button{padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.25);color:inherit}
+.dev button.is-on{background:var(--c-accent);border-color:var(--c-accent);color:var(--c-dark-ai)}
+.dev input[type=range]{height:22px}
+.dev input[type=range]::-webkit-slider-runnable-track{background:rgba(255,255,255,.25)}
+.dev input[type=range]::-webkit-slider-thumb{width:16px;height:16px;margin-top:-6px}
+.dev select{width:100%;padding:4px;border-radius:6px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,.25);font:inherit}
+.dev select option{color:#000}
+.dev pre{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15);white-space:pre-wrap;opacity:.85;font:inherit}
+</style>
+</head>
+<body>
+<!-- =====================================================================
+     === MARKUP: structure only; text comes from CONFIG.copy (data-copy) ===
+     ===================================================================== -->
+
+<div id="launcher" class="launcher" hidden>
+  <div class="launcher-card">
+    <div class="overline"><span data-copy="brand"></span> · <span data-copy="event"></span></div>
+    <h1 data-copy="title"></h1>
+    <p>Open the two views in separate windows. They stay in sync through BroadcastChannel on this machine.</p>
+    <div class="launcher-actions">
+      <a class="btn btn-primary" href="#tablet" target="qct-tablet">Open tablet · 1180×820</a>
+      <a class="btn btn-primary" href="#wall" target="qct-wall">Open wall · 1920×1080</a>
+      <a class="btn btn-secondary" href="#preview">Side-by-side preview</a>
+    </div>
+    <p class="overline">Press D in either view for the dev panel</p>
+  </div>
+</div>
+
+<div id="preview" class="preview" hidden>
+  <figure><figcaption>Tablet · #tablet</figcaption><iframe title="Tablet view" data-view="tablet"></iframe></figure>
+  <figure><figcaption>Wall · #wall</figcaption><iframe title="Wall view" data-view="wall"></iframe></figure>
+</div>
+
+<!-- WALL · 1920×1080 -->
+<div id="wall-root" class="viewport" hidden>
+  <div id="wall" class="stage wall" data-phase="attract">
+    <div class="scene">
+      <svg class="hospital" viewBox="0 0 1920 1080" aria-hidden="true"></svg>
+      <canvas class="particles" aria-hidden="true"></canvas>
+      <div class="node-labels"></div>
+    </div>
+
+    <section class="layer on-attract w-attract">
+      <div class="overline" data-copy="wallAttractOverline"></div>
+      <h1 class="w-hero" data-copy="title"></h1>
+      <p class="w-lead" data-copy="wallAttractSub"></p>
+      <div class="pill"><span class="dot"></span><span data-copy="wallAttractPill"></span></div>
+    </section>
+
+    <section class="layer on-inputs w-inputs">
+      <div class="overline" data-copy="wallInputsOverline"></div>
+      <h2 class="w-title" data-copy="wallInputsTitle"></h2>
+      <dl class="w-specs">
+        <div><dt data-copy="bedsLabel"></dt><dd><span data-bind="beds"></span><small data-copy="bedsUnit"></small></dd></div>
+        <div><dt data-copy="ctLabel"></dt><dd><span data-bind="ctVolume"></span><small data-copy="ctUnit"></small></dd></div>
+        <div><dt data-copy="regionLabel"></dt><dd class="is-region" data-bind="region"></dd></div>
+      </dl>
+    </section>
+
+    <section class="layer on-intro w-intro">
+      <canvas class="intro-canvas" aria-hidden="true"></canvas>
+      <div class="w-intro-copy">
+        <div class="overline" data-copy="introOverline"></div>
+        <h2 class="w-title" data-copy="introWallTitle"></h2>
+        <p class="w-lead" data-copy="introWallBody"></p>
+      </div>
+      <div class="pill w-intro-status"><span class="dot"></span><span data-bind="introPill"></span></div>
+      <div class="w-intro-note" data-copy="introNote"></div>
+    </section>
+
+    <section class="layer on-build w-buildhead">
+      <div class="overline" data-copy="buildOverline"></div>
+      <h2 class="w-title" data-copy="buildTitle"></h2>
+      <ul class="w-build-facts"></ul>
+    </section>
+
+    <header class="layer on-without on-with w-topbar">
+      <div>
+        <div class="overline" data-bind="yearOverline"></div>
+        <h2 class="w-title" data-bind="yearTitle"></h2>
+      </div>
+      <div class="w-ticker">
+        <div class="w-ticker-track"><div class="w-ticker-fill"></div><div class="w-ticker-head"></div></div>
+        <ol class="w-ticker-months"></ol>
+      </div>
+      <div class="w-counters">
+        <div class="w-counter" data-counter="missed"><div class="c-label"></div><div class="c-value num">0</div><div class="c-sub"></div><div class="c-vs"></div></div>
+        <div class="w-counter" data-counter="lost"><div class="c-label"></div><div class="c-value num">0</div><div class="c-sub"></div><div class="c-vs"></div></div>
+        <div class="w-counter" data-counter="turnaround"><div class="c-label"></div><div class="c-value num">0</div><div class="c-sub"></div><div class="c-vs"></div></div>
+      </div>
+    </header>
+
+    <footer class="layer on-without on-with w-legend"></footer>
+    <div class="layer on-without on-with on-build w-sample-tag"><span class="sample" data-copy="sample"></span><span data-copy="sampleNote"></span></div>
+
+    <div class="layer w-yearcard">
+      <div class="overline" data-bind="cardOverline"></div>
+      <div class="w-title" data-bind="cardTitle"></div>
+    </div>
+
+    <section class="layer on-outcome w-outcome">
+      <div class="overline" data-bind="outcomeOverline"></div>
+      <h2 class="w-title" data-copy="outcomeTitle"></h2>
+      <div class="w-metrics"></div>
+      <div class="w-assumptions">
+        <h3 data-copy="assumptionsWallTitle"></h3>
+        <ol class="assump-list"></ol>
+        <p class="disclaimer" data-copy="disclaimer"></p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- TABLET · 1180×820 -->
+<div id="tablet-root" class="viewport" hidden>
+  <div id="tablet" class="stage tablet" data-screen="welcome">
+    <header class="t-header">
+      <span class="t-brand" data-copy="brand"></span>
+      <span class="overline" data-copy="event"></span>
+    </header>
+
+    <section class="t-screen t-welcome">
+      <div>
+        <div class="overline" data-copy="welcomeOverline"></div>
+        <h1 class="t-hero" data-copy="title"></h1>
+        <p class="t-lead" data-copy="welcomeLead"></p>
+        <button class="btn btn-primary" data-action="start" data-copy="welcomeCta"></button>
+      </div>
+      <svg class="hospital t-art qct-on" viewBox="0 0 470 520" aria-hidden="true"></svg>
+    </section>
+
+    <section class="t-screen t-intro">
+      <div>
+        <div class="overline" data-copy="introOverline"></div>
+        <h2 class="t-title" data-copy="introTitle"></h2>
+        <p class="t-lead" data-copy="introBody"></p>
+        <div class="t-intro-status"><i></i><span data-bind="introStatus"></span></div>
+        <div class="t-intro-actions">
+          <button class="btn btn-primary" data-action="intro-continue" data-copy="introContinue" disabled></button>
+          <button class="btn btn-ghost" data-action="intro-skip" data-copy="introSkip"></button>
+        </div>
+      </div>
+      <div class="t-slicer">
+        <div class="t-slicer-track"><div class="t-slicer-lines"></div><div class="t-slicer-fill"></div><div class="t-slicer-handle"><span></span></div></div>
+        <div class="t-slicer-readout" data-bind="sliceReadout"></div>
+      </div>
+    </section>
+
+    <section class="t-screen t-inputs">
+      <div class="t-form">
+        <div class="overline" data-copy="inputsOverline"></div>
+        <h2 class="t-title" data-copy="inputsTitle"></h2>
+        <div class="field">
+          <div class="field-head"><label class="field-label" for="in-beds" data-copy="bedsLabel"></label><div class="field-value"><span data-bind="beds"></span><small data-copy="bedsUnit"></small></div></div>
+          <input type="range" id="in-beds" data-input="beds">
+        </div>
+        <div class="field">
+          <div class="field-head"><label class="field-label" for="in-ct" data-copy="ctLabel"></label><div class="field-value"><span data-bind="ctVolume"></span><small data-copy="ctUnit"></small></div></div>
+          <input type="range" id="in-ct" data-input="ctVolume">
+        </div>
+        <div class="field">
+          <div class="field-label" data-copy="regionLabel"></div>
+          <div class="seg" role="radiogroup"></div>
+        </div>
+        <p class="t-note" data-copy="inputsNote"></p>
+        <button class="btn btn-primary" data-action="build" data-copy="buildCta"></button>
+      </div>
+      <div class="t-preview">
+        <svg class="hospital" viewBox="0 0 470 520" aria-hidden="true"></svg>
+        <div class="t-preview-caption" data-bind="facilityCaption"></div>
+      </div>
+    </section>
+
+    <section class="t-screen t-playing">
+      <div class="overline" data-copy="playingOverline"></div>
+      <h2 class="t-title" data-bind="phaseName"></h2>
+      <p class="t-body" data-copy="playingBody"></p>
+      <ol class="t-steps"></ol>
+      <div class="t-progress"><div class="t-progress-fill"></div></div>
+      <div class="t-progress-meta"><span data-bind="playMonth"></span><span data-bind="playRemaining"></span></div>
+      <button class="btn btn-secondary" data-action="skip" data-copy="skipCta"></button>
+    </section>
+
+    <section class="t-screen t-results">
+      <div class="t-results-main">
+        <div class="overline" data-bind="resultsOverline"></div>
+        <h2 class="t-title" data-copy="outcomeTitle"></h2>
+        <div class="t-metrics"></div>
+        <div class="t-share">
+          <div>
+            <label class="field-label" for="in-email" data-copy="emailLabel"></label>
+            <form data-action="email">
+              <input id="in-email" type="email" autocomplete="off" data-copy-placeholder="emailPlaceholder">
+              <button class="btn btn-primary" type="submit" data-copy="emailCta"></button>
+            </form>
+            <p class="t-note" data-bind="emailNote"></p>
+          </div>
+          <div class="t-qr">
+            <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+              <rect x="1" y="1" width="94" height="94" rx="8" fill="none" stroke="var(--c-grey-300)" stroke-dasharray="4 4"/>
+              <rect x="12" y="12" width="22" height="22" rx="3" fill="none" stroke="var(--c-heading)" stroke-width="2"/>
+              <rect x="62" y="12" width="22" height="22" rx="3" fill="none" stroke="var(--c-heading)" stroke-width="2"/>
+              <rect x="12" y="62" width="22" height="22" rx="3" fill="none" stroke="var(--c-heading)" stroke-width="2"/>
+              <rect x="19" y="19" width="8" height="8" fill="var(--c-heading)"/>
+              <rect x="69" y="19" width="8" height="8" fill="var(--c-heading)"/>
+              <rect x="19" y="69" width="8" height="8" fill="var(--c-heading)"/>
+            </svg>
+            <span data-copy="qrPlaceholder"></span>
+          </div>
+        </div>
+        <button class="btn btn-secondary" data-action="restart" data-copy="startOver"></button>
+      </div>
+      <aside class="t-assumptions" aria-label="Assumptions">
+        <h3 data-copy="assumptionsTitle"></h3>
+        <ol class="assump-list"></ol>
+        <p class="disclaimer" data-copy="disclaimer"></p>
+      </aside>
+    </section>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* =====================================================================
+   === CONFIG: assumptions, copy and flags — edit values here only ===
+   Every assumption below is a PLACEHOLDER. None has been validated by
+   qure.ai clinical, commercial or legal teams. The ENGINE reads only
+   this object; nothing else feeds the numbers.
+   ===================================================================== */
+const CONFIG = {
+
+  /* Intro: stylised CT volume the visitor slices through on the tablet. */
+  intro: {
+    enabled: true,               // FLAG: false skips straight from welcome to inputs
+    slices: 24,
+    findingRange: [0.50, 0.66],  // depth band (0 = top slice, 1 = bottom) holding the illustrative finding
+    dwellMs: 900                 // how long the visitor must stay in the band before QCT flags it
+  },
+
+  /* Tablet input ranges. */
+  inputs: {
+    beds:     { min: 50,   max: 1000,   step: 10,   default: 400 },
+    ctVolume: { min: 5000, max: 150000, step: 1000, default: 40000 },
+    region:   { default: 'us-northeast' }
+  },
+
+  /* Regional multipliers. PLACEHOLDER: illustrative only. */
+  regions: {
+    'us-northeast': { label: 'US Northeast', short: 'Northeast', valueMultiplier: 1.12, turnaroundMultiplier: 1.05, status: 'PLACEHOLDER' },
+    'us-southeast': { label: 'US Southeast', short: 'Southeast', valueMultiplier: 0.94, turnaroundMultiplier: 1.10, status: 'PLACEHOLDER' },
+    'us-midwest':   { label: 'US Midwest',   short: 'Midwest',   valueMultiplier: 0.97, turnaroundMultiplier: 1.00, status: 'PLACEHOLDER' },
+    'us-west':      { label: 'US West',      short: 'West',      valueMultiplier: 1.08, turnaroundMultiplier: 0.95, status: 'PLACEHOLDER' }
+  },
+
+  /* Model assumptions. unit drives formatting: pct | usd | days | months | ratio | profile */
+  assumptions: {
+    incidentalFindingRate:         { value: 0.08,  unit: 'pct',    status: 'PLACEHOLDER', label: 'Actionable incidental findings per CT' },
+    missRateBaseline:              { value: 0.12,  unit: 'pct',    status: 'PLACEHOLDER', label: 'Findings not flagged for follow-up, without QCT' },
+    missRateWithQCT:               { value: 0.03,  unit: 'pct',    status: 'PLACEHOLDER', label: 'Findings not flagged for follow-up, with QCT' },
+    followUpCompletionBaseline:    { value: 0.35,  unit: 'pct',    status: 'PLACEHOLDER', label: 'Follow-up completion, without QCT' },
+    followUpCompletionWithQCT:     { value: 0.78,  unit: 'pct',    status: 'PLACEHOLDER', label: 'Follow-up completion, with QCT' },
+    qctRampMonths:                 { value: 3,     unit: 'months', status: 'PLACEHOLDER', label: 'Months for QCT to reach full effect' },
+    valuePerCompletedFollowUp:     { value: 2800,  unit: 'usd',    status: 'PLACEHOLDER', label: 'Value per completed follow-up' },
+    proceduresPerCompletedFollowUp:{ value: 0.22,  unit: 'ratio',  status: 'PLACEHOLDER', label: 'Downstream procedures per completed follow-up' },
+    turnaroundDaysBaseline:        { value: 42,    unit: 'days',   status: 'PLACEHOLDER', label: 'Finding → follow-up booked, without QCT' },
+    turnaroundDaysWithQCT:         { value: 11,    unit: 'days',   status: 'PLACEHOLDER', label: 'Finding → follow-up booked, with QCT' },
+    seasonality:                   { value: [1.04, 0.95, 1.03, 1.00, 1.01, 0.97, 0.94, 0.98, 1.00, 1.03, 1.00, 1.05], unit: 'profile', status: 'PLACEHOLDER', label: 'Monthly CT volume profile' },
+    seasonalLoadSensitivity:       { value: 0.6,   unit: 'ratio',  status: 'PLACEHOLDER', label: 'Turnaround sensitivity to monthly volume swings' }
+  },
+
+  /* Structural notes shown with the assumptions (not tunable numbers). */
+  modelNotes: [
+    'Twelve-month horizon. Each follow-up is counted in the month its finding is made.',
+    'Same hospital, patients and scan volume in both scenarios.',
+    'Revenue retained = extra completed follow-ups × value per follow-up × regional multiplier. Procedures are counted, not valued separately.'
+  ],
+
+  /* Visual scaling rules for the hospital model (not ROI assumptions). */
+  facility: {
+    scansPerScanner: 14000, maxScanners: 6,
+    bedsPerClinic: 180, minClinics: 2, maxClinics: 6,
+    bedsPerWardFloor: 90, minFloors: 2, maxFloors: 11,
+    footprintSteps: [250, 600], footprints: [2.2, 2.8, 3.4]
+  },
+
+  /* Particle sampling. One dot stands for many patients; the legend says how many. */
+  visual: {
+    dotsPerMonth: 30,            // target routine-scan dots per month
+    findingDotsPerMonth: 9,      // target finding dots per month
+    labelEveryNthLost: 3,        // how often a lost dot carries a text label
+    labelEveryNthMissed: 2,
+    seed: 20261129
+  },
+
+  idleResetSeconds: 150,         // results screen returns to welcome after this long untouched
+
+  /* Copy. *word* renders as an accent <em>. {tokens} are filled in by RENDER. */
+  copy: {
+    brand: 'qure.ai',
+    event: 'RSNA 2026',
+    title: 'Your Hospital, One Year *with QCT*',
+
+    welcomeOverline: 'Interactive · about 90 seconds',
+    welcomeLead: 'Tell us about your hospital. We’ll build it on the big screen and run one year of CT imaging twice: first without QCT, then with it.',
+    welcomeCta: 'Start',
+
+    introOverline: 'Warm-up · stylised scan',
+    introTitle: 'Slice through a CT',
+    introBody: 'Drag the handle down to move through the scan. Watch QCT read each slice on the big screen.',
+    introStatusIdle: 'Drag down through the scan.',
+    introStatusReading: 'QCT is reading this slice…',
+    introStatusFound: 'QCT flagged an incidental finding.',
+    introContinue: 'Continue',
+    introSkip: 'Skip',
+    introWallTitle: 'Slice through a scan',
+    introWallBody: 'Use the tablet to move through the volume. QCT reads every slice as you go.',
+    introNote: 'Stylised illustration · not patient data · not anatomically accurate',
+    introPillReading: 'QCT · reading slice {i} / {n}',
+    introPillAnalysing: 'QCT · analysing slice {i} / {n}',
+    introPillFound: 'QCT · finding flagged',
+    introFindingLabel: 'Incidental finding',
+    introFindingSub: 'Pulmonary nodule · illustrative',
+    sliceReadout: 'Slice {i} / {n}',
+
+    inputsOverline: 'Your hospital',
+    inputsTitle: 'Describe your hospital',
+    bedsLabel: 'Bed count',
+    bedsUnit: 'beds',
+    ctLabel: 'Annual CT volume',
+    ctUnit: 'scans / yr',
+    regionLabel: 'Region',
+    inputsNote: 'Ballpark numbers are fine. Nothing you enter is stored.',
+    buildCta: 'Build my hospital',
+    facilityCaption: '{scanners} CT scanners · {clinics} clinics · {floors} ward floors',
+
+    wallAttractOverline: 'qure.ai · RSNA 2026',
+    wallAttractSub: 'Build your hospital on the tablet. Then watch one year of CT imaging, twice.',
+    wallAttractPill: 'Start at the tablet',
+    wallInputsOverline: 'Drafting your hospital',
+    wallInputsTitle: 'Your hospital',
+
+    buildOverline: 'Phase 1 · build',
+    buildTitle: 'Building your hospital',
+    buildFacts: ['{beds} beds · {floors} ward floors', '{scanners} CT scanners', '{clinics} outpatient clinics', '{region}'],
+
+    yearWithoutOverline: 'Phase 2 · scenario A',
+    yearWithoutTitle: 'One year without QCT',
+    yearWithOverline: 'Phase 3 · scenario B',
+    yearWithTitle: 'The same year, *with QCT*',
+    cardWithoutOverline: 'Scenario A · today’s workflow',
+    cardWithoutTitle: 'One year without QCT',
+    cardWithOverline: 'Scenario B · same hospital, same patients',
+    cardWithTitle: 'Now, the same year *with QCT*',
+    counters: {
+      missed:     { label: 'Findings missed', sub: 'not flagged for follow-up' },
+      lost:       { label: 'Follow-ups lost', sub: 'flagged, never completed' },
+      turnaround: { label: 'Avg. turnaround', sub: 'finding → follow-up booked' }
+    },
+    vsWithout: 'vs {v} without QCT',
+    daysUnit: 'days',
+    legend: {
+      dot: '1 dot ≈ {n} CT scans',
+      finding: '1 ringed dot ≈ {n} actionable findings',
+      lost: 'fades grey: lost to follow-up',
+      qct: 'peach: flagged & tracked by QCT'
+    },
+    particleMissed: 'MISSED',
+    particleLost: 'LOST TO FOLLOW-UP',
+    sample: 'SAMPLE',
+    sampleNote: 'Illustrative model · placeholder assumptions',
+
+    nodes: {
+      er:       { over: '01 / Arrive',    name: 'Emergency' },
+      ct:       { over: '02 / Scan',      name: 'CT scanners ×{n}' },
+      reading:  { over: '03 / Read',      name: 'Reading room' },
+      report:   { over: '04 / Report',    name: 'Report' },
+      desk:     { over: '05 / Follow-up', name: 'Follow-up desk' },
+      clinics:  { over: '06 / Care',      name: 'Clinics ×{n}' },
+      wards:    { over: '{beds} beds',    name: 'Wards' },
+      exit:     { over: 'Routine',        name: 'No follow-up needed' }
+    },
+    qctTag: 'QCT',
+
+    playingOverline: 'Now playing on the big screen',
+    playingBody: 'Turn around and watch the wall. Your numbers will appear here at the end.',
+    skipCta: 'Skip to results',
+    steps: { build: 'Build', without: 'Year without QCT', with: 'Year with QCT', outcome: 'Your outcome' },
+    phaseNames: { build: 'Building your hospital', without: 'One year without QCT', with: 'The same year, with QCT', outcome: 'Your outcome' },
+    monthReadout: 'Month {m} / 12 · {name}',
+    remaining: '{s}s to results',
+
+    outcomeOverline: 'Sample outcome · {beds} beds · {ct} CT / yr · {region}',
+    resultsOverline: 'Sample results · {beds} beds · {ct} CT / yr · {region}',
+    outcomeTitle: 'Your hospital, one year *with QCT*',
+    metrics: {
+      caught:     'Findings caught',
+      completed:  'Follow-ups completed',
+      procedures: 'Downstream procedures',
+      revenue:    'Revenue retained'
+    },
+    metricWithout: 'Without QCT',
+    metricWith: 'With QCT',
+    deltaCount: '+{v} vs. without QCT',
+    deltaRevenue: 'from {v} more completed follow-ups',
+    assumptionsTitle: 'See assumptions',
+    assumptionsWallTitle: 'Assumptions behind these numbers',
+    disclaimer: 'Illustrative model on placeholder assumptions. Every number is a SAMPLE, not a clinical, financial or performance claim.',
+    emailLabel: 'Email me this summary',
+    emailPlaceholder: 'name@hospital.org',
+    emailCta: 'Send',
+    emailNote: 'Placeholder · nothing is sent from this prototype.',
+    emailNoteSent: 'Placeholder · not sent. Hook up a real endpoint before the show.',
+    qrPlaceholder: 'QR placeholder',
+    startOver: 'Start over',
+
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  }
+};
+
+
+/* =====================================================================
+   === ENGINE: do not restyle ===
+   Pure and deterministic: (inputs, CONFIG) → monthly results for both
+   scenarios. Never reads or writes the DOM, the clock or Math.random.
+   ===================================================================== */
+const ENGINE = (() => {
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const round1 = v => Math.round(v * 10) / 10;
+  const normalise = arr => { const s = arr.reduce((a, b) => a + b, 0); return arr.map(v => v / s); };
+
+  const fmt = {
+    int: v => Math.round(v).toLocaleString('en-US'),
+    pct: v => { const p = v * 100; return (Number.isInteger(Math.round(p * 10) / 10) ? p.toFixed(0) : p.toFixed(1)) + '%'; },
+    usd: v => '$' + Math.round(v).toLocaleString('en-US'),
+    usdCompact: v => {
+      const a = Math.abs(v), s = v < 0 ? '−$' : '$';
+      if (a >= 1e6) return s + (a / 1e6).toFixed(a >= 1e7 ? 0 : 1) + 'M';
+      if (a >= 1e3) return s + Math.round(a / 1e3) + 'K';
+      return s + Math.round(a);
+    },
+    mult: v => '×' + v.toFixed(2),
+    days: v => Math.round(v) + ' days',
+    months: v => v + (v === 1 ? ' month' : ' months'),
+    ratio: v => v.toFixed(2),
+    profile: () => '12-month curve'
+  };
+
+  function sanitiseInputs(raw, cfg) {
+    const I = cfg.inputs, r = raw || {};
+    const snap = (v, s) => {
+      const n = Number.isFinite(+v) && v !== null && v !== '' ? +v : s.default;
+      return clamp(Math.round(n / s.step) * s.step, s.min, s.max);
+    };
+    return {
+      beds: snap(r.beds, I.beds),
+      ctVolume: snap(r.ctVolume, I.ctVolume),
+      region: cfg.regions[r.region] ? r.region : I.region.default
+    };
+  }
+
+  function facility(inputs, cfg) {
+    const F = cfg.facility;
+    const fp = inputs.beds < F.footprintSteps[0] ? 0 : inputs.beds < F.footprintSteps[1] ? 1 : 2;
+    return {
+      scanners: clamp(Math.ceil(inputs.ctVolume / F.scansPerScanner), 1, F.maxScanners),
+      clinics: clamp(Math.round(inputs.beds / F.bedsPerClinic) + 1, F.minClinics, F.maxClinics),
+      wardFloors: clamp(Math.round(inputs.beds / F.bedsPerWardFloor), F.minFloors, F.maxFloors),
+      wardFootprint: F.footprints[fp]
+    };
+  }
+
+  // One scenario, month by month. Counts are rounded on the running total
+  // so monthly rows always add up to the annual figure.
+  function scenario(inputs, cfg, withQCT) {
+    const A = cfg.assumptions, R = cfg.regions[inputs.region];
+    const w = normalise(A.seasonality.value);
+    const keys = ['scans', 'findings', 'missed', 'completed', 'procedures', 'revenue'];
+    const run = {}, prev = {};
+    keys.forEach(k => { run[k] = 0; prev[k] = 0; });
+    const monthly = [], cumulative = [];
+    let taSum = 0, taWeight = 0;
+
+    for (let m = 0; m < 12; m++) {
+      const ramp = withQCT ? clamp((m + 1) / Math.max(1, A.qctRampMonths.value), 0, 1) : 0;
+      const scans = inputs.ctVolume * w[m];
+      const findings = scans * A.incidentalFindingRate.value;
+      const missed = findings * lerp(A.missRateBaseline.value, A.missRateWithQCT.value, ramp);
+      const flagged = findings - missed;
+      const completed = flagged * lerp(A.followUpCompletionBaseline.value, A.followUpCompletionWithQCT.value, ramp);
+      const procedures = completed * A.proceduresPerCompletedFollowUp.value;
+      const revenue = completed * A.valuePerCompletedFollowUp.value * R.valueMultiplier;
+      const load = 1 + (w[m] * 12 - 1) * A.seasonalLoadSensitivity.value;
+      const turnaround = lerp(A.turnaroundDaysBaseline.value, A.turnaroundDaysWithQCT.value, ramp) * R.turnaroundMultiplier * load;
+
+      const raw = { scans, findings, missed, completed, procedures, revenue };
+      const row = { month: m, ramp, turnaroundDays: round1(turnaround) };
+      const cum = { month: m };
+      keys.forEach(k => {
+        run[k] += raw[k];
+        const r = Math.round(run[k]);
+        row[k] = r - prev[k];
+        prev[k] = r;
+        cum[k] = r;
+      });
+      row.flagged = row.findings - row.missed;
+      row.lost = row.flagged - row.completed;
+      cum.flagged = cum.findings - cum.missed;
+      cum.lost = cum.flagged - cum.completed;
+      taSum += turnaround * flagged;
+      taWeight += flagged;
+      cum.turnaroundDays = round1(taWeight ? taSum / taWeight : 0);
+      monthly.push(row);
+      cumulative.push(cum);
+    }
+    return { withQCT, monthly, cumulative, totals: cumulative[11] };
+  }
+
+  function run(rawInputs, cfg) {
+    const inputs = sanitiseInputs(rawInputs, cfg);
+    const without = scenario(inputs, cfg, false);
+    const withQ = scenario(inputs, cfg, true);
+    const B = without.totals, W = withQ.totals;
+    const pair = k => ({ without: B[k], with: W[k], delta: W[k] - B[k] });
+    return {
+      inputs,
+      region: cfg.regions[inputs.region],
+      facility: facility(inputs, cfg),
+      without,
+      with: withQ,
+      outcome: {
+        findingsCaught: pair('flagged'),
+        followUpsCompleted: pair('completed'),
+        downstreamProcedures: pair('procedures'),
+        revenueRetained: { value: W.revenue - B.revenue, without: B.revenue, with: W.revenue },
+        followUpsLost: pair('lost'),
+        turnaroundDays: { without: B.turnaroundDays, with: W.turnaroundDays }
+      }
+    };
+  }
+
+  // Human-readable assumption list for whichever region is selected.
+  function describeAssumptions(rawInputs, cfg) {
+    const inputs = sanitiseInputs(rawInputs, cfg);
+    const R = cfg.regions[inputs.region];
+    const list = Object.keys(cfg.assumptions).map(key => {
+      const a = cfg.assumptions[key];
+      return { key, label: a.label, value: (fmt[a.unit] || String)(a.value), status: a.status };
+    });
+    list.push({ key: 'regionValue', label: 'Value multiplier · ' + R.label, value: fmt.mult(R.valueMultiplier), status: R.status });
+    list.push({ key: 'regionTurnaround', label: 'Turnaround multiplier · ' + R.label, value: fmt.mult(R.turnaroundMultiplier), status: R.status });
+    cfg.modelNotes.forEach((n, i) => list.push({ key: 'note' + i, label: n, value: '', status: 'MODEL', note: true }));
+    return list;
+  }
+
+  return { run, describeAssumptions, sanitiseInputs, facility, fmt };
+})();
+
+
+/* =====================================================================
+   === TIMELINE: pure phase clock (durations come from CSS timings) ===
+   ===================================================================== */
+const TIMELINE = (() => {
+  function build(d) {
+    const year = d.yearTitle + 12 * d.month;
+    let acc = 0;
+    const segs = [['build', d.build], ['without', year], ['with', year], ['outcome', d.outcome]].map(([id, dur]) => {
+      const s = { id, start: acc, dur };
+      acc += dur;
+      return s;
+    });
+    return { segs, total: acc, d };
+  }
+  function at(tl, elapsed) {
+    const e = Math.max(0, elapsed);
+    for (const s of tl.segs) if (e < s.start + s.dur) return { id: s.id, local: e - s.start, seg: s };
+    const last = tl.segs[tl.segs.length - 1];
+    return { id: last.id, local: e - last.start, seg: last, done: true };
+  }
+  const monthFloat = (tl, local) => Math.min(12, Math.max(0, (local - tl.d.yearTitle) / tl.d.month));
+  const offsetOf = (tl, id) => tl.segs.find(s => s.id === id).start;
+  return { build, at, monthFloat, offsetOf };
+})();
+
+
+/* =====================================================================
+   === SYNC: shared state across windows (BroadcastChannel + storage) ===
+   One small state object; last writer wins by timestamp. Phase timing is
+   derived from playStartedAt, so both windows agree without chatter.
+   ===================================================================== */
+const SYNC = (() => {
+  const ID = Math.random().toString(36).slice(2, 10);
+  const KEY = 'qure-qct-booth/state/v1', CHANNEL = 'qure-qct-booth';
+  const listeners = [], peers = {};
+  let view = 'none';
+
+  const fresh = () => ({
+    screen: 'welcome',
+    inputs: { beds: CONFIG.inputs.beds.default, ctVolume: CONFIG.inputs.ctVolume.default, region: CONFIG.inputs.region.default },
+    introEnabled: CONFIG.intro.enabled,
+    introSlice: 0,
+    introFound: false,
+    playStartedAt: 0,
+    pausedElapsed: null,
+    speed: 1,
+    at: 0,
+    by: ID
+  });
+
+  let state = fresh();
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved && saved.inputs) state = Object.assign(fresh(), saved);
+  } catch (e) { /* storage unavailable: run without persistence */ }
+
+  let bc = null;
+  try { bc = new BroadcastChannel(CHANNEL); bc.onmessage = e => receive(e.data); } catch (e) { bc = null; }
+  window.addEventListener('storage', e => {
+    if (e.key === KEY && e.newValue) { try { receive({ type: 'state', state: JSON.parse(e.newValue) }); } catch (err) { /* ignore */ } }
+  });
+
+  const newer = (a, b) => a.at > b.at || (a.at === b.at && a.by > b.by);
+  const post = msg => { if (bc) try { bc.postMessage(msg); } catch (e) { /* closed */ } };
+  const emit = () => listeners.forEach(fn => fn(state));
+
+  function receive(msg) {
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.view) peers[msg.view] = Date.now();
+    if (msg.type === 'hello') post({ type: 'state', state, view });
+    if (msg.type === 'state' && msg.state && newer(msg.state, state)) { state = msg.state; emit(); }
+  }
+
+  function set(patch) {
+    const next = Object.assign({}, state, patch);
+    if (patch.inputs) next.inputs = Object.assign({}, state.inputs, patch.inputs);
+    next.at = Math.max(Date.now(), state.at + 1);
+    next.by = ID;
+    state = next;
+    post({ type: 'state', state, view });
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+    emit();
+  }
+
+  function elapsed() {
+    if (state.pausedElapsed != null) return state.pausedElapsed;
+    return (Date.now() - state.playStartedAt) * (state.speed || 1);
+  }
+
+  function start(v) {
+    view = v;
+    post({ type: 'hello', view });
+    setInterval(() => post({ type: 'ping', view }), 1500);
+  }
+
+  return {
+    get: () => state,
+    set,
+    elapsed,
+    start,
+    fresh,
+    on: fn => listeners.push(fn),
+    peers: () => peers,
+    id: ID
+  };
+})();
+
+
+/* =====================================================================
+   === RENDER: shared helpers — reads engine output, never computes it ===
+   ===================================================================== */
+const UI = (() => {
+  const rootCS = () => getComputedStyle(document.documentElement);
+  const cssVar = name => rootCS().getPropertyValue(name).trim();
+  const cssNum = name => parseFloat(cssVar(name));
+  const cssMs = name => { const v = cssVar(name); return v.endsWith('ms') ? parseFloat(v) : parseFloat(v) * 1000; };
+  const clamp01 = v => Math.min(1, Math.max(0, v));
+  const easeOut = t => 1 - Math.pow(1 - t, 3);
+  const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const tpl = (s, vars) => String(s).replace(/\{(\w+)\}/g, (m, k) => (vars && vars[k] != null ? vars[k] : m));
+  const rich = s => esc(s).replace(/\*(.+?)\*/g, '<em>$1</em>');
+  const getPath = (obj, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k]), obj);
+
+  function fillCopy(root) {
+    root.querySelectorAll('[data-copy]').forEach(el => {
+      const v = getPath(CONFIG.copy, el.dataset.copy);
+      if (typeof v === 'string') el.innerHTML = rich(v);
+    });
+    root.querySelectorAll('[data-copy-placeholder]').forEach(el => {
+      el.placeholder = getPath(CONFIG.copy, el.dataset.copyPlaceholder) || '';
+    });
+  }
+
+  // Writes text only when it changed (cheap to call every frame).
+  function bind(root, key, value, html) {
+    root.querySelectorAll(`[data-bind="${key}"]`).forEach(el => {
+      if (el.__v === value) return;
+      el.__v = value;
+      if (html) el.innerHTML = value; else el.textContent = value;
+    });
+  }
+
+  function fit(stage, w, h) {
+    const s = Math.min(innerWidth / w, innerHeight / h);
+    stage.style.transform = `translate(${((innerWidth - w * s) / 2).toFixed(1)}px, ${((innerHeight - h * s) / 2).toFixed(1)}px) scale(${s})`;
+    return s;
+  }
+
+  function durations() {
+    return { build: cssMs('--t-build'), yearTitle: cssMs('--t-year-title'), month: cssMs('--t-month'), outcome: cssMs('--t-outcome') };
+  }
+
+  // Normalises any CSS colour to [r,g,b] so canvas can blend between them.
+  const probe = document.createElement('canvas').getContext('2d');
+  function rgb(color) {
+    probe.fillStyle = '#000';
+    probe.fillStyle = color;
+    const v = probe.fillStyle;
+    if (v[0] === '#') return [1, 3, 5].map(i => parseInt(v.slice(i, i + 2), 16));
+    const m = v.match(/[\d.]+/g) || [0, 0, 0];
+    return [+m[0], +m[1], +m[2]];
+  }
+  const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+
+  function regionLabel(id) { return (CONFIG.regions[id] || {}).label || id; }
+
+  // Metric tiles shared by the wall outcome and tablet results.
+  function metrics(model) {
+    const o = model.outcome, c = CONFIG.copy.metrics, f = ENGINE.fmt;
+    const count = (key, label, p) => ({ key, label, value: p.with, fmt: f.int, without: p.without, with: p.with, delta: tpl(CONFIG.copy.deltaCount, { v: f.int(p.delta) }) });
+    return [
+      count('caught', c.caught, o.findingsCaught),
+      count('completed', c.completed, o.followUpsCompleted),
+      count('procedures', c.procedures, o.downstreamProcedures),
+      { key: 'revenue', label: c.revenue, value: o.revenueRetained.value, fmt: f.usdCompact, without: o.revenueRetained.without, with: o.revenueRetained.with,
+        delta: tpl(CONFIG.copy.deltaRevenue, { v: f.int(o.followUpsCompleted.delta) }) }
+    ];
+  }
+
+  function renderAssumptions(ol, inputs) {
+    const list = ENGINE.describeAssumptions(inputs, CONFIG);
+    ol.innerHTML = list.map(a => `<li class="${a.note ? 'is-note' : ''}"><span class="a-label">${esc(a.label)}</span>${a.value ? `<span class="a-value">${esc(a.value)}</span>` : ''}<span class="a-tag">${esc(a.status)}</span></li>`).join('');
+  }
+
+  function specVars(inputs) {
+    return { beds: ENGINE.fmt.int(inputs.beds), ct: ENGINE.fmt.int(inputs.ctVolume), region: regionLabel(inputs.region) };
+  }
+
+  return { cssVar, cssNum, cssMs, clamp01, easeOut, easeIO, esc, tpl, rich, fillCopy, bind, fit, durations, rgb, mix, regionLabel, metrics, renderAssumptions, specVars };
+})();
+
+// Phase each view should show, derived from shared state + clock.
+function deriveView(state, tl) {
+  switch (state.screen) {
+    case 'welcome': return { wall: 'attract', tablet: 'welcome' };
+    case 'intro':   return { wall: 'intro', tablet: 'intro' };
+    case 'inputs':  return { wall: 'inputs', tablet: 'inputs' };
+    case 'results': return { wall: 'outcome', tablet: 'results', local: Infinity };
+  }
+  const elapsed = SYNC.elapsed(), ph = TIMELINE.at(tl, elapsed);
+  return { wall: ph.id, tablet: ph.id === 'outcome' ? 'results' : 'playing', local: ph.local, elapsed, phase: ph };
+}
+
+
+/* =====================================================================
+   === RENDER: isometric hospital (SVG) ===
+   Geometry in grid units; one iso() projection; all styling via CSS.
+   ===================================================================== */
+const HOSPITAL = (() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const C30 = Math.cos(Math.PI / 6), S30 = 0.5;
+  // Line glyphs drawn on box tops, in a [-.5, .5] square.
+  const GLYPHS = {
+    er: 'M-.09,-.34h.18v.25h.25v.18h-.25v.25h-.18v-.25h-.25v-.18h.25z',
+    ct: 'M.36,0A.36,.36 0 1 1 -.36,0A.36,.36 0 1 1 .36,0M.16,0A.16,.16 0 1 1 -.16,0A.16,.16 0 1 1 .16,0M-.07,.22V.5M.07,.22V.5',
+    reading: 'M-.44,-.28h.38v.3h-.38zM.06,-.28h.38v.3h-.38zM-.25,.02v.14M.25,.02v.14M-.38,.18h.76',
+    report: 'M-.26,-.36h.34l.18,.18v.54h-.52zM-.14,-.06h.28M-.14,.08h.28M-.14,.22h.16',
+    desk: 'M-.36,-.26h.72v.6h-.72zM-.36,-.1h.72M-.2,-.38v.16M.2,-.38v.16M-.14,.12l.1,.1l.2,-.2',
+    clinic: 'M.34,0A.34,.34 0 1 1 -.34,0A.34,.34 0 1 1 .34,0M0,-.16V.16M-.16,0H.16',
+    wards: 'M-.3,-.24v.48M.3,-.24v.48M-.3,0h.6'
+  };
+
+  const svgEl = (tag, attrs, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const pathOf = pts => 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('L');
+
+  function layout(fac, inputs) {
+    const N = CONFIG.copy.nodes, tpl = UI.tpl;
+    const L = { boxes: [], labels: [], paths: {}, nodes: {}, scannersC: [], clinicsC: [] };
+    const add = b => (L.boxes.push(b), b);
+
+    add({ id: 'er', x: -1, y: -1, w: 2, d: 2, h: 1.1, glyph: 'er' });
+    L.nodes.er = [0, 0];
+    const n = fac.scanners;
+    for (let k = 0; k < n; k++) {
+      const cy = (k - (n - 1) / 2) * 1.7;
+      add({ id: 'ct' + k, x: 3.4, y: cy - .6, w: 1.2, d: 1.2, h: .7, glyph: 'ct' });
+      L.scannersC.push([4, cy]);
+    }
+    add({ id: 'reading', x: 7, y: -1, w: 2, d: 2, h: 1, glyph: 'reading', qct: true });
+    L.nodes.reading = [8, 0];
+    add({ id: 'report', x: 7.55, y: -3.7, w: .9, d: .9, h: .4, glyph: 'report' });
+    L.nodes.report = [8, -3.25];
+    add({ id: 'desk', x: 7.25, y: -7.3, w: 1.5, d: 1.5, h: .75, glyph: 'desk', qct: true });
+    L.nodes.desk = [8, -6.55];
+    for (let i = 0; i < fac.clinics; i++) {
+      const row = i % 2, col = Math.floor(i / 2), cx = 8 + row * 1.7, cy = -9.4 - col * 1.7;
+      add({ id: 'clinic' + i, x: cx - .55, y: cy - .55, w: 1.1, d: 1.1, h: .65, glyph: 'clinic' });
+      L.clinicsC.push([cx, cy]);
+    }
+    const F = fac.wardFootprint, fh = .42, wx = -2, wy = -6;
+    for (let f = 0; f < fac.wardFloors; f++) {
+      add({ id: 'ward' + f, x: wx - F / 2, y: wy - F / 2, w: F, d: F, z0: f * fh, h: fh * .84, glyph: f === fac.wardFloors - 1 ? 'wards' : null, cls: 'ward' });
+    }
+    L.exit = [12.4, -3.25];
+
+    L.paths.toScanner = L.scannersC.map(c => [[0, 0], [2.2, 0], [2.2, c[1]], c]);
+    L.paths.toReading = L.scannersC.map(c => [c, [5.6, c[1]], [5.6, 0], [8, 0]]);
+    L.paths.toReport = [[8, 0], [8, -3.25]];
+    L.paths.toExit = [[8, -3.25], L.exit];
+    L.paths.toDesk = [[8, -3.25], [8, -6.55]];
+    L.paths.toClinic = L.clinicsC.map(c => [[8, -6.55], [8, -8.5], [c[0], -8.5], c]);
+    L.lane = [[8.5, 0], [8.5, -6.55]];
+
+    const lastClinic = L.clinicsC[L.clinicsC.length - 1];
+    L.labels = [
+      { id: 'er', over: N.er.over, name: N.er.name, at: [0, 0, 1.1], lift: 54 },
+      { id: 'ct', over: N.ct.over, name: tpl(N.ct.name, { n }), at: [4, L.scannersC[0][1], .7], lift: 40 },
+      { id: 'reading', over: N.reading.over, name: N.reading.name, at: [8, 0, 1], lift: 30, qct: true },
+      { id: 'report', over: N.report.over, name: N.report.name, at: [8, -3.25, .4], lift: 62 },
+      { id: 'desk', over: N.desk.over, name: N.desk.name, at: [8, -6.55, .75], lift: 52, qct: true },
+      { id: 'clinics', over: N.clinics.over, name: tpl(N.clinics.name, { n: fac.clinics }), at: [lastClinic[0], lastClinic[1], .65], lift: 40 },
+      { id: 'wards', over: tpl(N.wards.over, { beds: ENGINE.fmt.int(inputs.beds) }), name: N.wards.name, at: [wx - F / 2, wy - F / 2, (fac.wardFloors - 1) * fh + fh * .84], lift: 26 },
+      { id: 'exit', over: N.exit.over, name: N.exit.name, at: [L.exit[0], L.exit[1], 0], lift: 34 }
+    ];
+    return L;
+  }
+
+  function drawBox(parent, P, b, unit) {
+    const { x, y, w, d, h } = b, z0 = b.z0 || 0, z1 = z0 + h;
+    const g = svgEl('g', { class: 'box' + (b.qct ? ' is-qct' : '') + (b.cls ? ' ' + b.cls : ''), 'data-id': b.id }, parent);
+    svgEl('path', { class: 'face face-left', d: pathOf([P(x, y + d, z0), P(x + w, y + d, z0), P(x + w, y + d, z1), P(x, y + d, z1)]) + 'Z' }, g);
+    svgEl('path', { class: 'face face-right', d: pathOf([P(x + w, y, z0), P(x + w, y + d, z0), P(x + w, y + d, z1), P(x + w, y, z1)]) + 'Z' }, g);
+    svgEl('path', { class: 'face face-top', d: pathOf([P(x, y, z1), P(x + w, y, z1), P(x + w, y + d, z1), P(x, y + d, z1)]) + 'Z' }, g);
+    const i = Math.min(w, d) * .14;
+    svgEl('path', { class: 'face-inner', d: pathOf([P(x + i, y + i, z1), P(x + w - i, y + i, z1), P(x + w - i, y + d - i, z1), P(x + i, y + d - i, z1)]) + 'Z' }, g);
+    if (b.glyph) {
+      const s = Math.min(w, d) * .6 * unit, c = P(x + w / 2, y + d / 2, z1);
+      const m = [C30 * s, S30 * s, -C30 * s, S30 * s, c[0], c[1]].map(v => +v.toFixed(3));
+      svgEl('path', { class: 'glyph', d: GLYPHS[b.glyph], transform: `matrix(${m.join(' ')})` }, g);
+    }
+    return g;
+  }
+
+  /* opts: { svg, labelsEl?, model, unit, area:{x,y,w,h} } → handle */
+  function build(opts) {
+    const { svg, labelsEl, model, area } = opts;
+    let unit = opts.unit;
+    const fac = model.facility;
+    const L = layout(fac, model.inputs);
+    // Fit: centre the projected bounding box (plus label headroom) in the area,
+    // shrinking the unit if a large hospital would not fit at the styled size.
+    function measure(u) {
+      const P0 = (x, y, z = 0) => [(x - y) * C30 * u, (x + y) * S30 * u - z * u];
+      const m = { P0, minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity };
+      const grow = p => { m.minX = Math.min(m.minX, p[0]); m.maxX = Math.max(m.maxX, p[0]); m.minY = Math.min(m.minY, p[1]); m.maxY = Math.max(m.maxY, p[1]); };
+      L.boxes.forEach(b => { const z1 = (b.z0 || 0) + b.h; [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.d], [b.x + b.w, b.y + b.d]].forEach(([x, y]) => { grow(P0(x, y, 0)); grow(P0(x, y, z1)); }); });
+      grow(P0(L.exit[0], L.exit[1]));
+      if (labelsEl) L.labels.forEach(l => { const p = P0(...l.at); grow([p[0] - 80, p[1] - l.lift - 52]); grow([p[0] + 80, p[1]]); });
+      return m;
+    }
+    let m = measure(unit);
+    for (let i = 0; i < 3; i++) {
+      const k = Math.min(area.w / (m.maxX - m.minX), area.h / (m.maxY - m.minY));
+      if (k >= 1) break;
+      unit *= k * .99;
+      m = measure(unit);
+    }
+    const { P0, minX, maxX, minY, maxY } = m;
+    const ox = area.x + area.w / 2 - (minX + maxX) / 2, oy = area.y + area.h / 2 - (minY + maxY) / 2;
+    const P = (x, y, z = 0) => { const p = P0(x, y, z); return [p[0] + ox, p[1] + oy]; };
+
+    svg.innerHTML = '';
+    const root = svgEl('g', { class: 'h-root' }, svg);
+    const items = [];
+    const T = {
+      floorEnd: UI.cssNum('--build-floor-end'), boxesStart: UI.cssNum('--build-boxes-start'), boxesEnd: UI.cssNum('--build-boxes-end'),
+      boxDur: UI.cssNum('--build-box-dur'), connStart: UI.cssNum('--build-connectors-start'), labelsStart: UI.cssNum('--build-labels-start')
+    };
+
+    // Floor plate + grid
+    let fx0 = Infinity, fx1 = -Infinity, fy0 = Infinity, fy1 = -Infinity;
+    L.boxes.forEach(b => { fx0 = Math.min(fx0, b.x); fx1 = Math.max(fx1, b.x + b.w); fy0 = Math.min(fy0, b.y); fy1 = Math.max(fy1, b.y + b.d); });
+    fx0 = Math.floor(fx0 - 1); fy0 = Math.floor(fy0 - 1); fx1 = Math.ceil(Math.max(fx1, L.exit[0]) + 1); fy1 = Math.ceil(fy1 + 1);
+    const floor = svgEl('g', { class: 'h-floor' }, root);
+    svgEl('path', { class: 'floor-plate', d: pathOf([P(fx0, fy0), P(fx1, fy0), P(fx1, fy1), P(fx0, fy1)]) + 'Z' }, floor);
+    for (let gx = fx0; gx <= fx1; gx++) svgEl('path', { class: 'floor-grid', d: pathOf([P(gx, fy0), P(gx, fy1)]) }, floor);
+    for (let gy = fy0; gy <= fy1; gy++) svgEl('path', { class: 'floor-grid', d: pathOf([P(fx0, gy), P(fx1, gy)]) }, floor);
+    items.push({ el: floor, start: 0, end: T.floorEnd, kind: 'fade' });
+
+    // Connectors (drawn on the floor, under the boxes)
+    const conn = svgEl('g', { class: 'h-conn' }, root);
+    const all = [...L.paths.toScanner, ...L.paths.toReading, L.paths.toReport, L.paths.toExit, L.paths.toDesk, ...L.paths.toClinic];
+    all.forEach((pts, i) => {
+      const scr = pts.map(q => P(q[0], q[1]));
+      let len = 0; for (let j = 1; j < scr.length; j++) len += Math.hypot(scr[j][0] - scr[j - 1][0], scr[j][1] - scr[j - 1][1]);
+      const el = svgEl('path', { class: 'connector', d: pathOf(scr) }, conn);
+      const s = T.connStart + i * .01;
+      items.push({ el, start: s, end: s + .1, kind: 'draw', len: Math.max(1, len) });
+    });
+    svgEl('path', { class: 'lane-qct', d: pathOf(L.lane.map(q => P(q[0], q[1]))) }, conn);
+
+    // Boxes: painted back-to-front, assembled in flow order
+    const boxesG = svgEl('g', { class: 'h-boxes' }, root);
+    const depth = b => (b.x + b.w / 2) + (b.y + b.d / 2);
+    [...L.boxes].sort((a, b) => depth(a) - depth(b) || (a.z0 || 0) - (b.z0 || 0)).forEach(b => { b.g = drawBox(boxesG, P, b, unit); });
+    const span = T.boxesEnd - T.boxesStart;
+    L.boxes.forEach((b, i) => {
+      const s = T.boxesStart + i * (span / L.boxes.length);
+      items.push({ el: b.g, start: s, end: s + T.boxDur, kind: 'drop' });
+    });
+
+    // Labels (HTML)
+    if (labelsEl) {
+      labelsEl.innerHTML = '';
+      L.labels.forEach((lb, i) => {
+        const p = P(...lb.at);
+        const d = document.createElement('div');
+        d.className = 'node-label' + (lb.qct ? ' is-qct' : '');
+        d.dataset.id = lb.id;
+        d.style.left = p[0].toFixed(1) + 'px';
+        d.style.top = p[1].toFixed(1) + 'px';
+        d.style.setProperty('--lift', lb.lift + 'px');
+        d.innerHTML = `<div class="nl-text"><div class="nl-over">${UI.esc(lb.over)}</div><div class="nl-name">${UI.esc(lb.name)}</div>${lb.qct ? `<div class="nl-qct">${UI.esc(CONFIG.copy.qctTag)}</div>` : ''}</div><i class="nl-leader"></i><b class="nl-dot"></b>`;
+        labelsEl.appendChild(d);
+        const s = T.labelsStart + i * .015;
+        items.push({ el: d, start: s, end: s + .06, kind: 'fade' });
+      });
+    }
+
+    return { P, L, items, unit, drop: UI.cssNum('--build-drop') };
+  }
+
+  // t: 0..1 progress through the build phase, or Infinity for fully built.
+  function applyBuild(h, t) {
+    for (const it of h.items) {
+      const p = t === Infinity ? 1 : UI.clamp01((t - it.start) / (it.end - it.start));
+      const e = UI.easeOut(p);
+      if (it.kind === 'fade') it.el.style.opacity = p >= 1 ? '' : e;
+      else if (it.kind === 'drop') {
+        it.el.style.opacity = p >= 1 ? '' : e;
+        it.el.style.transform = p >= 1 ? '' : `translate(0px,${(-h.drop * (1 - e)).toFixed(1)}px)`;
+      } else if (it.kind === 'draw') {
+        if (p >= 1) { it.el.style.strokeDasharray = ''; it.el.style.strokeDashoffset = ''; }
+        else { it.el.style.strokeDasharray = it.len; it.el.style.strokeDashoffset = (it.len * (1 - e)).toFixed(1); }
+      }
+    }
+  }
+
+  return { build, applyBuild };
+})();
+
+
+/* =====================================================================
+   === RENDER: patient particles (canvas) ===
+   Dots are a visual sample of engine output: fates per month are
+   allocated in the same proportions the ENGINE reports. Positions are a
+   pure function of time, so dev jumps and replays are exact.
+   ===================================================================== */
+const PARTICLES = (() => {
+  const TAU = Math.PI * 2;
+  const ORDER = { in: 0, scan: 1, toRead: 2, read: 3, toReport: 4, exit: 5, toDesk: 5, desk: 6, drift: 6, toClinic: 7, clinic: 8 };
+
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      let t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function niceCeil(v) {
+    if (v <= 1) return 1;
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    for (const m of [1, 2, 2.5, 5, 10]) if (m * p >= v) return m * p;
+    return 10 * p;
+  }
+  const dist = (a, b) => Math.hypot(b[0] - a[0], b[1] - a[1]);
+  const polyLen = pts => { let L = 0; for (let i = 1; i < pts.length; i++) L += dist(pts[i - 1], pts[i]); return L; };
+  function along(pts, d) {
+    for (let i = 1; i < pts.length; i++) {
+      const l = dist(pts[i - 1], pts[i]);
+      if (d <= l || i === pts.length - 1) {
+        const t = l ? Math.min(1, d / l) : 1;
+        return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t];
+      }
+      d -= l;
+    }
+    return pts[pts.length - 1];
+  }
+  const move = (pts, speed, tag) => { const L = polyLen(pts); return { type: 'move', pts, L, dur: Math.max(.05, L / speed), tag }; };
+  const dwell = (at, dur, tag) => ({ type: 'dwell', at, dur, tag });
+
+  function timing() {
+    const s = n => UI.cssMs(n) / 1000;
+    return {
+      speed: UI.cssNum('--particle-speed'), yearTitle: s('--t-year-title'), month: s('--t-month'), lead: s('--t-lead'),
+      dwellScan: s('--t-dwell-scan'), dwellRead: s('--t-dwell-read'), dwellDesk: s('--t-dwell-desk'), dwellClinic: s('--t-dwell-clinic'),
+      drift: s('--t-drift'), pulse: s('--t-pulse')
+    };
+  }
+
+  function schedule(model, L, scenarioId) {
+    const T = timing(), V = CONFIG.visual;
+    const scn = model[scenarioId], base = model.without;
+    const rng = mulberry32(V.seed + model.inputs.beds * 7 + model.inputs.ctVolume + (scenarioId === 'with' ? 101 : 0));
+    const scansPerDot = niceCeil(base.totals.scans / 12 / V.dotsPerMonth);
+    const findingsPerDot = niceCeil(base.totals.findings / 12 / V.findingDotsPerMonth);
+    const list = [];
+    let prevF = 0, prevMiss = 0, prevLost = 0;
+
+    function make(fate, spawn) {
+      const k = Math.floor(rng() * L.scannersC.length);
+      const j = (rng() - .5) * .34;
+      const off = p => [p[0] + j, p[1] + j];
+      const segs = [
+        move(L.paths.toScanner[k].map(off), T.speed, 'in'),
+        dwell(off(L.scannersC[k]), T.dwellScan * (.8 + rng() * .4), 'scan'),
+        move(L.paths.toReading[k].map(off), T.speed, 'toRead'),
+        dwell(off(L.nodes.reading), T.dwellRead, 'read'),
+        move(L.paths.toReport.map(off), T.speed, 'toReport')
+      ];
+      if (fate === 'normal' || fate === 'missed') {
+        segs.push(move(L.paths.toExit.map(off), T.speed, 'exit'));
+      } else if (fate === 'completed') {
+        const c = Math.floor(rng() * L.clinicsC.length);
+        segs.push(move(L.paths.toDesk.map(off), T.speed, 'toDesk'));
+        segs.push(dwell(off(L.nodes.desk), T.dwellDesk, 'desk'));
+        segs.push(move(L.paths.toClinic[c].map(off), T.speed, 'toClinic'));
+        segs.push(dwell(off(L.clinicsC[c]), T.dwellClinic, 'clinic'));
+      } else { // lost: stalls on the way to the desk, drifts off the path, fades
+        const pts = L.paths.toDesk.map(off);
+        const stop = along(pts, (.3 + rng() * .45) * polyLen(pts));
+        segs.push(move([pts[0], stop], T.speed, 'toDesk'));
+        const drift = move([stop, [stop[0] + .9 + rng() * .5, stop[1] + (rng() - .5) * .4]], 1, 'drift');
+        drift.dur = T.drift;
+        segs.push(drift);
+      }
+      let total = 0;
+      segs.forEach(s => { s.t0 = total; total += s.dur; });
+      return { fate, finding: fate !== 'normal', spawn: Math.max(0, spawn), segs, total, readT0: segs[3].t0 };
+    }
+
+    for (let m = 0; m < 12; m++) {
+      const row = scn.monthly[m], cum = scn.cumulative[m];
+      const nNorm = Math.max(1, Math.round(row.scans / scansPerDot));
+      const fCum = Math.round(cum.findings / findingsPerDot);
+      const nF = Math.max(0, fCum - prevF); prevF = fCum;
+      const share = k => cum.findings ? cum[k] / cum.findings : 0;
+      const nMiss = Math.min(nF, Math.max(0, Math.round(fCum * share('missed')) - prevMiss));
+      const nLost = Math.min(nF - nMiss, Math.max(0, Math.round(fCum * share('lost')) - prevLost));
+      prevMiss += nMiss; prevLost += nLost;
+      const fates = [];
+      for (let i = 0; i < nMiss; i++) fates.push('missed');
+      for (let i = 0; i < nLost; i++) fates.push('lost');
+      while (fates.length < nF) fates.push('completed');
+      for (let i = fates.length - 1; i > 0; i--) { const r = Math.floor(rng() * (i + 1)); [fates[i], fates[r]] = [fates[r], fates[i]]; }
+      const t0 = T.yearTitle + m * T.month - T.lead;
+      for (let i = 0; i < nNorm; i++) list.push(make('normal', t0 + (i + rng() * .85) / nNorm * T.month));
+      fates.forEach((f, i) => list.push(make(f, t0 + (i + .2 + rng() * .6) / fates.length * T.month)));
+    }
+    list.sort((a, b) => a.spawn - b.spawn);
+    let nl = 0, nm = 0;
+    list.forEach(p => {
+      if (p.fate === 'lost') p.label = nl++ % V.labelEveryNthLost === 0;
+      if (p.fate === 'missed') p.label = nm++ % V.labelEveryNthMissed === 0;
+    });
+    const maxLife = list.reduce((m, p) => Math.max(m, p.total), 0);
+    return { list, scansPerDot, findingsPerDot, withQCT: scenarioId === 'with', T, maxLife };
+  }
+
+  function evaluate(p, t) {
+    const age = t - p.spawn;
+    if (age < 0 || age > p.total) return null;
+    let s = p.segs[0];
+    for (const sg of p.segs) { if (age >= sg.t0) s = sg; else break; }
+    const u = UI.clamp01((age - s.t0) / s.dur);
+    const pos = s.type === 'move' ? along(s.pts, s.L * (s.tag === 'drift' ? UI.easeOut(u) : u)) : s.at;
+    return { pos, tag: s.tag, u, age };
+  }
+
+  function look() {
+    const v = n => UI.cssVar(n);
+    return {
+      particle: UI.rgb(v('--c-particle')), finding: UI.rgb(v('--c-particle-finding')), ring: v('--c-particle-ring'),
+      qct: UI.rgb(v('--c-particle-qct')), lost: UI.rgb(v('--c-particle-lost')), closed: UI.rgb(v('--c-particle-closed')),
+      r: UI.cssNum('--particle-r'), rf: UI.cssNum('--particle-finding-r'), gap: UI.cssNum('--particle-ring-gap'), pulseR: UI.cssNum('--pulse-r'),
+      font: `500 ${UI.cssVar('--fs-particle-label')} ${UI.cssVar('--f-label')}`
+    };
+  }
+
+  function draw(ctx, sched, t, P, K) {
+    const toCss = c => `rgb(${c.join(',')})`;
+    ctx.font = K.font;
+    for (const p of sched.list) {
+      if (p.spawn > t) break;
+      const ev = evaluate(p, t);
+      if (!ev) continue;
+      const [sx, sy] = P(ev.pos[0], ev.pos[1], .12);
+      const o = ORDER[ev.tag];
+      const flagged = sched.withQCT && p.finding && p.fate !== 'missed';
+      let alpha = 1, col = K.particle, r = K.r, ringA = 0, halo = false, pulse = null, arc = null, label = null;
+
+      if (ev.tag === 'in' && ev.age < .5) alpha = ev.age / .5;
+      if (ev.tag === 'scan') alpha = .3;
+      if (ev.tag === 'read') alpha = .5;
+      if (p.finding) { col = K.finding; r = K.rf; ringA = 1; }
+      if (flagged && o >= 3) {
+        col = K.qct; ringA = 0; halo = true;
+        const pa = ev.age - p.readT0;
+        if (pa >= 0 && pa < sched.T.pulse) pulse = pa / sched.T.pulse;
+        if (ev.tag === 'read') alpha = .9;
+      }
+      if (p.fate === 'missed' && o >= 5) {
+        const k = UI.clamp01(ev.u * 2.5);
+        ringA = 1 - k; col = null; r = K.rf + (K.r - K.rf) * k;
+        if (p.label && ev.u < .7) label = { text: CONFIG.copy.particleMissed, a: Math.sin(Math.PI * ev.u / .7) };
+        ctx.fillStyle = UI.mix(K.finding, K.particle, k);
+      }
+      if (ev.tag === 'exit') alpha *= ev.u < .55 ? 1 : 1 - (ev.u - .55) / .45;
+      if (p.fate === 'lost' && ev.tag === 'drift') {
+        halo = false; ringA = 0;
+        ctx.fillStyle = UI.mix(col, K.lost, UI.clamp01(ev.u * 2.2)); col = null;
+        alpha *= 1 - ev.u;
+        if (p.label) label = { text: CONFIG.copy.particleLost, a: Math.sin(Math.PI * ev.u) };
+      }
+      if (p.fate === 'completed' && o >= 6) {
+        if (ev.tag === 'desk' && flagged) arc = ev.u;
+        if (o >= 7) { col = K.closed; halo = false; ringA = 0; }
+      }
+      if (ev.tag === 'clinic') alpha *= 1 - ev.u;
+
+      if (halo) {
+        ctx.globalAlpha = alpha * .4; ctx.lineWidth = 1.2; ctx.strokeStyle = toCss(K.qct);
+        ctx.beginPath(); ctx.arc(sx, sy, r + K.gap + 1, 0, TAU); ctx.stroke();
+      }
+      if (pulse != null) {
+        ctx.globalAlpha = (1 - pulse) * .85; ctx.lineWidth = 2; ctx.strokeStyle = toCss(K.qct);
+        ctx.beginPath(); ctx.arc(sx, sy, r + (K.pulseR - r) * UI.easeOut(pulse), 0, TAU); ctx.stroke();
+      }
+      ctx.globalAlpha = alpha;
+      if (col) ctx.fillStyle = toCss(col);
+      ctx.beginPath(); ctx.arc(sx, sy, r, 0, TAU); ctx.fill();
+      if (ringA > 0) {
+        ctx.globalAlpha = alpha * ringA; ctx.lineWidth = 1.2; ctx.strokeStyle = K.ring;
+        ctx.beginPath(); ctx.arc(sx, sy, r + K.gap, 0, TAU); ctx.stroke();
+      }
+      if (arc != null) {
+        ctx.globalAlpha = 1; ctx.lineWidth = 1.8; ctx.strokeStyle = toCss(K.closed);
+        ctx.beginPath(); ctx.arc(sx, sy, r + K.gap + 2, -Math.PI / 2, -Math.PI / 2 + TAU * UI.easeIO(arc)); ctx.stroke();
+      }
+      if (label && label.a > 0) {
+        ctx.globalAlpha = label.a; ctx.fillStyle = toCss(K.lost);
+        ctx.fillText(label.text, sx + 12, sy - 10);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  return { schedule, draw, look };
+})();
+
+
+/* =====================================================================
+   === RENDER: wall (1920×1080) ===
+   ===================================================================== */
+const WALL = (() => {
+  const W = 1920, H = 1080;
+  let stage, svg, canvas, ctx, labelsEl, introCanvas, ictx, tl, dpr = 1;
+  let modelKey = null, model = null, handle = null, schedules = {}, K = null;
+  let phase = null, lastBuild = null;
+  let ticker = [], counters = {};
+
+  function init() {
+    stage = document.getElementById('wall');
+    UI.fillCopy(stage);
+    svg = stage.querySelector('.hospital');
+    canvas = stage.querySelector('.particles');
+    ctx = canvas.getContext('2d');
+    labelsEl = stage.querySelector('.node-labels');
+    introCanvas = stage.querySelector('.intro-canvas');
+    ictx = introCanvas.getContext('2d');
+    tl = TIMELINE.build(UI.durations());
+
+    const ol = stage.querySelector('.w-ticker-months');
+    ol.innerHTML = CONFIG.copy.months.map(m => `<li>${UI.esc(m)}</li>`).join('');
+    ticker = [...ol.children];
+    stage.querySelectorAll('[data-counter]').forEach(el => {
+      const c = CONFIG.copy.counters[el.dataset.counter];
+      el.querySelector('.c-label').textContent = c.label;
+      el.querySelector('.c-sub').textContent = c.sub;
+      counters[el.dataset.counter] = { value: el.querySelector('.c-value'), vs: el.querySelector('.c-vs') };
+    });
+    resize();
+    addEventListener('resize', resize);
+  }
+
+  function resize() {
+    UI.fit(stage, W, H);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    [canvas, introCanvas].forEach(c => { c.width = W * dpr; c.height = H * dpr; });
+  }
+
+  function ensureModel(state) {
+    const key = JSON.stringify(state.inputs);
+    if (key === modelKey) return;
+    modelKey = key;
+    model = ENGINE.run(state.inputs, CONFIG);
+    const a = UI.cssVar('--wall-scene-area').split(/\s+/).map(Number);
+    handle = HOSPITAL.build({ svg, labelsEl, model, unit: UI.cssNum('--iso-unit'), area: { x: a[0], y: a[1], w: a[2], h: a[3] } });
+    schedules = {};
+    K = PARTICLES.look();
+    lastBuild = null;
+    renderStatic();
+  }
+
+  function sched(id) { return schedules[id] || (schedules[id] = PARTICLES.schedule(model, handle.L, id)); }
+
+  // Things that only change with inputs.
+  function renderStatic() {
+    const c = CONFIG.copy, f = ENGINE.fmt, i = model.inputs, fac = model.facility;
+    const vars = { beds: f.int(i.beds), floors: fac.wardFloors, scanners: fac.scanners, clinics: fac.clinics, region: UI.regionLabel(i.region) };
+    UI.bind(stage, 'beds', f.int(i.beds));
+    UI.bind(stage, 'ctVolume', f.int(i.ctVolume));
+    UI.bind(stage, 'region', UI.regionLabel(i.region));
+    stage.querySelector('.w-build-facts').innerHTML = c.buildFacts.map(s => `<li>${UI.esc(UI.tpl(s, vars))}</li>`).join('');
+    UI.bind(stage, 'outcomeOverline', UI.tpl(c.outcomeOverline, UI.specVars(i)));
+
+    const s = sched('without');
+    const dot = (fill, ring, r) => `<svg width="20" height="20" viewBox="-10 -10 20 20">${ring ? `<circle r="${r + 3.5}" fill="none" stroke="${ring}" stroke-width="1.2"/>` : ''}<circle r="${r}" fill="${fill}"/></svg>`;
+    stage.querySelector('.w-legend').innerHTML = [
+      `<span>${dot('var(--c-particle)', null, 3.4)}${UI.esc(UI.tpl(c.legend.dot, { n: f.int(s.scansPerDot) }))}</span>`,
+      `<span>${dot('var(--c-particle-finding)', 'var(--c-particle-ring)', 5)}${UI.esc(UI.tpl(c.legend.finding, { n: f.int(s.findingsPerDot) }))}</span>`,
+      `<span>${dot('var(--c-particle-lost)', null, 5)}${UI.esc(c.legend.lost)}</span>`,
+      `<span class="lg-qct">${dot('var(--c-particle-qct)', 'var(--c-particle-qct)', 5)}${UI.esc(c.legend.qct)}</span>`
+    ].join('');
+
+    const box = stage.querySelector('.w-metrics');
+    box.innerHTML = UI.metrics(model).map(m => `
+      <article class="w-metric" data-metric="${m.key}">
+        <div class="m-head"><span class="m-label">${UI.esc(m.label)}</span><span class="sample">${UI.esc(c.sample)}</span></div>
+        <div class="m-value">${UI.esc(m.fmt(0))}</div>
+        <div class="m-bars">
+          <div class="m-bar"><span>${UI.esc(c.metricWithout)}</span><i></i><b>${UI.esc(m.key === 'revenue' ? f.usdCompact(m.without) : f.int(m.without))}</b></div>
+          <div class="m-bar is-with"><span>${UI.esc(c.metricWith)}</span><i></i><b>${UI.esc(m.key === 'revenue' ? f.usdCompact(m.with) : f.int(m.with))}</b></div>
+        </div>
+        <div class="m-delta">${UI.esc(m.delta)}</div>
+      </article>`).join('');
+    UI.renderAssumptions(stage.querySelector('.w-assumptions .assump-list'), i);
+  }
+
+  function frame(now) {
+    const st = SYNC.get();
+    const v = deriveView(st, tl);
+    ensureModel(st);
+    if (v.wall !== phase) { phase = v.wall; stage.dataset.phase = phase; }
+
+    const qct = phase === 'with' || phase === 'attract';
+    svg.classList.toggle('qct-on', qct);
+    labelsEl.classList.toggle('qct-on', qct);
+    svg.classList.toggle('blueprint', phase === 'inputs');
+
+    // Build choreography
+    const bt = phase === 'build' ? v.local / tl.d.build : Infinity;
+    if (bt !== Infinity || lastBuild !== Infinity) { HOSPITAL.applyBuild(handle, bt); lastBuild = bt; }
+    if (phase === 'build') {
+      const fs = UI.cssNum('--build-facts-start');
+      stage.querySelectorAll('.w-build-facts li').forEach((li, i) => li.classList.toggle('show', bt > fs + i * .1));
+    }
+
+    // Particles
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    if (phase === 'without' || phase === 'with') {
+      PARTICLES.draw(ctx, sched(phase), v.local / 1000, handle.P, K);
+      topbar(phase, v.local);
+    } else if (phase === 'attract') {
+      const s = sched('with'), loop = 12 * s.T.month, t = s.T.yearTitle + ((now / 1000) % loop);
+      PARTICLES.draw(ctx, s, t, handle.P, K);
+      if (t < s.T.yearTitle + s.maxLife) PARTICLES.draw(ctx, s, t + loop, handle.P, K);
+    }
+    const card = (phase === 'without' || phase === 'with') && v.local < tl.d.yearTitle - 250;
+    stage.querySelector('.w-yearcard').classList.toggle('show', card);
+
+    if (phase === 'intro') drawIntro(st, now); else if (introDirty) { ictx.setTransform(1, 0, 0, 1, 0, 0); ictx.clearRect(0, 0, introCanvas.width, introCanvas.height); introDirty = false; }
+    if (phase === 'outcome') outcome(v.local);
+  }
+
+  function topbar(id, local) {
+    const c = CONFIG.copy, f = ENGINE.fmt;
+    const scn = model[id], base = model.without;
+    const mf = TIMELINE.monthFloat(tl, local);
+    const cv = (s, k) => {
+      if (mf <= 0) return 0;
+      const m = Math.min(11, Math.floor(mf)), fr = mf >= 12 ? 1 : mf - m;
+      const prev = m > 0 ? s.cumulative[m - 1][k] : 0;
+      return prev + (s.cumulative[m][k] - prev) * fr;
+    };
+    UI.bind(stage, 'yearOverline', id === 'with' ? c.yearWithOverline : c.yearWithoutOverline);
+    UI.bind(stage, 'yearTitle', UI.rich(id === 'with' ? c.yearWithTitle : c.yearWithoutTitle), true);
+    UI.bind(stage, 'cardOverline', id === 'with' ? c.cardWithOverline : c.cardWithoutOverline);
+    UI.bind(stage, 'cardTitle', UI.rich(id === 'with' ? c.cardWithTitle : c.cardWithoutTitle), true);
+
+    const setText = (el, s) => { if (el.__v !== s) { el.__v = s; el.innerHTML = s; } };
+    setText(counters.missed.value, f.int(cv(scn, 'missed')));
+    setText(counters.lost.value, f.int(cv(scn, 'lost')));
+    const mi = Math.min(11, Math.floor(mf));
+    setText(counters.turnaround.value, mf <= 0 ? '—' : `${Math.round(scn.monthly[mi].turnaroundDays)}<small>${UI.esc(c.daysUnit)}</small>`);
+    const vs = v => id === 'with' && mf > 0 ? UI.esc(UI.tpl(c.vsWithout, { v })) : '';
+    setText(counters.missed.vs, vs(f.int(cv(base, 'missed'))));
+    setText(counters.lost.vs, vs(f.int(cv(base, 'lost'))));
+    setText(counters.turnaround.vs, vs(mf <= 0 ? '' : Math.round(base.monthly[mi].turnaroundDays) + ' ' + c.daysUnit));
+
+    const pct = (mf / 12 * 100).toFixed(2) + '%';
+    stage.querySelector('.w-ticker-fill').style.width = pct;
+    stage.querySelector('.w-ticker-head').style.left = pct;
+    ticker.forEach((li, i) => {
+      li.classList.toggle('is-past', mf > 0 && i < Math.floor(mf));
+      li.classList.toggle('is-current', mf > 0 && i === Math.min(11, Math.floor(mf)) && mf < 12);
+    });
+  }
+
+  function outcome(local) {
+    const dur = UI.cssMs('--t-countup'), stag = UI.cssMs('--t-countup-stagger');
+    const ms = UI.metrics(model);
+    stage.querySelectorAll('.w-metric').forEach((el, i) => {
+      const m = ms[i];
+      const p = local === Infinity ? 1 : UI.easeOut(UI.clamp01((local - 400 - i * stag) / dur));
+      const txt = m.fmt(m.value * p);
+      const v = el.querySelector('.m-value');
+      if (v.__v !== txt) { v.__v = txt; v.textContent = txt; }
+      const max = Math.max(m.with, m.without, 1);
+      const bars = el.querySelectorAll('.m-bar i');
+      bars[0].style.transform = `scaleX(${(m.without / max * p).toFixed(4)})`;
+      bars[1].style.transform = `scaleX(${(m.with / max * p).toFixed(4)})`;
+    });
+  }
+
+  /* --- Intro: stylised CT volume (illustrative, not anatomy) --- */
+  let introDirty = false;
+  const C30 = Math.cos(Math.PI / 6), S30 = .5;
+  function sliceShape(s) {
+    const [a, b] = CONFIG.intro.findingRange, mid = (a + b) / 2, half = (b - a) / 2;
+    return {
+      body: .78 + .22 * Math.sin(Math.PI * Math.min(1, s * 1.1)),
+      lung: s > .08 && s < .82 ? Math.sin(Math.PI * (s - .08) / .74) : 0,
+      heart: s > .38 && s < .78 ? Math.sin(Math.PI * (s - .38) / .40) : 0,
+      finding: Math.abs(s - mid) < half ? Math.cos((s - mid) / half * Math.PI / 2) : 0
+    };
+  }
+  function shapePaths(c, sh, lw) {
+    // body
+    c.beginPath(); c.ellipse(0, 0, sh.body, sh.body * .66, 0, 0, Math.PI * 2);
+    const parts = [];
+    if (sh.lung > .05) [-1, 1].forEach(sx => parts.push([sx * .44 * sh.body, -.04, .3 * sh.lung * sh.body, .4 * sh.lung * sh.body]));
+    if (sh.heart > .05) parts.push([.12, .1, .2 * sh.heart, .16 * sh.heart]);
+    parts.push([0, .46 * sh.body, .09, .08]);
+    return parts;
+  }
+  function drawSlice(c, s, cx, cy, S, mode, found, K2) {
+    const sh = sliceShape(s);
+    c.setTransform(dpr * C30 * S, dpr * S30 * S, -dpr * C30 * S, dpr * S30 * S, dpr * cx, dpr * cy);
+    const lw = 1 / S;
+    if (mode === 'active') {
+      c.globalAlpha = .5; c.setLineDash([6 / S, 6 / S]); c.lineWidth = lw; c.strokeStyle = K2.active;
+      c.strokeRect(-1.3, -1.3, 2.6, 2.6); c.setLineDash([]);
+    }
+    const parts = shapePaths(c, sh, lw);
+    if (mode === 'ghost') { c.globalAlpha = .06; c.lineWidth = lw; c.strokeStyle = K2.edge; c.stroke(); return; }
+    c.globalAlpha = mode === 'active' ? .96 : .2;
+    c.fillStyle = mode === 'active' ? '#fff' : K2.slice; c.fill();
+    c.globalAlpha = mode === 'active' ? 1 : .35; c.lineWidth = (mode === 'active' ? 2 : 1) * lw;
+    c.strokeStyle = mode === 'active' ? K2.active : K2.edge; c.stroke();
+    if (mode === 'active') {
+      parts.forEach(([x, y, rx, ry]) => { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.lineWidth = 1.2 * lw; c.strokeStyle = K2.edge; c.stroke(); });
+      if (found && sh.finding > .1) { c.beginPath(); c.arc(-.5 * sh.body, -.14, .07 + .05 * sh.finding, 0, Math.PI * 2); c.fillStyle = K2.finding; c.fill(); }
+    }
+  }
+  function drawIntro(st, now) {
+    introDirty = true;
+    const c = ictx, N = CONFIG.intro.slices, s = UI.clamp01(st.introSlice || 0);
+    const active = Math.round(s * (N - 1)), depth = i => i / (N - 1);
+    const [fa, fb] = CONFIG.intro.findingRange, inRange = depth(active) >= fa && depth(active) <= fb;
+    const found = !!st.introFound && inRange;
+    const K2 = {
+      active: UI.cssVar('--c-intro-active'), edge: UI.cssVar('--c-intro-slice-edge'), slice: UI.cssVar('--c-intro-slice'),
+      finding: UI.cssVar('--c-intro-finding'), panel: UI.cssVar('--c-intro-panel'), scan: UI.cssVar('--c-intro-scan'), text: UI.cssVar('--c-dark-ai')
+    };
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, introCanvas.width, introCanvas.height);
+
+    // Left: the stacked volume. Slices above the cut lift away as ghosts.
+    const S = 210, gap = 15, cx = 560, base = 900;
+    for (let i = N - 1; i >= 0; i--) {
+      const above = i < active;
+      const lift = above ? 46 + (active - i) * 5 : 0;
+      drawSlice(c, depth(i), cx, base - (N - 1 - i) * gap - lift, S, above ? 'ghost' : i === active ? 'active' : 'below', found, K2);
+    }
+    c.globalAlpha = 1;
+
+    // Right: the current slice, top-down, with QCT scan lines.
+    const px = 1100, py = 250, pw = 640, ph = 640, ccx = px + pw / 2, ccy = py + ph / 2, R = 250;
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    c.fillStyle = K2.panel;
+    c.beginPath(); c.roundRect ? c.roundRect(px, py, pw, ph, 22) : c.rect(px, py, pw, ph); c.fill();
+    c.save(); c.beginPath(); c.rect(px, py, pw, ph); c.clip();
+    const sh = sliceShape(depth(active));
+    c.setTransform(dpr * R, 0, 0, dpr * R, dpr * ccx, dpr * ccy);
+    const parts = shapePaths(c, sh, 1 / R);
+    c.globalAlpha = .08; c.fillStyle = K2.scan; c.fill();
+    c.globalAlpha = .9; c.lineWidth = 1.6 / R; c.strokeStyle = K2.scan; c.stroke();
+    parts.forEach(([x, y, rx, ry]) => { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.globalAlpha = .7; c.lineWidth = 1.2 / R; c.stroke(); });
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const sweep = UI.cssMs('--t-scan-sweep') * (inRange && !found ? .55 : 1);
+    const lines = inRange && !found ? 3 : 1;
+    for (let k = 0; k < lines; k++) {
+      const y = py + (((now / sweep) + k / lines) % 1) * ph;
+      const g = c.createLinearGradient(0, y - 90, 0, y), sc = UI.rgb(K2.scan).join(',');
+      g.addColorStop(0, `rgba(${sc},0)`); g.addColorStop(1, `rgba(${sc},.16)`);
+      c.globalAlpha = 1; c.fillStyle = g; c.fillRect(px, y - 90, pw, 90);
+      c.globalAlpha = .85; c.fillStyle = K2.scan; c.fillRect(px, y - 1, pw, 1.5);
+    }
+    if (found && sh.finding > .1) {
+      const fx = ccx - .5 * sh.body * R, fy = ccy - .14 * R, pulse = (Math.sin(now / 420) + 1) / 2;
+      c.globalAlpha = 1; c.fillStyle = K2.finding;
+      c.beginPath(); c.arc(fx, fy, 6 + 6 * sh.finding, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = .5 + .4 * pulse; c.strokeStyle = K2.finding; c.lineWidth = 2;
+      c.beginPath(); c.arc(fx, fy, 24 + 5 * pulse, 0, Math.PI * 2); c.stroke();
+      c.globalAlpha = 1; c.lineWidth = 1; c.beginPath(); c.moveTo(fx - 30, fy); c.lineTo(px + 36, fy); c.lineTo(px + 36, py + 60); c.stroke();
+      c.fillStyle = K2.finding; c.font = `500 ${UI.cssVar('--fs-intro-label')} ${UI.cssVar('--f-label')}`;
+      c.fillText(CONFIG.copy.introFindingLabel.toUpperCase(), px + 48, py + 52);
+      c.fillStyle = K2.scan; c.font = `400 18px ${UI.cssVar('--f-body')}`;
+      c.fillText(CONFIG.copy.introFindingSub, px + 48, py + 78);
+    }
+    c.restore();
+    c.globalAlpha = 1;
+
+    const pill = stage.querySelector('.w-intro-status');
+    pill.classList.toggle('is-found', found);
+    const vars = { i: active + 1, n: N };
+    UI.bind(stage, 'introPill', UI.tpl(found ? CONFIG.copy.introPillFound : inRange ? CONFIG.copy.introPillAnalysing : CONFIG.copy.introPillReading, vars));
+  }
+
+  return { init, frame, timeline: () => tl };
+})();
+
+
+/* =====================================================================
+   === RENDER: tablet (1180×820) ===
+   ===================================================================== */
+const TABLET = (() => {
+  const W = 1180, H = 820;
+  let stage, tl, modelKey = null, model = null, screen = null, art = null;
+  let dragging = false, rangeSince = null, lastTouch = Date.now(), pending = null;
+
+  function init() {
+    stage = document.getElementById('tablet');
+    UI.fillCopy(stage);
+    tl = TIMELINE.build(UI.durations());
+
+    // Sliders + region buttons from CONFIG
+    stage.querySelectorAll('input[type=range][data-input]').forEach(inp => {
+      const spec = CONFIG.inputs[inp.dataset.input];
+      inp.min = spec.min; inp.max = spec.max; inp.step = spec.step;
+      inp.addEventListener('pointerdown', () => { dragging = true; });
+      inp.addEventListener('input', () => queueInput({ [inp.dataset.input]: +inp.value }));
+    });
+    addEventListener('pointerup', () => { dragging = false; });
+    const seg = stage.querySelector('.seg');
+    seg.innerHTML = Object.keys(CONFIG.regions).map(id => `<button type="button" role="radio" data-region="${id}" aria-checked="false">${UI.esc(CONFIG.regions[id].short || CONFIG.regions[id].label)}</button>`).join('');
+    seg.addEventListener('click', e => { const b = e.target.closest('[data-region]'); if (b) SYNC.set({ inputs: { region: b.dataset.region } }); });
+
+    // Steps list
+    const c = CONFIG.copy;
+    stage.querySelector('.t-steps').innerHTML = ['build', 'without', 'with', 'outcome'].map((id, i) => `<li data-step="${id}"><span class="mono">0${i + 1}</span>${UI.esc(c.steps[id])}</li>`).join('');
+
+    // Actions
+    stage.addEventListener('click', e => {
+      const a = e.target.closest('[data-action]');
+      if (!a || a.tagName === 'FORM') return;
+      const st = SYNC.get();
+      switch (a.dataset.action) {
+        case 'start': SYNC.set({ screen: st.introEnabled ? 'intro' : 'inputs', introSlice: 0, introFound: false }); break;
+        case 'intro-continue':
+        case 'intro-skip': SYNC.set({ screen: 'inputs' }); break;
+        case 'build': SYNC.set({ screen: 'playing', playStartedAt: Date.now(), pausedElapsed: null }); break;
+        case 'skip': SYNC.set({ screen: 'results' }); break;
+        case 'restart': restart(); break;
+      }
+    });
+    stage.querySelector('form[data-action="email"]').addEventListener('submit', e => {
+      e.preventDefault();
+      UI.bind(stage, 'emailNote', CONFIG.copy.emailNoteSent);
+    });
+    ['pointerdown', 'keydown'].forEach(t => addEventListener(t, () => { lastTouch = Date.now(); }, true));
+
+    // Slicer
+    const track = stage.querySelector('.t-slicer-track');
+    const setFrom = ev => {
+      const r = track.getBoundingClientRect(), hh = track.querySelector('.t-slicer-handle').offsetHeight * (r.height / track.clientHeight);
+      queueInput(null, { introSlice: UI.clamp01((ev.clientY - r.top - hh / 2) / (r.height - hh)) });
+    };
+    track.addEventListener('pointerdown', ev => { track.setPointerCapture(ev.pointerId); track.__drag = true; setFrom(ev); });
+    track.addEventListener('pointermove', ev => { if (track.__drag) setFrom(ev); });
+    track.addEventListener('pointerup', () => { track.__drag = false; });
+    track.addEventListener('pointercancel', () => { track.__drag = false; });
+
+    // Welcome art: static default hospital
+    const artModel = ENGINE.run({}, CONFIG);
+    HOSPITAL.build({ svg: stage.querySelector('.t-art'), model: artModel, unit: UI.cssNum('--iso-unit-preview'), area: { x: 10, y: 20, w: 450, h: 480 } });
+
+    resize();
+    addEventListener('resize', resize);
+  }
+
+  // Coalesce high-frequency input (sliders, slicer) to one broadcast per frame.
+  function queueInput(inputs, extra) {
+    pending = pending || {};
+    if (inputs) pending.inputs = Object.assign(pending.inputs || {}, inputs);
+    if (extra) Object.assign(pending, extra);
+  }
+
+  function restart() {
+    const f = SYNC.fresh();
+    SYNC.set({ screen: 'welcome', inputs: f.inputs, introSlice: 0, introFound: false, pausedElapsed: null });
+    UI.bind(stage, 'emailNote', CONFIG.copy.emailNote);
+    const email = stage.querySelector('#in-email'); if (email) email.value = '';
+  }
+
+  function resize() { UI.fit(stage, W, H); }
+
+  function ensureModel(st) {
+    const key = JSON.stringify(st.inputs);
+    if (key === modelKey) return;
+    modelKey = key;
+    model = ENGINE.run(st.inputs, CONFIG);
+    const f = ENGINE.fmt, i = model.inputs, fac = model.facility;
+    UI.bind(stage, 'beds', f.int(i.beds));
+    UI.bind(stage, 'ctVolume', f.int(i.ctVolume));
+    UI.bind(stage, 'facilityCaption', UI.tpl(CONFIG.copy.facilityCaption, { scanners: fac.scanners, clinics: fac.clinics, floors: fac.wardFloors }));
+    HOSPITAL.build({ svg: stage.querySelector('.t-preview svg'), model, unit: UI.cssNum('--iso-unit-preview'), area: { x: 10, y: 16, w: 450, h: 440 } });
+    stage.querySelectorAll('[data-region]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.region === i.region)));
+    UI.bind(stage, 'resultsOverline', UI.tpl(CONFIG.copy.resultsOverline, UI.specVars(i)));
+    stage.querySelector('.t-metrics').innerHTML = UI.metrics(model).map(m => `
+      <div class="t-metric">
+        <div class="m-head"><span class="m-label">${UI.esc(m.label)}</span><span class="sample">${UI.esc(CONFIG.copy.sample)}</span></div>
+        <div class="m-value">${UI.esc(m.fmt(m.value))}</div>
+        <div class="m-sub">${UI.esc(m.delta)}</div>
+      </div>`).join('');
+    UI.renderAssumptions(stage.querySelector('.t-assumptions .assump-list'), i);
+  }
+
+  function frame(now) {
+    if (pending) { SYNC.set(pending); pending = null; }
+    const st = SYNC.get();
+    ensureModel(st);
+    const v = deriveView(st, tl);
+    if (v.tablet !== screen) { screen = v.tablet; stage.dataset.screen = screen; if (screen === 'results') lastTouch = Date.now(); }
+
+    // Sliders follow shared state unless the visitor is mid-drag.
+    if (!dragging) stage.querySelectorAll('input[type=range][data-input]').forEach(inp => { const val = st.inputs[inp.dataset.input]; if (+inp.value !== val) inp.value = val; });
+    stage.querySelectorAll('input[type=range][data-input]').forEach(inp => {
+      const pct = ((inp.value - inp.min) / (inp.max - inp.min) * 100).toFixed(2) + '%';
+      if (inp.__fill !== pct) { inp.__fill = pct; inp.style.setProperty('--fill', pct); }
+    });
+
+    if (screen === 'intro') intro(st, now);
+    if (screen === 'playing') playing(v);
+    if (screen === 'results' && CONFIG.idleResetSeconds && Date.now() - lastTouch > CONFIG.idleResetSeconds * 1000) restart();
+  }
+
+  function intro(st, now) {
+    const c = CONFIG.copy, N = CONFIG.intro.slices, s = UI.clamp01(st.introSlice || 0);
+    const active = Math.round(s * (N - 1)), d = active / (N - 1);
+    const [a, b] = CONFIG.intro.findingRange, inRange = d >= a && d <= b;
+    if (inRange && !st.introFound) {
+      if (rangeSince == null) rangeSince = now;
+      else if (now - rangeSince >= CONFIG.intro.dwellMs) queueInput(null, { introFound: true });
+    } else rangeSince = null;
+
+    const track = stage.querySelector('.t-slicer-track'), handle = track.querySelector('.t-slicer-handle');
+    const top = (s * (track.clientHeight - handle.offsetHeight)).toFixed(1) + 'px';
+    if (handle.style.top !== top) { handle.style.top = top; track.querySelector('.t-slicer-fill').style.height = top; }
+    UI.bind(stage, 'sliceReadout', UI.tpl(c.sliceReadout, { i: active + 1, n: N }));
+    const status = stage.querySelector('.t-intro-status');
+    const state = st.introFound ? 'found' : inRange ? 'reading' : s > 0 ? 'reading' : 'idle';
+    status.className = 't-intro-status is-' + state;
+    UI.bind(stage, 'introStatus', st.introFound ? c.introStatusFound : s > 0 ? c.introStatusReading : c.introStatusIdle);
+    stage.querySelector('[data-action="intro-continue"]').disabled = !st.introFound;
+  }
+
+  function playing(v) {
+    const c = CONFIG.copy, id = v.phase.id;
+    UI.bind(stage, 'phaseName', c.phaseNames[id]);
+    const ids = ['build', 'without', 'with', 'outcome'], idx = ids.indexOf(id);
+    stage.querySelectorAll('.t-steps li').forEach((li, i) => { li.classList.toggle('is-done', i < idx); li.classList.toggle('is-active', i === idx); });
+    const outcomeAt = TIMELINE.offsetOf(tl, 'outcome');
+    const p = Math.min(1, v.elapsed / outcomeAt);
+    stage.querySelector('.t-progress-fill').style.width = (p * 100).toFixed(2) + '%';
+    let month = '';
+    if (id === 'without' || id === 'with') {
+      const mf = TIMELINE.monthFloat(tl, v.local), m = Math.min(11, Math.floor(mf));
+      month = mf > 0 ? UI.tpl(c.monthReadout, { m: m + 1, name: c.months[m] }) : '';
+    }
+    UI.bind(stage, 'playMonth', month);
+    UI.bind(stage, 'playRemaining', UI.tpl(c.remaining, { s: Math.max(0, Math.ceil((outcomeAt - v.elapsed) / 1000)) }));
+  }
+
+  return { init, frame, timeline: () => tl };
+})();
+
+
+/* =====================================================================
+   === DEV: panel (press D) — jump phases, tweak inputs, check sync ===
+   ===================================================================== */
+const DEV = (() => {
+  let el, view, tl;
+  const PHASES = ['welcome', 'intro', 'inputs', 'build', 'without', 'with', 'outcome', 'results'];
+
+  function init(v, timeline) {
+    view = v; tl = timeline;
+    el = document.createElement('div');
+    el.className = 'dev';
+    el.hidden = true;
+    const I = CONFIG.inputs;
+    el.innerHTML = `
+      <div class="dev-head"><span>Dev · ${view}</span><button data-dev="close">close · D</button></div>
+      <div class="dev-row"><div class="dev-k"><span>Jump to phase</span></div><div class="dev-btns">${PHASES.map(p => `<button data-phase="${p}">${p}</button>`).join('')}</div></div>
+      <div class="dev-row"><label>Beds <span data-dev="beds"></span></label><input type="range" data-dev-input="beds" min="${I.beds.min}" max="${I.beds.max}" step="${I.beds.step}"></div>
+      <div class="dev-row"><label>CT / year <span data-dev="ctVolume"></span></label><input type="range" data-dev-input="ctVolume" min="${I.ctVolume.min}" max="${I.ctVolume.max}" step="${I.ctVolume.step}"></div>
+      <div class="dev-row"><label>Region</label><select data-dev-input="region">${Object.keys(CONFIG.regions).map(k => `<option value="${k}">${CONFIG.regions[k].label}</option>`).join('')}</select></div>
+      <div class="dev-row"><div class="dev-k"><span>Intro (CONFIG.intro.enabled)</span></div><div class="dev-btns"><button data-dev="intro"></button></div></div>
+      <div class="dev-row"><div class="dev-k"><span>Playback</span></div><div class="dev-btns">${[.5, 1, 2, 4, 8].map(s => `<button data-speed="${s}">${s}×</button>`).join('')}<button data-dev="pause">pause</button></div></div>
+      <div class="dev-row"><div class="dev-btns"><button data-dev="reset">reset state</button><a href="#preview" style="color:inherit">preview</a><a href="#${view === 'wall' ? 'tablet' : 'wall'}" target="qct-${view === 'wall' ? 'tablet' : 'wall'}" style="color:inherit">open ${view === 'wall' ? 'tablet' : 'wall'}</a></div></div>
+      <pre data-dev="readout"></pre>`;
+    document.body.appendChild(el);
+
+    addEventListener('keydown', e => {
+      if (e.key !== 'd' && e.key !== 'D') return;
+      const t = e.target;
+      if (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'range'))) return;
+      el.hidden = !el.hidden;
+    });
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      if (b.dataset.phase) jump(b.dataset.phase);
+      if (b.dataset.speed) speed(+b.dataset.speed);
+      if (b.dataset.dev === 'close') el.hidden = true;
+      if (b.dataset.dev === 'pause') pause();
+      if (b.dataset.dev === 'intro') SYNC.set({ introEnabled: !SYNC.get().introEnabled });
+      if (b.dataset.dev === 'reset') SYNC.set(Object.assign(SYNC.fresh(), { by: SYNC.id }));
+    });
+    el.querySelectorAll('[data-dev-input]').forEach(inp => inp.addEventListener('input', () => {
+      const k = inp.dataset.devInput;
+      SYNC.set({ inputs: { [k]: k === 'region' ? inp.value : +inp.value } });
+    }));
+  }
+
+  function jump(p) {
+    const st = SYNC.get();
+    if (['welcome', 'intro', 'inputs', 'results'].includes(p)) { SYNC.set({ screen: p, introSlice: p === 'intro' ? 0 : st.introSlice, introFound: p === 'intro' ? false : st.introFound }); return; }
+    const off = TIMELINE.offsetOf(tl, p) + 1;
+    SYNC.set({ screen: 'playing', playStartedAt: Date.now() - off / (st.speed || 1), pausedElapsed: st.pausedElapsed != null ? off : null });
+  }
+  function speed(s) {
+    const st = SYNC.get(), e = SYNC.elapsed();
+    SYNC.set({ speed: s, playStartedAt: Date.now() - e / s });
+  }
+  function pause() {
+    const st = SYNC.get();
+    if (st.pausedElapsed != null) SYNC.set({ pausedElapsed: null, playStartedAt: Date.now() - st.pausedElapsed / (st.speed || 1) });
+    else SYNC.set({ pausedElapsed: SYNC.elapsed() });
+  }
+
+  function frame() {
+    if (!el || el.hidden) return;
+    const st = SYNC.get(), v = deriveView(st, tl);
+    el.querySelectorAll('[data-phase]').forEach(b => b.classList.toggle('is-on', b.dataset.phase === (st.screen === 'playing' ? v.wall : st.screen)));
+    el.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('is-on', +b.dataset.speed === (st.speed || 1)));
+    el.querySelector('[data-dev="pause"]').classList.toggle('is-on', st.pausedElapsed != null);
+    const ib = el.querySelector('[data-dev="intro"]');
+    ib.textContent = st.introEnabled ? 'on' : 'off'; ib.classList.toggle('is-on', st.introEnabled);
+    el.querySelectorAll('[data-dev-input]').forEach(inp => { if (document.activeElement !== inp) inp.value = st.inputs[inp.dataset.devInput]; });
+    el.querySelector('[data-dev="beds"]').textContent = st.inputs.beds;
+    el.querySelector('[data-dev="ctVolume"]').textContent = st.inputs.ctVolume.toLocaleString('en-US');
+    const peers = SYNC.peers(), now = Date.now();
+    const peerTxt = Object.keys(peers).filter(k => k !== 'none').map(k => `${k} ${now - peers[k] < 4000 ? '●' : '○'}`).join('  ') || 'none seen';
+    const e = st.screen === 'playing' ? SYNC.elapsed() : 0;
+    el.querySelector('[data-dev="readout"]').textContent =
+      `screen   ${st.screen}\nwall     ${v.wall}\ntablet   ${v.tablet}\n` +
+      `elapsed  ${(e / 1000).toFixed(1)}s / ${(tl.total / 1000).toFixed(1)}s\n` +
+      (v.local != null && isFinite(v.local) ? `local    ${(v.local / 1000).toFixed(1)}s\n` : '') +
+      `peers    ${peerTxt}\nstate    ${new Date(st.at).toLocaleTimeString()} by ${st.by === SYNC.id ? 'this window' : st.by}`;
+  }
+
+  return { init, frame };
+})();
+
+
+/* =====================================================================
+   === BOOT: hash router + single frame loop ===
+   ===================================================================== */
+(function boot() {
+  let active = null;
+  const started = {};
+
+  function route() {
+    const h = (location.hash || '').replace('#', '').toLowerCase();
+    const view = ['wall', 'tablet', 'preview'].includes(h) ? h : 'launcher';
+    document.getElementById('launcher').hidden = view !== 'launcher';
+    document.getElementById('preview').hidden = view !== 'preview';
+    document.getElementById('wall-root').hidden = view !== 'wall';
+    document.getElementById('tablet-root').hidden = view !== 'tablet';
+    if (view === 'launcher') UI.fillCopy(document.getElementById('launcher'));
+    if (view === 'preview') {
+      document.querySelectorAll('#preview iframe').forEach(f => { if (!f.src) f.src = location.pathname + location.search + '#' + f.dataset.view; });
+    }
+    if ((view === 'wall' || view === 'tablet') && !started[view]) {
+      const mod = view === 'wall' ? WALL : TABLET;
+      mod.init();
+      DEV.init(view, mod.timeline());
+      SYNC.start(view);
+      started[view] = mod;
+    }
+    document.title = CONFIG.copy.title.replace(/\*/g, '') + (view === 'wall' || view === 'tablet' ? ' · ' + view : '');
+    active = started[view] || null;
+  }
+
+  function loop(now) {
+    if (active) { active.frame(now); DEV.frame(); }
+    requestAnimationFrame(loop);
+  }
+
+  addEventListener('hashchange', route);
+  route();
+  requestAnimationFrame(loop);
+  window.__booth = { CONFIG, ENGINE, TIMELINE, SYNC, deriveView };
+})();
+</script>
+</body>
+</html>
