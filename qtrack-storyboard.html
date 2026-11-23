@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qTrack Film Storyboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   FONTS
+   Aether Neue is self-hosted on qure.ai (assets/fonts/AetherNeue-*.woff2).
+   The files are not in this repo yet, so headings fall back to DM Sans 300.
+   IBM Plex Sans / Mono are the product (qTrack UI) fonts, extracted from
+   Command_Centre_v22.html.
+   ===================================================================== */
+@font-face{font-family:"Aether Neue";src:url(assets/fonts/AetherNeue-Light.woff2) format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"Aether Neue";src:url(assets/fonts/AetherNeue-Medium.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"IBM Plex Sans";src:url(assets/fonts/ibm-plex-sans-latin.woff2) format("woff2");font-weight:100 700;font-style:normal;font-display:block}
+@font-face{font-family:"IBM Plex Mono";src:url(assets/fonts/ibm-plex-mono-400-latin.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"IBM Plex Mono";src:url(assets/fonts/ibm-plex-mono-500-latin.woff2) format("woff2");font-weight:500;font-display:block}
+
+/* ---------- qure-type.css (role classes used by the marketing layer) ---------- */
+:root{
+  --font-heading:"Aether Neue","DM Sans",system-ui,sans-serif;
+  --font-body:"DM Sans",system-ui,sans-serif;
+  --font-mono:"DM Mono",ui-monospace,monospace;
+}
+.t-heading-h4{font-family:var(--font-heading);font-weight:300;font-size:var(--fs-h4);line-height:1.05;line-height:round(1.05em,1px);letter-spacing:-0.03em}
+.t-heading-display{font-family:var(--font-heading);font-weight:300;font-size:var(--fs-disp);line-height:.9;line-height:round(.9em,1px);letter-spacing:-0.045em}
+.t-label-overline{font-family:var(--font-mono);font-weight:400;font-size:var(--fs-ov);line-height:1.25;line-height:round(1.25em,1px);letter-spacing:0.06em;text-transform:uppercase}
+.t-label-tag{font-family:var(--font-mono);font-weight:500;font-size:13px;line-height:1.2;line-height:round(1.2em,1px);letter-spacing:0.06em;text-transform:uppercase}
+.t-label-meta{font-family:var(--font-mono);font-weight:500;font-size:12px;line-height:1.2;line-height:round(1.2em,1px);letter-spacing:0.06em;text-transform:uppercase}
+
+/* =====================================================================
+   PAGE (storyboard shell)
+   ===================================================================== */
+:root{
+  --indigo:#2A288C; --peach:#FF7869; --lav:#D9D9FF; --lav-tint:#F5F5FF; --ink:#303030;
+  --page-bg:#FFFFFF; --page-ink:rgba(48,48,48,.78); --page-ink-2:rgba(48,48,48,.6); --page-line:#D9D9FF;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page-bg:#14132e;--page-ink:rgba(255,255,255,.82);--page-ink-2:rgba(255,255,255,.6);--page-line:rgba(217,217,255,.22)}}
+:root[data-theme="dark"]{--page-bg:#14132e;--page-ink:rgba(255,255,255,.82);--page-ink-2:rgba(255,255,255,.6);--page-line:rgba(217,217,255,.22)}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page-bg);color:var(--page-ink);font:400 16px/1.4 var(--font-body);-webkit-font-smoothing:antialiased}
+.sb{max-width:1680px;margin:0 auto;padding:56px 48px 96px}
+.sb-head{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end;border-bottom:1px solid var(--page-line);padding-bottom:28px;margin-bottom:36px}
+.sb-eyebrow{font:400 12px/16px var(--font-mono);letter-spacing:6px;text-transform:uppercase;color:var(--peach);margin:0 0 14px}
+.sb-title{font:300 56px/1 var(--font-heading);letter-spacing:-0.03em;color:var(--indigo);margin:0}
+:root[data-theme="dark"] .sb-title{color:#d9d9ff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sb-title{color:#d9d9ff}}
+.sb-sub{margin:14px 0 0;max-width:72ch;text-wrap:pretty}
+.sb-meta{font:400 13px/1.5 var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:var(--page-ink-2);text-align:right}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:40px 32px}
+.kf{margin:0}
+.kf.wide{grid-column:1/-1}
+.kf-frame{position:relative;aspect-ratio:16/10;border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px var(--page-line);cursor:zoom-in;background:#fff}
+.kf-frame .stage{position:absolute;left:0;top:0;transform-origin:0 0}
+.kf-cap{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;padding:16px 4px 0}
+.kf-num{font:300 40px/1 var(--font-heading);color:var(--peach);letter-spacing:-0.03em;grid-row:span 3}
+.kf-time{font:500 12px/16px var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--page-ink-2)}
+.kf-caption{font:300 22px/1.2 var(--font-heading);color:var(--indigo);letter-spacing:-0.01em;text-wrap:pretty}
+:root[data-theme="dark"] .kf-caption{color:#d9d9ff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .kf-caption{color:#d9d9ff}}
+.kf-motion{font-size:14px;line-height:1.45;color:var(--page-ink-2);text-wrap:pretty}
+.kf-motion b{font-weight:500;color:var(--page-ink)}
+.notes{margin-top:64px;border-top:1px solid var(--page-line);padding-top:32px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
+.notes h3{font:400 12px/16px var(--font-mono);letter-spacing:6px;text-transform:uppercase;color:var(--peach);margin:0 0 14px}
+.notes ul{margin:0;padding-left:18px;font-size:15px;line-height:1.5}
+.notes li{margin-bottom:8px;text-wrap:pretty}
+.notes code{font:400 13px var(--font-mono)}
+.lightbox{position:fixed;inset:0;background:rgba(20,19,46,.86);display:none;align-items:center;justify-content:center;padding:24px;z-index:10;cursor:zoom-out}
+.lightbox.on{display:flex}
+.lightbox .kf-frame{width:min(100%,calc((100vh - 48px)*1.6));cursor:zoom-out}
+@media (max-width:900px){.grid,.notes{grid-template-columns:1fr}.sb{padding:32px 16px 64px}.sb-head{grid-template-columns:1fr}.sb-meta{text-align:left}.sb-title{font-size:40px}}
+
+/* =====================================================================
+   STAGE  1600 x 1000 — the film frame
+   ===================================================================== */
+.stage{
+  /* desktop type tokens pinned on the stage: it is scaled with a transform,
+     so viewport media queries must not change the type inside it */
+  --fs-disp:111px; --fs-h4:35px; --fs-ov:14px;
+  --emph:cubic-bezier(.2,0,0,1);
+  position:relative;width:1600px;height:1000px;overflow:hidden;
+  background:#fff; isolation:isolate;
+  font-family:var(--font-body);color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.stage::before{content:"";position:absolute;inset:0;background:rgba(217,217,255,.4);z-index:-1}
+
+/* ---------- marketing: caption column ---------- */
+.cap{position:absolute;left:96px;top:0;bottom:0;width:420px;display:flex;flex-direction:column;justify-content:center;gap:22px}
+.cap-ml{display:flex;align-items:center;gap:14px;color:var(--indigo)}
+.cap-n{color:var(--peach)}
+.cap-ml .rule{width:32px;height:1px;background:var(--peach)}
+.cap-h{color:var(--indigo);margin:0;text-wrap:pretty;max-width:420px}
+.cap-steps{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.cap-step{display:flex;align-items:center;gap:12px;font:400 14px/18px var(--font-mono);letter-spacing:.04em;text-transform:uppercase;color:rgba(42,40,140,.45)}
+.cap-step.on{color:var(--indigo)}
+
+/* qure check mark (rebuilt — swap for the official SVG) */
+.qcheck{width:22px;height:22px;flex:none;display:inline-block}
+.qcheck circle{fill:none;stroke:var(--peach);stroke-width:1.5}
+.qcheck path{fill:none;stroke:var(--peach);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.qcheck.fill circle{fill:var(--peach)} .qcheck.fill path{stroke:#fff}
+
+/* UPCOMING pill — site pill style, as on qure.ai */
+.upc{display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);color:var(--indigo);font:500 12px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+
+/* qTrack wordmark */
+.wm{display:inline-flex;align-items:flex-start;color:var(--indigo);white-space:nowrap}
+.wm-q{font-family:var(--font-heading);font-weight:300;letter-spacing:-0.045em;line-height:1}
+.wm-move{font-family:var(--font-mono);font-weight:400;color:var(--peach);letter-spacing:.1em;text-transform:uppercase;line-height:1;font-size:.15em;margin-top:2.6em;margin-left:1.1em}
+.hero{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;pointer-events:none}
+.hero .wm{font-size:168px}
+.hero-cap{color:var(--indigo);margin:0}
+
+/* REVIEW tag */
+.review-tag{position:absolute;right:24px;bottom:20px;display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);font:500 12px/1 var(--font-mono);letter-spacing:.06em;color:var(--indigo);z-index:20}
+.review-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--peach)}
+
+/* ---------- device frame ---------- */
+.device{position:absolute;left:576px;top:96px;width:944px;height:808px;border-radius:20px;background:#fff;
+  box-shadow:0 0 0 1px var(--lav),0 32px 64px -28px rgba(42,40,140,.22),0 10px 24px -14px rgba(42,40,140,.14);overflow:hidden}
+.titlebar{height:40px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--lav);background:#fff;position:relative;z-index:2}
+.titlebar .wm{font-size:22px}
+.titlebar .wm-move{font-size:9px;margin-top:9px;margin-left:6px}
+.tb-dots{display:flex;gap:6px;margin-left:auto}
+.tb-dots i{width:8px;height:8px;border-radius:50%;background:#e6e6f2}
+.tb-url{width:260px;height:20px;border-radius:999px;background:#f1f1f8;position:absolute;left:50%;margin-left:-130px}
+.viewport{position:absolute;left:0;right:0;top:40px;bottom:0;overflow:hidden;background:#f3f4f4}
+.cam{position:absolute;left:0;right:0;top:86px;bottom:0;overflow:hidden;transform-origin:50% 50%}
+
+/* =====================================================================
+   PRODUCT — rebuilt from Command_Centre_v22.html (Qure SDS tokens)
+   ===================================================================== */
+.p{--bg1:#fff;--bg2:#f3f4f4;--bg3:#e8e9ea;--bd:#dee1e2;--bd2:#c8cdd1;--bd3:#bbbfc2;--tx:#0c1723;--tx2:#39414c;--tx3:#6b7280;
+   --brand:#008280;--brand3:#e0f0ef;--letter:#036869;--urg3:#fbdee1;--urg:#93212f;--ok3:#d4f1e4;--ok:#005c32;
+   font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--tx);font-size:13px;line-height:1.4}
+.p svg{display:block}
+.ph{background:#e2e4e6;border-radius:6px}
+.ph.l{background:#eceef0}
+.ph-card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+
+/* patient bar */
+.pbar{position:absolute;left:0;right:0;top:0;height:86px;z-index:2;background:var(--bg1);border-bottom:1px solid var(--bd3);padding:12px 20px;display:flex;flex-direction:column;gap:8px;z-index:1}
+.pbar-r1{display:flex;align-items:center;gap:8px;min-width:0}
+.pbar h1{margin:0;font-size:20px;font-weight:700;white-space:nowrap;letter-spacing:-.005em}
+.ib{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2);flex:none}
+.vsep{width:1px;height:22px;background:var(--bd);flex:none}
+.upd{font-size:13px;font-style:italic;color:var(--tx2);white-space:nowrap}
+.pbar-r2{display:flex;align-items:center;gap:4px 18px;font-size:13px;white-space:nowrap}
+.pbar-r2>span{display:inline-flex;align-items:center;gap:6px}
+.pbar-r2 .ic{color:var(--tx2)}
+.dotted{text-decoration:underline dotted #8a9096;text-underline-offset:3px}
+
+/* views */
+.views{position:absolute;inset:0}
+.v{position:absolute;inset:0;opacity:0;visibility:hidden}
+.v.on{opacity:1;visibility:visible}
+.v-head{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-bottom:1px solid var(--bd);background:var(--bg3)}
+.v-head h2{margin:0;font-size:16px;font-weight:600;flex:1}
+.v-body{padding:16px;display:flex;flex-direction:column;gap:16px}
+.sec-lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);white-space:nowrap}
+.lnk{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--tx2)}
+
+/* case at a glance */
+.v-cag,.v-track{background:var(--bg3)}
+.glance{background:var(--bg2);border:1px solid var(--bd);border-radius:16px}
+.glance-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--bd)}
+.glance-top span{flex:1;font-size:13px;font-style:italic;color:var(--tx2)}
+.glance-in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
+.glance-row{display:flex;align-items:center;gap:8px}
+.rs{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.rs p{margin:0 -6px;padding:2px 6px;border-radius:6px;font-size:13px;line-height:1.55;text-wrap:pretty}
+.rs b{font-weight:600}
+.hl{position:relative;background:none;color:inherit;padding:0 2px;margin:0 -2px;border-radius:3px;z-index:0}
+.hl::before{content:"";position:absolute;inset:-1px -1px;border-radius:4px;background:rgba(255,120,105,.2);transform-origin:0 50%;transform:scaleX(var(--hl,0));z-index:-1}
+.hl::after{content:"";position:absolute;left:-1px;right:-1px;bottom:-2px;height:2px;border-radius:2px;background:var(--peach);transform-origin:0 50%;transform:scaleX(var(--hl,0))}
+.hl.ring{box-shadow:0 0 0 1.5px var(--peach);border-radius:4px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.chip{display:inline-flex;align-items:center;height:26px;padding:0 12px;border:1px solid var(--bd3);border-radius:999px;background:#fff;font-size:12px;font-weight:600;color:var(--tx)}
+
+/* case feed */
+.v-feed{background:var(--bg3)}
+.fchips{display:flex;align-items:center;gap:8px;padding:12px 16px 4px}
+.fchip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;border:.5px solid var(--bd2);background:#fff;font-size:12px;font-weight:500;color:var(--tx2)}
+.fchip i{font-style:normal;font-size:11px;font-weight:600;padding:0 5px;border-radius:999px;background:var(--bg2);color:var(--tx2)}
+.fchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.feed{position:relative;padding:8px 16px 0}
+.feed::before{content:"";position:absolute;left:28px;top:34px;bottom:0;width:1px;background:var(--bd3)}
+.fdate{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);padding:14px 0 8px}
+.fcard{position:relative;z-index:1;margin:0 0 10px;border-radius:12px;border:.5px solid var(--bd2);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.06),0 2px 8px rgba(12,23,35,.04);overflow:hidden}
+.fcard-h{display:flex;align-items:center;gap:12px;padding:12px 14px 12px 12px}
+.mod{flex:0 0 32px;width:32px;height:32px;border-radius:8px;border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx2);font-size:11px;font-weight:600;letter-spacing:.04em;display:inline-flex;align-items:center;justify-content:center}
+.fcard-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fcard-t b{font-size:14px;font-weight:600;line-height:20px;white-space:nowrap}
+.fcard-m{display:flex;gap:2px 10px;font-size:12px;line-height:16px;color:var(--tx3);white-space:nowrap}
+.fcard-m em{font-style:normal;color:var(--tx)}
+.sqbtn{height:24px;min-width:24px;padding:0 6px;border:.5px solid var(--bd2);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2)}
+.aitags{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:10px 14px;border-top:.5px solid var(--bd)}
+.aitags>.ai-l{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;border:1px dashed var(--bd2);background:#fff;color:var(--tx2);font-size:12px;line-height:16px;white-space:nowrap}
+.tag.rec{border:1px solid transparent;background:var(--brand3);color:var(--brand)}
+.frow{position:relative;z-index:1;margin:0 0 10px 12px;border-radius:8px;border:.5px solid var(--bd);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.05);display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px}
+.frow b{flex:1;font-size:14px;font-weight:600;line-height:20px}
+.frow .fm{font-size:12px;line-height:16px;color:var(--tx3)}
+.aira-ic{flex:0 0 32px;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3px var(--brand)}
+
+/* CT viewer */
+.v-pv{background:#0f1b27}
+.pv-bar{height:52px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(20,31,42,.97);color:#cdd1d4}
+.pv-bar .ib{color:#cdd1d4;width:36px;height:36px}
+.pv-bar .vsep{background:rgba(255,255,255,.12);height:24px;margin:0 4px}
+.pv-panes{position:absolute;left:12px;right:12px;top:64px;bottom:12px;display:flex;gap:4px}
+.pane{position:relative;flex:1 1 0;overflow:hidden;background:#000}
+.pane img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+.pane-tag{position:absolute;top:20px;left:22px;display:flex;flex-direction:column;gap:2px;text-shadow:0 1px 2px #000}
+.pane-tag b{font-weight:400;font-size:15px;line-height:20px;letter-spacing:.06em;text-transform:uppercase}
+.pane-tag span{font-size:13px;line-height:18px;color:#9ea3a8}
+.pane.cur{box-shadow:inset 0 0 0 1px rgba(0,208,205,.45)}
+.callouts{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.callouts svg{position:absolute;inset:0;overflow:visible}
+.ring{fill:none;stroke:var(--peach);stroke-width:4px;vector-effect:non-scaling-stroke}
+.leader{fill:none;stroke:var(--peach);stroke-width:1px;vector-effect:non-scaling-stroke}
+.arrow{fill:none;stroke:var(--peach);stroke-width:2.5px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.arrow-head{fill:var(--peach)}
+.clabel{position:absolute;transform:translate(-50%,0);display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;background:rgba(15,27,39,.9);box-shadow:inset 0 0 0 1px rgba(255,120,105,.8);color:#fff;font:500 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.clabel em{font-style:normal;color:var(--peach)}
+.clabel.solid{background:var(--peach);box-shadow:none;color:#fff}
+
+/* tracking */
+.track-card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px}
+.track-in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.tl{position:relative;background:#fff;border:1px solid var(--bd);border-radius:12px;height:210px}
+.tl-line{position:absolute;left:11%;right:11%;top:66px;height:2px;background:var(--bd);border-radius:2px}
+.tl-line i{position:absolute;inset:0;background:var(--brand);border-radius:2px;transform-origin:0 50%;transform:scaleX(var(--p,0))}
+.tl-line i.dash{background:none;border-top:2px dashed var(--bd3);top:0}
+.tl-node{position:absolute;top:52px;width:180px;margin-left:-90px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px}
+.tl-dot{width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #fff}
+.tl-dot.pend{background:#fff;color:var(--tx3);box-shadow:0 0 0 4px #fff,inset 0 0 0 1.5px var(--bd3)}
+.tl-dot.miss{background:#fff;color:var(--urg);box-shadow:0 0 0 4px #fff,inset 0 0 0 1.5px var(--urg)}
+.tl-node b{font-size:14px;font-weight:600;line-height:18px}
+.tl-node small{font-size:12px;line-height:16px;color:var(--tx3);margin-top:-6px}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em}
+.badge.ok{background:var(--ok3);color:var(--ok)} .badge.done{background:var(--bg2);color:var(--tx2)}
+.badge.ns{background:var(--urg3);color:var(--urg);letter-spacing:.08em;text-transform:uppercase}
+.badge.brand{background:var(--brand3);color:var(--brand)}
+.flip{position:relative;display:inline-flex;height:20px;perspective:300px}
+.pulse{position:absolute;left:-6px;right:-6px;top:-6px;bottom:-6px;border-radius:999px;box-shadow:0 0 0 2px var(--peach);opacity:0}
+
+/* letter flow */
+.v-letter{background:var(--bg3)}
+.prompt{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 14px 12px 12px;box-shadow:0 1px 2px rgba(12,23,35,.05)}
+.prompt p{margin:0;flex:1;font-size:14px;line-height:20px}
+.prompt p span{color:var(--tx3)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:8px;font:600 13px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
+.btn.pri{background:var(--brand);color:#fff}
+.btn.sec{background:#fff;color:var(--tx2);box-shadow:inset 0 0 0 1px var(--bd2)}
+.steps{display:flex;align-items:center;gap:0}
+.step{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 14px 0 8px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--bd2);font-size:13px;font-weight:600;color:var(--tx3);white-space:nowrap;position:relative;overflow:hidden}
+.step .sd{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1.5px var(--bd3);color:#fff;font-size:11px}
+.step.act{color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand);background:var(--brand3)}
+.step.act .sd{box-shadow:inset 0 0 0 1.5px var(--brand)}
+.step.done{color:var(--tx);box-shadow:inset 0 0 0 1px var(--bd2)}
+.step.done .sd{background:var(--brand);box-shadow:none}
+.step .shim{position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.75) 50%,transparent 80%);transform:translateX(-100%)}
+.step-join{width:28px;height:1px;background:var(--bd3)}
+.checks{display:flex;gap:8px;padding-left:2px}
+.ck{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px 0 6px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 .5px var(--bd2);font-size:12px;color:var(--tx2)}
+.ck .sd{width:16px;height:16px;border-radius:50%;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center}
+.ck em{font-style:normal;color:var(--tx3)}
+.lcard{border-radius:8px;border:.5px solid var(--letter);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.05);overflow:hidden}
+.lcard-h{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;background:var(--letter);color:#fff}
+.lcard-h b{flex:1;font-size:14px;font-weight:600;line-height:20px}
+.lcard-h small{font-size:12px;line-height:16px;color:rgba(255,255,255,.9)}
+.lcard-ic{flex:0 0 32px;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#2f6fe0;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3px currentColor}
+.lcard-b{padding:14px 16px 16px;white-space:pre-wrap;font-size:14px;line-height:20px;min-height:236px}
+.caret{display:inline-block;width:1.5px;height:16px;background:var(--brand);vertical-align:-3px;margin-left:1px}
+
+/* upcoming */
+.v-up{background:var(--bg3)}
+.up-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+.ucard{background:#fff;border:1px solid var(--bd);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:0 1px 2px rgba(12,23,35,.05)}
+.ucard-h{display:flex;align-items:center;gap:8px}
+.ucard-h .sec-lbl{flex:1}
+.ucard h3{margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em}
+.flow{position:relative;height:250px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px}
+.fnode{position:absolute;left:24px;right:24px;height:52px;border-radius:10px;background:#fff;border:.5px solid var(--bd2);box-shadow:0 1px 2px rgba(12,23,35,.06);display:flex;align-items:center;gap:10px;padding:0 12px}
+.fnode .k{font:500 10px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);width:46px}
+.fnode b{font-size:14px;font-weight:600}
+.fnode .badge{margin-left:auto}
+.flow svg{position:absolute;inset:0}
+.flow .conn{fill:none;stroke:var(--brand);stroke-width:1.5}
+.vrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:.5px solid var(--bd2);font-size:13px}
+.vrow .sd{width:20px;height:20px;border-radius:50%;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.vrow b{font-weight:600}
+.vrow span{margin-left:auto;font-size:12px;color:var(--tx3)}
+.doc{position:relative;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;height:362px;overflow:hidden}
+.dsec{background:#fff;border:.5px solid var(--bd2);border-radius:8px;padding:9px 12px;display:grid;grid-template-columns:130px 1fr;gap:4px 12px;font-size:12.5px;line-height:17px}
+.dsec dt{font:500 10px/17px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin:0}
+.dsec dd{margin:0;color:var(--tx)}
+.dsec dd b{font-weight:600}
+.dsec.ghost{background:transparent;border-style:dashed;color:transparent}
+.dsec.ghost *{visibility:hidden}
+
+/* ---------------- keyframe states ---------------- */
+.stage .hero,.stage .cap,.stage .device{transition:none}
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     STAGE TEMPLATE — same markup the Phase 2 film will animate
+     ===================================================================== -->
+<template id="stage-tpl">
+<div class="stage">
+
+  <!-- marketing: caption column -->
+  <div class="cap">
+    <div class="cap-ml t-label-overline"><span class="cap-n">01</span><span class="rule"></span><span class="cap-mlt">Report summary</span></div>
+    <h2 class="cap-h t-heading-h4">One longitudinal record, including the finding, priors, history and care to date.</h2>
+    <div class="cap-steps" hidden></div>
+  </div>
+
+  <!-- device -->
+  <div class="device">
+    <div class="titlebar">
+      <span class="wm tb-wm"><span class="wm-q">qTrack</span><span class="wm-move">Move</span></span>
+      <span class="tb-url"></span>
+      <span class="tb-dots"><i></i><i></i><i></i></span>
+    </div>
+    <div class="viewport p">
+        <!-- patient bar (anonymised) -->
+        <header class="pbar">
+          <div class="pbar-r1">
+            <h1>John Doe | 64M · 01/01/1962 · QR-0000-0000-XX</h1>
+            <span class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+            <span class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></span>
+            <span class="vsep"></span>
+            <span class="upd">Patient profile updated 12 minutes ago</span>
+          </div>
+          <div class="pbar-r2">
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>(555) 010-0000</span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>john.doe@example.com</span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span class="dotted">100 Example St, Springfield</span></span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg></span>Dr. Jane Doe, MD</span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/></svg></span>Health Plan</span>
+          </div>
+        </header>
+      <div class="cam">
+
+
+        <div class="views">
+
+          <!-- 1 · CASE AT A GLANCE → REPORT SUMMARY -->
+          <section class="v v-cag" data-view="cag">
+            <div class="v-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr1" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr1)" stroke-width="2.2" stroke-linecap="round"/></svg>
+              <h2>Case at a glance</h2>
+            </div>
+            <div class="v-body">
+              <div class="glance">
+                <div class="glance-top"><span>Updated 12 minutes ago</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></div>
+                <div class="glance-in">
+                  <div class="glance-row"><span class="sec-lbl">Report summary</span><span style="flex:1"></span><span class="lnk">Case feed <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-8 8M10 20H4v-6M4 20l8-8"/></svg></span></div>
+                  <div class="rs">
+                    <p class="rs-l">LDCT chest (Jun 3, 2026) found a <b><mark class="hl" data-hl="1">4mm solid nodule</mark>, right upper lobe</b> — Lung-RADS 2. Referred by Dr. Jane Doe following annual screening visit.</p>
+                    <p class="rs-l">Latest: CT chest without contrast (Jun 5, 2026) shows <b><mark class="hl" data-hl="2">interval growth to 8mm</mark></b> — <mark class="hl" data-hl="3">Lung-RADS 4A</mark>. PET-CT and/or tissue sampling recommended.</p>
+                    <p class="rs-l">Ancillary: <b>moderate coronary calcification</b> noted on the same scan — flagged for cardiology correlation.</p>
+                    <div class="chips"><span class="chip">CT Chest Jun 5, 2026</span><span class="chip">LDCT May 23, 2026</span><span class="chip">Biopsy Apr 18, 2025</span></div>
+                  </div>
+                </div>
+              </div>
+              <!-- context reduced to placeholders -->
+              <div class="glance" style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
+                <div class="ph" style="width:150px;height:10px"></div>
+                <div class="ph-card"><div class="ph l" style="width:62%;height:10px"></div><div class="ph l" style="width:78%;height:10px"></div><div class="ph l" style="width:54%;height:10px"></div></div>
+              </div>
+              <div class="ph" style="width:180px;height:10px;margin-top:4px"></div>
+              <div class="ph-card"><div class="ph l" style="width:70%;height:10px"></div><div class="ph l" style="width:58%;height:10px"></div></div>
+            </div>
+          </section>
+
+          <!-- 2 · CASE FEED -->
+          <section class="v v-feed" data-view="feed">
+            <div class="v-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round"><path d="M4 5h4M4 12h4M4 19h4M8 5v14M12 5h8M12 12h6M12 19h8"/></svg>
+              <h2>Case feed</h2>
+            </div>
+            <div class="fchips">
+              <span class="fchip on">All</span><span class="fchip">Decisions <i>0</i></span><span class="fchip">Letters <i>2</i></span><span class="fchip">Forms <i>3</i></span><span class="fchip">Notes <i>3</i></span><span class="fchip">DICOMs <i>1</i></span><span class="fchip">Reports <i>3</i></span>
+            </div>
+            <div class="feed">
+              <div class="fitem"><div class="fdate">Jun 3, 2026</div>
+                <div class="fcard">
+                  <div class="fcard-h"><span class="mod">CT</span><span class="fcard-t"><b>CT LUNG SCREENING</b><span class="fcard-m"><span>Exam date <em>Jun 2, 2026</em></span><span>Qure.ai · Jun 3, 2026 · 11:42 AM</span></span></span>
+                    <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+                  <div class="aitags"><span class="ai-l">AI tags</span>
+                    <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Indication: lung cancer screening · &gt;20 pack year</span>
+                    <span class="tag rec">Nodule size: &lt;6mm</span>
+                    <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Priority: Routine</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fitem">
+                <div class="frow"><span class="aira-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr2" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr2)" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>Report summary</b><span class="fm">Aira · Jun 3, 2026 · 11:42 AM</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+              </div>
+              <div class="fitem"><div class="fdate">Jun 2, 2026</div>
+                <div class="fcard">
+                  <div class="fcard-h"><span class="mod">CT</span><span class="fcard-t"><b>CT CHEST</b><span class="fcard-m"><span>Exam date <em>Jun 2, 2026</em></span><span>Qure.ai · Jun 2, 2026 · 10:05 AM</span></span></span>
+                    <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+                  <div class="aitags"><span class="ai-l">AI tags</span>
+                    <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Recommendation present: Yes</span>
+                    <span class="tag rec">Nodule size: &gt;6mm</span>
+                    <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Priority: Low</span>
+                  </div>
+                </div>
+              </div>
+              <div class="fitem"><div class="fdate">May 28, 2026</div>
+                <div class="fcard">
+                  <div class="fcard-h"><span class="mod" style="font-size:10px">ASMT</span><span class="fcard-t"><b>LUNG SCREENING ELIGIBILITY ASSESSMENT</b><span class="fcard-m"><span>Exam date <em>May 28, 2026</em></span><span>Screening program · May 28, 2026 · 04:15 PM</span></span></span>
+                    <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+                  <div class="aitags"><span class="ai-l">AI tags</span>
+                    <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Indication: lung cancer screening · &gt;20 pack year</span>
+                    <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Eligibility: met</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3 · CT COMPARISON -->
+          <section class="v v-pv" data-view="pv">
+            <div class="pv-bar">
+              <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/></svg></span>
+              <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="9" width="8" height="11" rx="1"/></svg></span>
+              <span class="vsep"></span>
+              <span class="ib"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M7 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zM10.3 10.3 14 14M5 6.5h4M7 4.5v4"/></svg></span>
+              <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="10" y="3" width="4" height="18" rx="1"/></svg></span>
+              <span class="ib"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1"/></svg></span>
+              <span class="ib" style="background:rgba(0,208,205,.14);color:#33dad8;border-radius:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></span>
+              <span style="flex:1"></span>
+              <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+            </div>
+            <div class="pv-panes">
+              <div class="pane cur"><img class="ct-img" data-ct="current" src="assets/ct-current.webp" alt="Axial chest CT, current study, cropped to the nodule"><div class="pane-tag"><b style="color:#ffb400">Current</b><span>Jun 5, 2026</span></div></div>
+              <div class="pane pri"><img class="ct-img" data-ct="prior" src="assets/ct-prior.webp" alt="Axial chest CT, prior study, cropped to the nodule"><div class="pane-tag"><b style="color:#00d0cd">Prior</b><span>Jun 3, 2025</span></div></div>
+            </div>
+            <!-- marketing callouts ride the camera -->
+            <div class="callouts">
+              <svg viewBox="0 0 944 682" width="944" height="682">
+                <circle class="ring ring-cur" cx="289" cy="379" r="30"/>
+                <circle class="ring ring-pri" cx="751" cy="379" r="22"/>
+                <path class="leader lead-cur" d="M289 409 V 440"/>
+                <path class="leader lead-pri" d="M751 401 V 440"/>
+                <path class="arrow arr" d="M733 352 C 670 262, 380 262, 314 350"/>
+                <path class="arrow-head arr-h" d="M0 0 L -12 -6 L -12 6 Z" transform="translate(314 350) rotate(126)"/>
+              </svg>
+              <span class="clabel lab-cur" style="left:289px;top:440px"><em>8 mm</em> · Current</span>
+              <span class="clabel lab-pri" style="left:751px;top:440px"><em>4 mm</em> · Prior</span>
+              <span class="clabel solid lab-arr" style="left:523px;top:242px">Interval growth</span>
+            </div>
+          </section>
+
+          <!-- 4a · LONGITUDINAL TRACKING -->
+          <section class="v v-track" data-view="track">
+            <div class="v-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr3" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr3)" stroke-width="2.2" stroke-linecap="round"/></svg>
+              <h2>Case at a glance</h2>
+            </div>
+            <div class="v-body">
+              <div class="glance" style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
+                <div class="ph" style="width:150px;height:10px"></div>
+                <div class="ph-card"><div class="ph l" style="width:72%;height:10px"></div><div class="ph l" style="width:60%;height:10px"></div></div>
+              </div>
+              <div class="track-card">
+                <div class="track-in">
+                  <div class="glance-row"><span class="sec-lbl">Longitudinal tracking</span><span style="flex:1"></span><span class="lnk">Lung nodule program</span></div>
+                  <div class="tl">
+                    <div class="tl-line"><i style="--p:1"></i></div>
+                    <div class="tl-node" style="left:11%"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><b>Screening</b><small>May 28, 2026</small><span class="badge done">Eligible</span></div>
+                    <div class="tl-node" style="left:37%"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><b>LDCT</b><small>Jun 3, 2026</small><span class="badge done">Lung-RADS 2</span></div>
+                    <div class="tl-node" style="left:63%"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><b>CT</b><small>Jun 5, 2026</small><span class="badge done">Lung-RADS 4A</span></div>
+                    <div class="tl-node tl-fu" style="left:89%"><span class="tl-dot miss"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></span><b>Follow-up visit</b><small>Jun 30, 2026</small>
+                      <span class="flip"><span class="badge ns">No show</span><span class="pulse"></span></span>
+                      <span class="badge brand resched">Rescheduled · Jul 14, 2026</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="ph" style="width:180px;height:10px;margin-top:4px"></div>
+              <div class="ph-card"><div class="ph l" style="width:66%;height:10px"></div><div class="ph l" style="width:48%;height:10px"></div></div>
+            </div>
+          </section>
+
+          <!-- 4b · LETTER FLOW -->
+          <section class="v v-letter" data-view="letter">
+            <div class="v-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round"><path d="M4 5h4M4 12h4M4 19h4M8 5v14M12 5h8M12 12h6M12 19h8"/></svg>
+              <h2>Case feed</h2>
+            </div>
+            <div class="v-body" style="gap:14px">
+              <div class="prompt">
+                <span class="aira-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr4" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr4)" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+                <p>Follow-up visit missed on Jun 30, 2026. <span>Reach the patient?</span></p>
+                <span class="btn sec">SMS</span><span class="btn sec">Call</span>
+                <span class="btn pri"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg>Send letter</span>
+              </div>
+              <div class="steps">
+                <span class="step done s1"><span class="sd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Generating letter<span class="shim"></span></span>
+                <span class="step-join"></span>
+                <span class="step done s2"><span class="sd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Assessment</span>
+                <span class="step-join"></span>
+                <span class="step done s3"><span class="sd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Sent to patient</span>
+              </div>
+              <div class="checks">
+                <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Language <em>English</em></span>
+                <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Contact <em>Address verified</em></span>
+                <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Protocol <em>Lung-RADS 4A</em></span>
+              </div>
+              <div class="lcard">
+                <div class="lcard-h"><span class="lcard-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg></span><b>Follow-up reminder (patient)</b><small>Jane Roe · Jul 1, 2026 · 09:10 AM</small></div>
+                <div class="lcard-b"><span class="ltext">Dear Mr. Doe,
+
+This is a reminder that your follow-up low-dose chest CT is due. We missed you on Jun 30, so we have held a new appointment for you on Jul 14, 2026.
+
+Please call the Northfield Pulmonology Clinic at 555-0100 if you have any questions or need to change your details.
+
+Sincerely,
+
+Jane Roe
+Care Coordinator</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5 · AUTO-PROTOCOLS + PRIOR-AUTH (UPCOMING) -->
+          <section class="v v-up" data-view="up">
+            <div class="v-head">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="12" r="2.5"/><circle cx="6" cy="18" r="2.5"/><path d="M8.5 6h3a3 3 0 0 1 3 3v0M8.5 18h3a3 3 0 0 0 3-3v0"/></svg>
+              <h2>Protocols</h2>
+            </div>
+            <div class="up-grid">
+              <div class="ucard">
+                <div class="ucard-h"><span class="sec-lbl">Auto-protocol</span><span class="upc">Upcoming</span></div>
+                <h3>Lung-RADS 4A → PET-CT</h3>
+                <div class="flow">
+                  <svg viewBox="0 0 414 250" width="414" height="250"><path class="conn c1" d="M44 66 V 104"/><path class="conn c2" d="M44 146 V 184"/></svg>
+                  <div class="fnode" style="top:14px"><span class="k">If</span><b>Lung-RADS 4A</b><span class="badge done">Trigger</span></div>
+                  <div class="fnode" style="top:98px"><span class="k">Then</span><b>Order PET-CT</b><span class="badge brand">Action</span></div>
+                  <div class="fnode" style="top:182px"><span class="k">Track</span><b>Result to completion</b><span class="badge brand">Action</span></div>
+                </div>
+                <div class="vrow vr1"><span class="sd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><b>Tested on sample cases</b><span>All passed</span></div>
+                <div class="vrow vr2"><span class="sd"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><b>Clinical sign-off</b><span>Dr. Jane Doe, MD</span></div>
+              </div>
+              <div class="ucard">
+                <div class="ucard-h"><span class="sec-lbl">Prior-auth documentation</span><span class="upc">Upcoming</span></div>
+                <h3>PET-CT · Health Plan</h3>
+                <div class="doc">
+                  <dl class="dsec ds1"><dt>Patient</dt><dd>John Doe · QR-0000-0000-XX</dd></dl>
+                  <dl class="dsec ds2"><dt>Payer</dt><dd>Health Plan</dd></dl>
+                  <dl class="dsec ds3"><dt>Service</dt><dd>PET-CT, skull base to mid-thigh</dd></dl>
+                  <dl class="dsec ds4"><dt>Justification</dt><dd>8mm solid nodule, interval growth from 4mm · <b>Lung-RADS 4A</b></dd></dl>
+                  <dl class="dsec ds5 ghost"><dt>Payer criteria</dt><dd>Met · 3 of 3</dd></dl>
+                  <dl class="dsec ds6 ghost"><dt>Ordering</dt><dd>Dr. Jane Doe, MD</dd></dl>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- hero wordmark (open + end card) -->
+  <div class="hero">
+    <span class="wm hero-wm"><span class="wm-q">qTrack</span><span class="wm-move">Move</span></span>
+    <h2 class="hero-cap t-heading-h4">Turns Referrals into Finished Care.</h2>
+  </div>
+
+  <div class="review-tag">REVIEW · replace scans</div>
+</div>
+</template>
+
+<main class="sb">
+  <header class="sb-head">
+    <div>
+      <p class="sb-eyebrow">Phase 1 · Storyboard review</p>
+      <h1 class="sb-title">qTrack product film</h1>
+      <p class="sb-sub">Eight keyframes, one per scene (scene 4 has two beats, 4a and 4b), rendered from the rebuilt product UI on the 1600 × 1000 stage. All patient and staff identifiers are the dummy values from the brief. Click any frame to enlarge it.</p>
+    </div>
+    <div class="sb-meta">≈30s loop · 16:10<br>REVIEW_MODE = true</div>
+  </header>
+  <section class="grid" id="grid"></section>
+  <section class="notes">
+    <div>
+      <h3>Not rebuilt faithfully from the source</h3>
+      <ul id="gaps"></ul>
+    </div>
+    <div>
+      <h3>Decisions to confirm</h3>
+      <ul id="asks"></ul>
+    </div>
+  </section>
+</main>
+<div class="lightbox" id="lb"></div>
+
+<script>
+const REVIEW_MODE = true;
+
+const SCENES = [
+  { id:'open',   n:'0',  t:'0.0 – 2.0s',  cap:'Turns Referrals into Finished Care.',
+    motion:'<b>Wordmark</b> fades up 24px (emph, 600ms). <b>Device</b> rises 48px behind it (emph, 700ms, +200ms). At 1.4s the wordmark scales 1 → 0.13 and travels into the title bar (emph, 600ms); caption hands over to the caption column.' },
+  { id:'cag',    n:'1',  t:'2.0 – 7.0s',  cap:'One longitudinal record, including the finding, priors, history and care to date.',
+    motion:'<b>Camera</b> eases 1 → 1.05 onto the summary (emph, 700ms); the patient bar stays fixed outside the camera. Lines feed up 24px, 60ms stagger (power2.inOut). Peach highlights sweep in turn at 3.4 / 4.4 / 5.4s (500ms each); the active one carries the ring. Chips snap in, 40ms stagger.' },
+  { id:'feed',   n:'2',  t:'7.0 – 11.0s', cap:'Micro-label: “Case feed” (headline from scene 1 holds)',
+    motion:'View cross-fades (400ms). Four items stack up from +32px in date order, 80ms stagger (power2.inOut). <b>AI tag pills</b> pop one by one: opacity + scale .92 → 1, 50ms stagger, no overshoot. Camera holds at 1.0.' },
+  { id:'pv',     n:'3',  t:'11.0 – 16.0s',cap:'Micro-label: “CT comparison”',
+    motion:'Viewer fades in. <b>Camera</b> pushes 1 → 1.3 to the midpoint of the two nodules (emph, 700ms). Rings draw (DrawSVG, 600ms): prior first, then current. The pane tags (Current / Prior) fade out as the peach labels fade up 8px. Arrow draws prior → current (power2.inOut, 600ms), then “Interval growth”.' },
+  { id:'track',  n:'4a', t:'16.0 – 19.0s',cap:'No-shows are traced and rescheduled.',
+    motion:'<b>Camera</b> lifts 40px to centre the timeline (emph, 600ms). Line draws left → right (power2.inOut, 700ms); nodes tick at 80ms stagger. Follow-up badge flips Booked → NO SHOW (rotateX, 400ms). One peach ring pulse (scale 1 → 1.5, opacity .7 → 0, 700ms). “Rescheduled · Jul 14” fades in.' },
+  { id:'letter', n:'4b', t:'19.0 – 24.0s',cap:'Patients are reached by SMS, phone or letter with protocol-based templates in 40+ languages.',
+    motion:'Prompt rises; “Send letter” press (scale .97, 120ms). Pill 1 shimmers, then the letter types in (TextPlugin, ~1.6s). Pill 2: Language · Contact · Protocol tick at 80ms stagger. Pill 3 fills ✓ and the letter card slides out right (emph, 600ms). <i>Keyframe shows the moment before the slide-out.</i>' },
+  { id:'up',     n:'5',  t:'24.0 – 28.0s',cap:'Your protocols, automated. Nothing goes live without clinical sign-off.',
+    motion:'UPCOMING pills present from the first frame. Protocol connectors draw top → bottom (DrawSVG); “Tested on sample cases” ✓, then “Clinical sign-off” ✓. Prior-auth sections assemble top → bottom, 60ms stagger. <i>Keyframe shows 4 of 6 sections in.</i>' },
+  { id:'end',    n:'6',  t:'28.0 – 30.0s',cap:'qTrack · MOVE',
+    motion:'Device and caption fade out with scale .98 (500ms). Wordmark fades up, centred. Hold 1s, then the loop restarts at the “open” label.' },
+];
+
+const GAPS = [
+  '<b>Screen recording and screenshot PNG were not uploaded.</b> Only <code>Command_Centre_v22.html</code> and <code>qure-type.css</code> reached the session. UI states were taken by driving the source HTML in Chromium; captions come from the screenshot image pasted in the brief.',
+  '<b>CT images.</b> The source ships one CT slice used for both Current and Prior (Prior is the same image at 0.965 scale); the nodule is a synthetic blob drawn by the prototype. Frames were captured from the source viewer with all overlays hidden and cropped to the nodule. They are not a real interval-growth pair.',
+  '<b>Finding mismatch.</b> The source viewer marks an LLL nodule growing 4 → 6mm; the report summary and the storyboard say RUL, 4 → 8mm. Labels follow the storyboard; the viewer’s LLL/LUL finding chips are removed so the frame does not contradict the copy.',
+  '<b>Longitudinal tracking timeline</b> does not exist in the source. Rebuilt in the product’s language (SDS tokens, badges, teal nodes). The NO SHOW badge uses the source’s urgent-tertiary tokens.',
+  '<b>Letter step pills</b> (Generating letter · Assessment · Sent to patient) and the “Send letter” prompt do not exist in the source. Built from the source’s letter card, buttons and chip styles.',
+  '<b>Auto-protocol and prior-auth cards</b> are new (upcoming features), built from the source’s card, badge and node styles.',
+  '<b>Aether Neue</b> is not in the repo or any branch, so headings render in DM Sans 300. Drop <code>AetherNeue-Light.woff2</code> / <code>-Medium.woff2</code> into <code>assets/fonts/</code>.',
+  '<b>The qure check mark</b> is a stand-in (peach circle + check). Send the official SVG.',
+  '<b>Viewer toolbar</b> is reduced to generic tool icons; series, slice and window/level readouts are removed, per the never-show list.',
+];
+const ASKS = [
+  'Scenes 2 and 3 have only a micro-label in the brief. I kept scene 1’s headline on screen through them, so the caption column never sits empty. Alternative: show the micro-label alone.',
+  'Scene 4a adds a “Rescheduled · Jul 14, 2026” badge after the pulse, so the caption’s claim is shown on screen. Remove it if you want the beat to end on the NO SHOW.',
+  'Letter body (Mr. Doe, Jane Roe, Northfield Pulmonology Clinic, 555-0100) extends the brief’s first line. Please confirm or replace the wording.',
+  'Prior-auth sections (service, justification, payer criteria 3 of 3) are illustrative copy. A product owner should sign them off before release.',
+  'Real scans: supply a de-identified current/prior pair with true interval growth, then set REVIEW_MODE = false.',
+];
+
+/* ---------------- keyframe states ---------------- */
+const $ = (r,s)=>r.querySelector(s), $$ = (r,s)=>[...r.querySelectorAll(s)];
+function show(st, view){ $$(st,'.v').forEach(v=>v.classList.toggle('on', v.dataset.view===view)); }
+function setCap(st, n, ml, h){ $(st,'.cap-n').textContent=n; $(st,'.cap-mlt').textContent=ml; $(st,'.cap-h').textContent=h; }
+function cam(st, s, ox, oy, ty){ const c=$(st,'.cam'); c.style.transformOrigin=ox+'px '+oy+'px'; c.style.transform='translateY('+(ty||0)+'px) scale('+s+')'; }
+
+const KF = {
+  open(st){
+    $(st,'.cap').style.opacity=0; $(st,'.tb-wm').style.opacity=0;
+    const d=$(st,'.device'); d.style.transform='translateY(72px)'; d.style.opacity=.16;
+    show(st,'cag'); cam(st,1,472,300);
+  },
+  cag(st){
+    $(st,'.hero').style.display='none';
+    setCap(st,'01','Report summary',SCENES[1].cap);
+    show(st,'cag'); cam(st,1.05,472,150);
+    $$(st,'.hl').forEach(h=>h.style.setProperty('--hl',1));
+    $(st,'.hl[data-hl="3"]').classList.add('ring');
+  },
+  feed(st){
+    $(st,'.hero').style.display='none';
+    setCap(st,'02','Case feed',SCENES[1].cap);
+    show(st,'feed'); cam(st,1,472,300);
+  },
+  pv(st){
+    $(st,'.hero').style.display='none';
+    setCap(st,'03','CT comparison',SCENES[1].cap);
+    show(st,'pv'); cam(st,1.3,520,379);
+    $$(st,'.pane-tag').forEach(t=>t.style.opacity=0);
+  },
+  track(st){
+    $(st,'.hero').style.display='none';
+    setCap(st,'04','Longitudinal tracking',SCENES[4].cap);
+    show(st,'track'); cam(st,1,472,300,-40);
+    const p=$(st,'.pulse'); p.style.opacity=.55; p.style.transform='scale(1.18)';
+  },
+  letter(st){
+    $(st,'.hero').style.display='none';
+    setCap(st,'05','Letter',SCENES[5].cap);
+    show(st,'letter'); cam(st,1,472,300);
+  },
+  up(st){
+    $(st,'.hero').style.display='none';
+    setCap(st,'06','Upcoming',SCENES[6].cap);
+    show(st,'up'); cam(st,1,472,300);
+  },
+  end(st){
+    $(st,'.cap').style.opacity=0; $(st,'.device').style.opacity=0;
+    $(st,'.hero-cap').style.display='none';
+  },
+};
+
+/* ---------------- build ---------------- */
+const tpl=document.getElementById('stage-tpl');
+function makeStage(id){
+  const st=tpl.content.firstElementChild.cloneNode(true);
+  // unique gradient ids per clone
+  $$(st,'linearGradient').forEach(g=>{ const old=g.id, nu=old+'-'+id; g.id=nu; $$(st,'[stroke="url(#'+old+')"]').forEach(p=>p.setAttribute('stroke','url(#'+nu+')')); });
+  if(!REVIEW_MODE) $(st,'.review-tag').remove();
+  KF[id](st);
+  st.dataset.kf=id;
+  return st;
+}
+function fit(frame){ const st=frame.querySelector('.stage'); st.style.transform='scale('+(frame.clientWidth/1600)+')'; }
+const grid=document.getElementById('grid');
+const params=new URLSearchParams(location.search);
+const only=params.get('kf');
+SCENES.forEach(s=>{
+  if(only && only!==s.id) return;
+  const fig=document.createElement('figure'); fig.className='kf'; fig.id='kf-'+s.id;
+  const fr=document.createElement('div'); fr.className='kf-frame'; fr.appendChild(makeStage(s.id));
+  fig.appendChild(fr);
+  fig.insertAdjacentHTML('beforeend','<figcaption class="kf-cap"><span class="kf-num">'+s.n+'</span><span class="kf-time">Scene '+s.n+' · '+s.t+'</span><span class="kf-caption">'+s.cap+'</span><span class="kf-motion">'+s.motion+'</span></figcaption>');
+  grid.appendChild(fig);
+});
+document.getElementById('gaps').innerHTML=GAPS.map(g=>'<li>'+g+'</li>').join('');
+document.getElementById('asks').innerHTML=ASKS.map(g=>'<li>'+g+'</li>').join('');
+const ro=new ResizeObserver(es=>es.forEach(e=>fit(e.target)));
+document.querySelectorAll('.kf-frame').forEach(f=>{ fit(f); ro.observe(f); });
+
+/* lightbox */
+const lb=document.getElementById('lb');
+grid.addEventListener('click',e=>{ const fr=e.target.closest('.kf-frame'); if(!fr) return;
+  const id=fr.querySelector('.stage').dataset.kf; lb.innerHTML=''; const f=document.createElement('div'); f.className='kf-frame'; f.appendChild(makeStage(id)); lb.appendChild(f); lb.classList.add('on'); fit(f); ro.observe(f); });
+lb.addEventListener('click',()=>{ lb.classList.remove('on'); lb.innerHTML=''; });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') lb.click(); });
+
+/* single-frame render mode for /review screenshots: ?kf=<id>&raw=1 */
+if(only && params.get('raw')){
+  document.body.innerHTML=''; document.body.style.margin=0; document.body.style.background='#fff';
+  const st=makeStage(only); st.style.position='relative'; document.body.appendChild(st);
+}
+</script>
+</body>
+</html>
