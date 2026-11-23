@@ -6,15 +6,15 @@
 <title>qTrack Motion Preview</title>
 <style>
 /* ======================================================================
-   qTrack film — stage, product rebuild, marketing layer
-   All fonts are self-hosted (assets/fonts). The standalone build inlines them.
+   qTrack film — stage, generic app shell, marketing layer
+   Base: approved preview v2 (white stage, device frame, lift-out, morph,
+   3D tilt, cursor, kinetic captions). Flow follows the qTrack screenshot.
    ====================================================================== */
 @font-face{font-family:"Aether Neue";src:url(assets/fonts/AetherNeue-Light.woff2) format("woff2");font-weight:300;font-display:block}
 @font-face{font-family:"DM Sans";src:url(assets/fonts/dm-sans-latin.woff2) format("woff2");font-weight:300 600;font-display:block}
 @font-face{font-family:"DM Mono";src:url(assets/fonts/dm-mono-400-latin.woff2) format("woff2");font-weight:400;font-display:block}
 @font-face{font-family:"DM Mono";src:url(assets/fonts/dm-mono-500-latin.woff2) format("woff2");font-weight:500;font-display:block}
 @font-face{font-family:"IBM Plex Sans";src:url(assets/fonts/ibm-plex-sans-latin.woff2) format("woff2");font-weight:100 700;font-display:block}
-@font-face{font-family:"IBM Plex Mono";src:url(assets/fonts/ibm-plex-mono-400-latin.woff2) format("woff2");font-weight:400;font-display:block}
 @font-face{font-family:"IBM Plex Mono";src:url(assets/fonts/ibm-plex-mono-500-latin.woff2) format("woff2");font-weight:500;font-display:block}
 
 :root{
@@ -49,10 +49,10 @@ html,body{margin:0;background:#fff}
 .kw{position:absolute;left:0;top:0;color:var(--peach);opacity:0;white-space:nowrap}
 .sw{position:absolute;visibility:hidden;color:var(--indigo)}
 .sw.l{text-align:right}
-.s5-body{position:absolute;left:1092px;top:452px;width:420px;visibility:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.s5-body{position:absolute;left:1112px;top:452px;width:420px;visibility:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:18px}
 .s5-body .kt{position:relative}
 .s5-body .p2{position:absolute;left:0;top:0}
-.s5-pa{position:absolute;left:300px;right:300px;top:112px;visibility:hidden;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.s5-pa{position:absolute;left:300px;right:300px;top:100px;visibility:hidden;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
 .s5-pa .kt{max-width:900px}
 .cap-upc{opacity:0}
 
@@ -81,7 +81,7 @@ html,body{margin:0;background:#fff}
 .tb-wm{position:absolute;left:18px;top:9px;font-size:22px;transform-origin:0 0;z-index:4}
 .tb-wm .wm-move{font-size:9px;margin-top:9px;margin-left:6px;transform-origin:0 0}
 .viewport{position:absolute;left:0;right:0;top:40px;bottom:0;overflow:hidden;background:#f3f4f4;border-radius:0 0 20px 20px}
-.cam{position:absolute;left:0;right:0;top:86px;bottom:0;transform-origin:472px 341px}
+.cam{position:absolute;left:56px;right:0;top:56px;bottom:0;transform-origin:444px 300px}
 
 /* REVIEW tag */
 .review-tag{position:absolute;right:24px;bottom:20px;display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);font:500 12px/1 var(--font-mono);letter-spacing:.06em;color:var(--indigo);z-index:40}
@@ -90,15 +90,11 @@ html,body{margin:0;background:#fff}
 /* UPCOMING pill (site pill) */
 .upc{display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);color:var(--indigo);font:500 12px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
 
-/* qure check mark (stand-in until the official SVG is supplied) */
-.qcheck circle{fill:var(--peach)}
-.qcheck path{fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-
 /* cursor */
 .cursor{position:absolute;left:0;top:0;width:26px;height:32px;opacity:0;z-index:50;filter:drop-shadow(0 4px 6px rgba(12,23,35,.28));pointer-events:none}
 
 /* ======================================================================
-   PRODUCT — rebuilt from Command_Centre_v22.html (Qure SDS tokens)
+   PRODUCT COMPONENT STYLE (Qure SDS tokens) on a GENERIC shell
    ====================================================================== */
 .p{--bg1:#fff;--bg2:#f3f4f4;--bg3:#e8e9ea;--bd:#dee1e2;--bd2:#c8cdd1;--bd3:#bbbfc2;--tx:#0c1723;--tx2:#39414c;--tx3:#6b7280;
    --brand:#008280;--brand3:#e0f0ef;--letter:#036869;--urg3:#fbdee1;--urg:#93212f;--ok3:#d4f1e4;--ok:#005c32;
@@ -107,29 +103,57 @@ html,body{margin:0;background:#fff}
 .ph{background:#e2e4e6;border-radius:6px}
 .ph.l{background:#eceef0}
 .ph-card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
-.pbar{position:absolute;left:0;right:0;top:0;height:86px;background:var(--bg1);border-bottom:1px solid var(--bd3);padding:12px 20px;display:flex;flex-direction:column;gap:8px;z-index:2}
-.pbar-r1{display:flex;align-items:center;gap:8px}
-.pbar h1{margin:0;font-size:20px;font-weight:700;white-space:nowrap;letter-spacing:-.005em}
-.ib{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2);flex:none}
-.vsep{width:1px;height:22px;background:var(--bd);flex:none}
-.upd{font-size:13px;font-style:italic;color:var(--tx2);white-space:nowrap}
-.pbar-r2{display:flex;align-items:center;gap:4px 18px;font-size:13px;white-space:nowrap}
-.pbar-r2>span{display:inline-flex;align-items:center;gap:6px}
-.pbar-r2 .ic{color:var(--tx2)}
-.dotted{text-decoration:underline dotted #8a9096;text-underline-offset:3px}
+.pcard{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(12,23,35,.05)}
+/* generic header + rail (no real layout, menus or toolbar) */
+.gbar{position:absolute;left:0;right:0;top:0;height:56px;background:#fff;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:0 20px 0 76px;z-index:2}
+.gbar b{font-size:16px;font-weight:600;letter-spacing:-.005em}
+.gbar .sp{flex:1}
+.gi{width:28px;height:28px;border-radius:8px;background:#f0f1f2;display:inline-flex;align-items:center;justify-content:center;color:#9aa0a6}
+.grail{position:absolute;left:0;top:0;bottom:0;width:56px;background:#fff;border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;gap:12px;padding-top:70px;z-index:3}
+.grail .gi{width:32px;height:32px}
+.grail .gi.on{background:var(--brand3);color:var(--brand)}
 .views{position:absolute;inset:0}
-.v{position:absolute;inset:0;opacity:0;visibility:hidden}
-.v-head{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-bottom:1px solid var(--bd);background:var(--bg3)}
-.v-head h2{margin:0;font-size:16px;font-weight:600;flex:1}
-.v-body{padding:16px;display:flex;flex-direction:column;gap:16px}
-.sec-lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);white-space:nowrap}
-.lnk{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--tx2)}
-.v-cag,.v-track,.v-letter{background:var(--bg3)}
+.v{position:absolute;inset:0;opacity:0;visibility:hidden;background:var(--bg3)}
+.v-head{display:flex;align-items:center;gap:10px;height:48px;padding:0 16px;border-bottom:1px solid var(--bd);background:var(--bg3)}
+.v-head h2{margin:0;font-size:15px;font-weight:600;flex:1}
+.v-head .gi{width:22px;height:22px;border-radius:6px}
+.v-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.sec-lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);white-space:nowrap}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.mono{font:500 11px/14px "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.badge{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge.ok{background:var(--ok3);color:var(--ok)} .badge.done{background:var(--bg2);color:var(--tx2)}
+.badge.ns{background:var(--urg3);color:var(--urg);letter-spacing:.08em;text-transform:uppercase}
+.badge.brand{background:var(--brand3);color:var(--brand)}
+.badge.peach{background:var(--peach);color:#fff}
+.swap{position:relative;display:inline-grid}
+.swap>*{grid-area:1/1;justify-self:end}
+.chk{width:18px;height:18px;border-radius:50%;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.chk.pc{background:var(--peach)}
+.bar{height:9px;border-radius:5px;background:#e8eaec}
+.btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:8px;font:600 13px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
+.btn.pri{background:var(--brand);color:#fff}
+.btn.sec{background:#fff;color:var(--tx2);box-shadow:inset 0 0 0 1px var(--bd2)}
+.btn.sm{height:28px;padding:0 12px;font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 12px;border:1px solid var(--bd3);border-radius:999px;background:#fff;font-size:12px;font-weight:700;color:var(--tx)}
+.lift-shadow{position:absolute;inset:0;border-radius:16px;box-shadow:0 44px 80px -24px rgba(42,40,140,.34),0 14px 32px -12px rgba(42,40,140,.18);opacity:0}
+
+/* b1a · referral routing */
+.spec-row{display:flex;align-items:center;gap:10px}
+.spec{height:36px;padding:0 14px;font-size:13px;position:relative}
+.spec .tick{width:16px;height:16px;transform:scale(0)}
+.spec .ring2{position:absolute;inset:-1px;border-radius:999px;box-shadow:0 0 0 2px var(--brand);opacity:0}
+.refcard{width:360px}
+.refcard .who{margin-top:10px;font-size:14px;font-weight:600}
+.refcard .meta{margin-top:2px;font-size:12px;color:var(--tx3)}
+
+/* b1b · one longitudinal record */
 .glance{background:var(--bg2);border:1px solid var(--bd);border-radius:16px}
 .glance-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--bd)}
 .glance-top span{flex:1;font-size:13px;font-style:italic;color:var(--tx2)}
-.glance-in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
-.glance-row{display:flex;align-items:center;gap:8px}
+.gwin{position:relative;height:258px;overflow:hidden}
+.gsec{height:258px;padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
 .rs{position:relative;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;overflow:hidden}
 .rs-lines{display:flex;flex-direction:column;gap:10px}
 .rs p{margin:0 -6px;padding:2px 6px;border-radius:6px;font-size:13px;line-height:1.55;text-wrap:pretty;opacity:0}
@@ -141,100 +165,58 @@ html,body{margin:0;background:#fff}
   background-image:linear-gradient(rgba(255,120,105,.22),rgba(255,120,105,.22)),linear-gradient(var(--peach),var(--peach));
   background-repeat:no-repeat;background-position:0 0,0 100%;background-size:0% 100%,0% 2px}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-.chip{display:inline-flex;align-items:center;height:26px;padding:0 12px;border:1px solid var(--bd3);border-radius:999px;background:#fff;font-size:12px;font-weight:600;color:var(--tx);opacity:0}
-
-/* feed (scene 2 panel) */
-.fchips{display:flex;align-items:center;gap:8px;padding:12px 16px 4px}
-.fchip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;border:.5px solid var(--bd2);background:#fff;font-size:12px;font-weight:500;color:var(--tx2)}
-.fchip i{font-style:normal;font-size:11px;font-weight:600;padding:0 5px;border-radius:999px;background:var(--bg2);color:var(--tx2)}
-.fchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
-.feed{position:relative;padding:8px 16px 0}
-.feed::before{content:"";position:absolute;left:28px;top:34px;bottom:-400px;width:1px;background:var(--bd3)}
-.fdate{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);padding:14px 0 8px}
-.fcard{position:relative;z-index:1;margin:0 0 10px;border-radius:12px;border:.5px solid var(--bd2);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.06),0 2px 8px rgba(12,23,35,.04);overflow:hidden}
-.fcard-h{display:flex;align-items:center;gap:12px;padding:12px 14px 12px 12px}
-.mod{flex:0 0 32px;width:32px;height:32px;border-radius:8px;border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx2);font-size:11px;font-weight:600;letter-spacing:.04em;display:inline-flex;align-items:center;justify-content:center}
-.fcard-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.fcard-t b{font-size:14px;font-weight:600;line-height:20px;white-space:nowrap}
-.fcard-m{display:flex;gap:2px 10px;font-size:12px;line-height:16px;color:var(--tx3);white-space:nowrap}
-.fcard-m em{font-style:normal;color:var(--tx)}
-.sqbtn{height:24px;min-width:24px;padding:0 6px;border:.5px solid var(--bd2);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2)}
-.aitags{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:10px 14px;border-top:.5px solid var(--bd)}
-.ai-l{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
-.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;border:1px dashed var(--bd2);background:#fff;color:var(--tx2);font-size:12px;line-height:16px;white-space:nowrap}
-.tag.rec{border:1px solid transparent;background:var(--brand3);color:var(--brand)}
-.frow{position:relative;z-index:1;margin:0 0 10px 12px;border-radius:8px;border:.5px solid var(--bd);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.05);display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px}
-.frow b{flex:1;font-size:14px;font-weight:600;line-height:20px}
-.frow .fm{font-size:12px;line-height:16px;color:var(--tx3)}
-.aira-ic{flex:0 0 32px;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3px var(--brand)}
-
-/* CT viewer */
-.v-pv{background:#0f1b27}
-.pv-bar{height:52px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(20,31,42,.97);color:#cdd1d4}
-.pv-bar .ib{color:#cdd1d4;width:36px;height:36px}
-.pv-bar .vsep{background:rgba(255,255,255,.12);height:24px;margin:0 4px}
-.pv-panes{position:absolute;left:12px;right:12px;top:64px;bottom:12px;display:flex;gap:4px}
-.pane{position:relative;flex:1 1 0;overflow:hidden;background:#000}
-.pane img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
-.pane-tag{position:absolute;top:20px;left:22px;display:flex;flex-direction:column;gap:2px;text-shadow:0 1px 2px #000}
-.pane-tag b{font-weight:400;font-size:15px;line-height:20px;letter-spacing:.06em;text-transform:uppercase}
-.pane-tag span{font-size:13px;line-height:18px;color:#9ea3a8}
-.pane.cur{box-shadow:inset 0 0 0 1px rgba(0,208,205,.45)}
-.callouts{position:absolute;inset:0;pointer-events:none}
-.callouts svg{position:absolute;left:0;top:0;overflow:visible}
+.rs .chip{opacity:0}
+.pair{display:flex;gap:12px}
+.ctf{position:relative;flex:1;height:190px;border-radius:10px;overflow:hidden;background:#000}
+.ctf img{position:absolute;left:0;top:-115px;width:404px;height:404px;transform-origin:234px 210px}
+.ctf svg{position:absolute;left:0;top:0;overflow:visible}
+.ctf .tag{position:absolute;left:12px;top:10px;font:500 11px/14px "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 1px 2px #000}
 .ring{fill:none;stroke:var(--peach);stroke-width:4px;vector-effect:non-scaling-stroke}
-.leader{fill:none;stroke:var(--peach);stroke-width:1px;vector-effect:non-scaling-stroke}
-.arrow{fill:none;stroke:var(--peach);stroke-width:2.5px;stroke-linecap:round;vector-effect:non-scaling-stroke}
-.arrow-head{fill:var(--peach)}
-.clabel{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;background:rgba(15,27,39,.9);box-shadow:inset 0 0 0 1px rgba(255,120,105,.8);color:#fff;font:500 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0}
+.clabel{position:absolute;left:234px;bottom:12px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;background:rgba(15,27,39,.9);box-shadow:inset 0 0 0 1px rgba(255,120,105,.8);color:#fff;font:500 11.5px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0}
 .clabel em{font-style:normal;color:var(--peach)}
-.clabel.solid{background:var(--peach);box-shadow:none;color:#fff}
+.lines3{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;font-size:14px}
+.lines3 b{font-weight:700}
+.lines3 .row{opacity:0}
+.lines3 .chk{transform:scale(0)}
 
-/* tracking */
-.track-card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px}
-.track-in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
-.tl{position:relative;background:#fff;border:1px solid var(--bd);border-radius:12px;height:210px}
-.tl-line{position:absolute;left:11%;right:11%;top:66px;height:2px;background:var(--bd);border-radius:2px}
-.tl-line i{position:absolute;inset:0;background:var(--brand);border-radius:2px;transform-origin:0 50%;transform:scaleX(0)}
-.tl-node{position:absolute;top:52px;width:180px;margin-left:-90px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;opacity:0}
-.tl-dotw{position:relative;width:30px;height:30px}
-.tl-dot{position:absolute;inset:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #fff}
-.tl-dot.pend{background:#fff;color:var(--tx3);box-shadow:0 0 0 4px #fff,inset 0 0 0 1.5px var(--bd3)}
-.tl-dot.miss{background:#fff;color:var(--urg);box-shadow:0 0 0 4px #fff,inset 0 0 0 1.5px var(--urg);opacity:0}
-.tl-node b{font-size:14px;font-weight:600;line-height:18px}
-.tl-node small{font-size:12px;line-height:16px;color:var(--tx3);margin-top:-6px}
-.badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
-.badge.ok{background:var(--ok3);color:var(--ok)} .badge.done{background:var(--bg2);color:var(--tx2)}
-.badge.ns{background:var(--urg3);color:var(--urg);letter-spacing:.08em;text-transform:uppercase}
-.badge.brand{background:var(--brand3);color:var(--brand)}
-.flip{position:relative;width:84px;height:20px;perspective:300px}
-.flip .badge{position:absolute;left:50%;top:0;transform:translateX(-50%);backface-visibility:hidden}
-.flip .ns{opacity:0}
-.pulse{position:absolute;left:50%;top:50%;width:84px;height:30px;margin:-15px 0 0 -42px;border-radius:999px;box-shadow:0 0 0 2px var(--peach);opacity:0}
-.resched{opacity:0}
+/* b2a/b2b · appointments + EMR sync */
+.appts{width:520px}
+.slot{position:relative;height:52px;margin-top:8px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;display:flex;align-items:center;gap:12px;background:#fff}
+.slot .t{width:46px;font:500 12px/1 "IBM Plex Mono",monospace;color:var(--tx2)}
+.slot.av{border-style:dashed;border-color:var(--bd2);background:#fbfbfc}
+.slot .avt{color:var(--tx3);font-size:13px}
+.slot .fill{position:absolute;left:70px;right:12px;top:0;bottom:0;display:flex;align-items:center;gap:8px;opacity:0}
+.slot .fill b{font-weight:600;white-space:nowrap}
+.slot .ring2{position:absolute;inset:-1px;border-radius:10px;box-shadow:0 0 0 2px var(--brand);opacity:0}
+.flip{position:relative;width:196px;height:22px;perspective:300px;margin-left:auto}
+.flip .badge{position:absolute;right:0;top:0;backface-visibility:hidden;opacity:0}
+.flip .b-book{opacity:1}
+.pulse{position:absolute;right:-6px;top:-6px;width:96px;height:34px;border-radius:999px;box-shadow:0 0 0 2px var(--peach);opacity:0}
+.emr{position:absolute;left:0;top:0;width:128px;height:128px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;opacity:0}
+.emr .big{font:700 22px/1 "IBM Plex Sans",sans-serif;letter-spacing:.06em}
+.lsvg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.hair{fill:none;stroke:#c9c9ee;stroke-width:1.5}
+.dot{fill:var(--peach)}
+.synced{position:absolute;left:0;top:0;opacity:0}
+.resq{position:absolute;left:0;top:0;width:300px;opacity:0}
+.resq .who{margin-top:8px;font-size:14px;font-weight:700}
+.resq .q{margin-top:10px;font-size:13.5px;color:var(--tx2)}
+.resq .acts{display:flex;gap:8px;margin-top:10px}
 
-/* letter view (device) */
+/* b2c · outreach (letter morph + SMS / phone) */
 .prompt{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 14px 12px 12px;box-shadow:0 1px 2px rgba(12,23,35,.05)}
 .prompt p{margin:0;flex:1;font-size:14px;line-height:20px}
 .prompt p span{color:var(--tx3)}
-.btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:8px;font:600 13px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
-.btn.pri{background:var(--brand);color:#fff}
-.btn.sec{background:#fff;color:var(--tx2);box-shadow:inset 0 0 0 1px var(--bd2)}
-
-/* lifted layer */
-.lift{position:absolute;inset:0;pointer-events:none}
-.lifted{position:absolute;transform-origin:50% 50%;visibility:hidden}
-.lift-shadow{position:absolute;inset:0;border-radius:16px;box-shadow:0 44px 80px -24px rgba(42,40,140,.34),0 14px 32px -12px rgba(42,40,140,.18);opacity:0}
-
-/* morph: Send letter button -> letter card */
-.morph{position:absolute;left:0;top:0;overflow:hidden;visibility:hidden;background:#008280;border-radius:8px}
+.morph{position:absolute;left:0;top:0;overflow:hidden;visibility:hidden;background:#008280;border-radius:8px;transform-origin:0 0}
+.morph.sec0{background:#ffffff;box-shadow:inset 0 0 0 1px #c8cdd1}
 .morph .m-old{position:absolute;left:0;top:0;height:34px;display:flex;align-items:center;gap:8px;padding:0 14px;color:#fff;font:600 13px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
+.morph.sec0 .m-old{color:#39414c}
 .morph .m-new{position:absolute;left:0;top:0;opacity:0}
 .lcard-h{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;background:var(--letter);color:#fff}
 .lcard-h b{flex:1;font-size:14px;font-weight:600;line-height:20px}
 .lcard-h small{font-size:12px;line-height:16px;color:rgba(255,255,255,.9)}
 .lcard-ic{flex:0 0 32px;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#2f6fe0;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3px currentColor}
-.lcard-b{padding:18px 22px 10px;font-size:15px;line-height:22px;white-space:pre-wrap;min-height:150px}
+.lcard-b{padding:18px 22px 10px;font-size:15px;line-height:22px;white-space:pre-wrap;min-height:120px}
 .caret{display:inline-block;width:1.5px;height:17px;background:var(--brand);vertical-align:-3px;margin-left:1px}
 .lcard-f{display:flex;gap:8px;padding:12px 22px 18px;border-top:.5px solid var(--bd)}
 .ck{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px 0 6px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 .5px var(--bd2);font-size:12px;color:var(--tx2);opacity:.45}
@@ -249,41 +231,64 @@ html,body{margin:0;background:#fff}
 .step .sd .on{position:absolute;inset:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;transform:scale(0)}
 .step .act{position:absolute;inset:0;border-radius:999px;background:var(--brand3);box-shadow:inset 0 0 0 1px var(--brand);opacity:0}
 .step .lbl{position:relative}
-/* shimmer: a solid translucent band (no gradient) sweeping across the active pill */
 .step .shim{position:absolute;top:0;bottom:0;left:0;width:34%;background:rgba(255,255,255,.7);transform:skewX(-20deg);opacity:0}
-.bigcheck{position:absolute;left:0;top:0;opacity:0}
+.mcard{width:320px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.mcard .bubble{background:var(--brand3);border-radius:14px 14px 14px 4px;padding:9px 12px;font-size:13px;line-height:1.45;min-height:58px}
+.mcard .callrow{display:flex;align-items:center;gap:12px}
+.callic{position:relative;width:44px;height:44px;border-radius:50%;background:var(--brand3);color:var(--brand);display:flex;align-items:center;justify-content:center;flex:none}
+.callic .wave{position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 2px var(--brand);opacity:0}
+.lang{position:absolute;left:0;top:0;opacity:0;display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 16px;border-radius:999px;background:#fff;border:1px solid var(--bd);box-shadow:0 14px 30px -20px rgba(42,40,140,.35);font-size:13px}
+.lang b{font-weight:700}
+.greet{position:relative;display:inline-block;width:72px;height:18px}
+.greet span{position:absolute;left:0;top:0;font-weight:600;color:var(--brand)}
 
-/* tilt stage (scenes 2 and 5) */
+/* lifted layer */
+.lift{position:absolute;inset:0;pointer-events:none}
+.lifted{position:absolute;transform-origin:50% 50%;visibility:hidden}
+
+/* tilt stage (bullets 3 and 4) */
 .tilt{position:absolute;inset:0}
 .tgrp{position:absolute;inset:0;transform-origin:800px 600px;perspective:1400px;perspective-origin:800px 300px}
 .panel{position:absolute;visibility:hidden;transform-origin:50% 0%;backface-visibility:hidden}
-.feed-panel{left:420px;top:236px;width:760px;height:900px;background:var(--bg3);border-radius:18px;overflow:hidden;
-  box-shadow:0 0 0 1px var(--bd),0 50px 90px -30px rgba(42,40,140,.30)}
-.fitem{opacity:0}
-.ucard{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 0 1px rgba(217,217,255,.6),0 50px 90px -30px rgba(42,40,140,.30)}
+.ucard{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 0 0 1px rgba(217,217,255,.6),0 50px 90px -30px rgba(42,40,140,.30)}
 .ucard-h{display:flex;align-items:center;gap:8px}
 .ucard-h .sec-lbl{flex:1}
 .ucard h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.01em}
-.proto{left:540px;top:300px;width:520px}
-.docc{left:800px;top:300px;width:520px}
-.flow{position:relative;height:250px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px}
-.fnode{position:absolute;left:24px;right:24px;height:52px;border-radius:10px;background:#fff;border:.5px solid var(--bd2);box-shadow:0 1px 2px rgba(12,23,35,.06);display:flex;align-items:center;gap:10px;padding:0 12px}
-.fnode .k{font:500 10px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);width:46px}
-.fnode b{font-size:14px;font-weight:600}
-.fnode .badge{margin-left:auto}
-.flow svg{position:absolute;left:0;top:0}
-.flow .conn{fill:none;stroke:var(--brand);stroke-width:1.5}
+.proto{left:530px;top:290px;width:540px}
+.flow{position:relative;display:grid;grid-template-columns:200px 1fr;gap:12px 30px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:12px}
+.flow .sub{font:500 10px/14px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
+.evs{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.evr{position:relative;height:30px;border:.5px solid var(--bd2);border-radius:7px;background:#fff;padding:0 9px;display:flex;align-items:center;font-size:12px;opacity:.3}
+.evr .hit{position:absolute;inset:-1px;border-radius:7px;box-shadow:0 0 0 2px var(--peach);opacity:0}
+.evr .badge{margin-left:auto;height:18px;font-size:10px;padding:0 7px}
+.rules{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.ckr{display:flex;align-items:center;gap:8px;font-size:12.5px;height:24px}
+.ckr .o{position:relative;width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--bd3);flex:none}
+.ckr .o .chk{position:absolute;inset:0;transform:scale(0)}
+.result{margin-top:6px;height:30px;border-radius:7px;background:var(--brand3);color:var(--brand);display:flex;align-items:center;gap:6px;padding:0 9px;font-size:12.5px;font-weight:600;opacity:0}
+.task{margin-top:6px;border:1px solid var(--bd);border-radius:8px;background:#fff;padding:8px 10px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;opacity:0}
+.task .mono{margin-left:auto;padding:2px 6px;border-radius:4px;background:#fff1ef;color:#c4473a;font-size:10px}
+.flow svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.flow .conn{fill:none;stroke:var(--peach);stroke-width:1.8;stroke-linecap:round}
 .vrow{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:.5px solid var(--bd2);font-size:13px;overflow:hidden}
 .vrow .hov{position:absolute;inset:0;background:var(--brand3);box-shadow:inset 0 0 0 1px var(--brand);border-radius:10px;opacity:0}
 .vrow .sd{position:relative;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--bd3);flex:none}
 .vrow .sd .on{position:absolute;inset:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;transform:scale(0)}
 .vrow b{position:relative;font-weight:600}
 .vrow span.r{position:relative;margin-left:auto;font-size:12px;color:var(--tx3)}
-.doc{position:relative;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
-.dsec{background:#fff;border:.5px solid var(--bd2);border-radius:8px;padding:9px 12px;display:grid;grid-template-columns:120px 1fr;gap:4px 12px;font-size:12.5px;line-height:17px;margin:0;opacity:0}
+.recc{left:500px;top:300px;width:400px}
+.docc{left:960px;top:300px;width:420px}
+.doc{position:relative;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.dsec{position:relative;background:#fff;border:.5px solid var(--bd2);border-radius:8px;padding:8px 12px;display:grid;grid-template-columns:118px 1fr;gap:4px 12px;font-size:12.5px;line-height:17px;margin:0;min-height:36px;align-items:center}
 .dsec dt{font:500 10px/17px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin:0}
-.dsec dd{margin:0;color:var(--tx)}
+.dsec dd{margin:0;color:var(--tx);padding-right:26px}
 .dsec dd b{font-weight:600}
+.docc .dsec{border-style:dashed}
+.docc .dsec dd{opacity:0}
+.dsec .chk{position:absolute;right:10px;top:50%;margin-top:-9px;transform:scale(0)}
+.met{height:34px;border-radius:8px;background:var(--brand3);color:var(--brand);display:flex;align-items:center;gap:8px;padding:0 10px;font-size:13px;font-weight:600;opacity:0}
+.flys{position:absolute;inset:0;pointer-events:none}
+.fly{position:absolute;left:0;top:0;z-index:5;background:#fff;border:1px solid var(--brand);border-radius:8px;padding:6px 10px;font-size:12.5px;white-space:nowrap;box-shadow:0 18px 30px -16px rgba(42,40,140,.4);opacity:0}
 
 /* ======================================================================
    REVIEW BAR — preview only. Everything between the REVIEW markers is
@@ -294,22 +299,19 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
 .pv-wrap{max-width:min(1440px,calc((100vh - 170px)*1.6 + 48px));margin:0 auto;padding:16px 24px 160px}
 .pv-wrap .qtrack-film{border-radius:14px;box-shadow:0 0 0 1px #D9D9FF}
 .rbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(1392px,calc(100% - 32px));background:#fff;border-radius:16px;
-  box-shadow:0 0 0 1px #D9D9FF,0 16px 40px -16px rgba(42,40,140,.3);padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto auto;gap:10px 16px;align-items:center;z-index:100}
+  box-shadow:0 0 0 1px #D9D9FF,0 16px 40px -16px rgba(42,40,140,.3);padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:10px 16px;align-items:center;z-index:100}
 .rbar button{font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;height:32px;padding:0 12px;border-radius:999px;border:0;background:#fff;color:#2A288C;box-shadow:inset 0 0 0 1px #D9D9FF;cursor:pointer}
 .rbar button:hover{box-shadow:inset 0 0 0 1px #2A288C}
 .rbar button.on{background:#2A288C;color:#fff;box-shadow:none}
 .rbar button:focus-visible{outline:2px solid #FF7869;outline-offset:2px}
 .rb-play{width:76px}
 .rb-scenes,.rb-speed{display:flex;gap:6px;flex-wrap:wrap}
-.rb-copy{display:inline-flex;align-items:center;gap:8px;font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;color:#2A288C}
-.rb-seg{display:inline-flex;padding:2px;border-radius:999px;box-shadow:inset 0 0 0 1px #D9D9FF}
-.rb-seg button{box-shadow:none;height:28px}
 .rb-scrub{grid-column:1/-1;display:flex;align-items:center;gap:12px}
 .rb-scrub input{flex:1;accent-color:#FF7869}
 .rb-time{font:500 13px/1 var(--font-mono);color:#2A288C;min-width:120px;text-align:right}
 .rb-ticks{position:relative;height:14px;grid-column:1/-1;margin:-6px 132px 0 0}
 .rb-ticks span{position:absolute;top:0;font:500 10px/14px var(--font-mono);color:rgba(42,40,140,.6);transform:translateX(-50%);white-space:nowrap}
-@media (max-width:980px){.rbar{grid-template-columns:1fr 1fr}.rb-ticks{display:none}}
+@media (max-width:980px){.rbar{grid-template-columns:1fr}.rb-ticks{display:none}}
 /* REVIEW:CSS:END */
 </style>
 </head>
@@ -317,146 +319,129 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
 <!-- REVIEW:WRAP:START --><div class="pv-wrap"><!-- REVIEW:WRAP:END -->
 
 <div class="qtrack-film" id="qtrack-film" data-start="" data-end="">
-<div class="stage" id="stage" role="img" aria-label="qTrack product film: a referral is tracked from report summary through CT comparison, no-show follow-up and patient letter to automated protocols.">
+<div class="stage" id="stage" role="img" aria-label="qTrack: turns referrals into finished care. Missed referrals are routed with one longitudinal record; appointments are tracked with two-way EMR sync; no-shows are rescheduled; patients are reached by SMS, phone or letter; protocols and prior-auth documentation are automated.">
 
-  <!-- ================= device ================= -->
+  <!-- ================= device (generic app shell) ================= -->
   <div class="device-wrap">
-    <div class="device-blur db-cag"><img src="assets/blur-cag.webp" alt=""></div>
+    <div class="device-blur db-ref"><img src="assets/blur-ref.webp" alt=""></div>
+    <div class="device-blur db-rec"><img src="assets/blur-rec.webp" alt=""></div>
+    <div class="device-blur db-appts"><img src="assets/blur-appts.webp" alt=""></div>
     <div class="device-blur db-letter"><img src="assets/blur-letter.webp" alt=""></div>
     <div class="device">
       <div class="dbody">
         <div class="dface"></div>
         <div class="titlebar"><span class="tb-bg"></span><span class="tb-url"></span><span class="tb-dots"><i></i><i></i><i></i></span></div>
         <div class="viewport p">
-          <header class="pbar">
-            <div class="pbar-r1">
-              <h1>John Doe | 64M · 01/01/1962 · QR-0000-0000-XX</h1>
-              <span class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
-              <span class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></span>
-              <span class="vsep"></span>
-              <span class="upd">Patient profile updated 12 minutes ago</span>
-            </div>
-            <div class="pbar-r2">
-              <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>(555) 010-0000</span>
-              <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>john.doe@example.com</span>
-              <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span class="dotted">100 Example St, Springfield</span></span>
-              <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg></span>Dr. Jane Doe, MD</span>
-              <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/></svg></span>Health Plan</span>
-            </div>
+          <header class="gbar"><b>John Doe · 64M</b><span class="sp"></span>
+            <span class="gi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg></span>
+            <span class="gi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/></svg></span>
+            <span class="gi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg></span>
           </header>
+          <nav class="grail" aria-hidden="true">
+            <span class="gi on"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="3"/></svg></span>
+            <span class="gi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/></svg></span>
+            <span class="gi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18 12 6l6 12z"/></svg></span>
+          </nav>
           <div class="cam">
             <div class="views">
 
-              <!-- CASE AT A GLANCE -->
-              <section class="v v-cag" data-view="cag">
-                <div class="v-head">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr1" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr1)" stroke-width="2.2" stroke-linecap="round"/></svg>
-                  <h2>Case at a glance</h2>
-                </div>
+              <!-- b1a · referrals -->
+              <section class="v v-ref" data-view="ref">
+                <div class="v-head"><span class="gi"></span><h2>Referrals</h2></div>
                 <div class="v-body">
-                  <div class="glance g-report">
+                  <div class="spec-row"><span class="sec-lbl">Specialists</span>
+                    <span class="chip spec sp-a">Cardiology</span>
+                    <span class="chip spec sp-b"><span class="ring2"></span>Pulmonology · Dr. Jane Doe<span class="chk tick"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span>
+                    <span class="chip spec sp-c">Thoracic surgery</span></div>
+                  <div class="ph-card" style="width:520px"><div class="ph l" style="width:40%;height:10px"></div><div class="ph l" style="width:70%;height:10px"></div></div>
+                  <div class="ph-card" style="width:520px"><div class="ph l" style="width:52%;height:10px"></div><div class="ph l" style="width:62%;height:10px"></div></div>
+                  <div class="pcard refcard">
+                    <div class="row"><span class="sec-lbl">Referral</span><span class="sp"></span>
+                      <span class="swap"><span class="badge ns st-miss">Missed</span><span class="badge ok st-routed" style="opacity:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Routed</span></span></div>
+                    <div class="who">John Doe · Lung-RADS 4A</div>
+                    <div class="meta">Received Jun 5, 2026</div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- b1b · one longitudinal record -->
+              <section class="v v-rec" data-view="rec">
+                <div class="v-head"><span class="gi"></span><h2>Record</h2></div>
+                <div class="v-body">
+                  <div class="glance g-record">
                     <div class="glance-top"><span>Updated 12 minutes ago</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></div>
-                    <div class="glance-in">
-                      <div class="glance-row"><span class="sec-lbl">Report summary</span><span style="flex:1"></span><span class="lnk">Case feed <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-8 8M10 20H4v-6M4 20l8-8"/></svg></span></div>
-                      <div class="rs">
-                        <div class="rs-skel"><i style="width:84%"></i><i style="width:92%"></i><i style="width:70%"></i><i style="width:58%"></i></div>
-                        <div class="rs-lines">
-                          <p>LDCT chest (Jun 3, 2026) found a <b><mark class="hl">4mm solid nodule</mark></b> — Lung-RADS 2. Referred by Dr. Jane Doe following annual screening visit.</p>
-                          <p>Latest: CT chest without contrast (Jun 5, 2026) shows <b><mark class="hl">interval growth to 8mm</mark></b> — <mark class="hl">Lung-RADS 4A</mark>. PET-CT and/or tissue sampling recommended.</p>
-                          <p>Ancillary: <b>moderate coronary calcification</b> noted on the same scan — flagged for cardiology correlation.</p>
-                          <div class="chips"><span class="chip">CT Chest Jun 5, 2026</span><span class="chip">LDCT May 23, 2026</span><span class="chip">Biopsy Apr 18, 2025</span></div>
+                    <div class="gwin"><div class="gscroll">
+                      <section class="gsec s-rep">
+                        <span class="sec-lbl">Report summary</span>
+                        <div class="rs">
+                          <div class="rs-skel"><i style="width:84%"></i><i style="width:92%"></i><i style="width:70%"></i><i style="width:58%"></i></div>
+                          <div class="rs-lines">
+                            <p>LDCT chest (Jun 3, 2026) found a <b><mark class="hl">4mm solid nodule</mark></b> — Lung-RADS 2. Referred by Dr. Jane Doe following annual screening visit.</p>
+                            <p>Latest: CT chest without contrast (Jun 5, 2026) shows <b><mark class="hl">interval growth to 8mm</mark></b> — <b><mark class="hl">Lung-RADS 4A</mark></b>. PET-CT and/or tissue sampling recommended.</p>
+                            <p>Ancillary: <b>moderate coronary calcification</b> noted on the same scan — flagged for cardiology correlation.</p>
+                            <div class="chips"><span class="chip">CT Chest Jun 5, 2026</span><span class="chip">LDCT May 23, 2026</span><span class="chip">Biopsy Apr 18, 2025</span></div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="glance" style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
-                    <div class="ph" style="width:150px;height:10px"></div>
-                    <div class="ph-card"><div class="ph l" style="width:62%;height:10px"></div><div class="ph l" style="width:78%;height:10px"></div><div class="ph l" style="width:54%;height:10px"></div></div>
-                  </div>
-                  <div class="ph" style="width:180px;height:10px;margin-top:4px"></div>
-                  <div class="ph-card"><div class="ph l" style="width:70%;height:10px"></div><div class="ph l" style="width:58%;height:10px"></div></div>
-                </div>
-              </section>
-
-              <!-- CT COMPARISON -->
-              <section class="v v-pv" data-view="pv">
-                <div class="pv-bar">
-                  <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/></svg></span>
-                  <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="9" width="8" height="11" rx="1"/></svg></span>
-                  <span class="vsep"></span>
-                  <span class="ib"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M7 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zM10.3 10.3 14 14M5 6.5h4M7 4.5v4"/></svg></span>
-                  <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="10" y="3" width="4" height="18" rx="1"/></svg></span>
-                  <span class="ib"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1"/></svg></span>
-                  <span class="ib" style="background:rgba(0,208,205,.14);color:#33dad8;border-radius:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></span>
-                  <span style="flex:1"></span>
-                  <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
-                </div>
-                <div class="pv-panes">
-                  <div class="pane cur"><img class="ct-img" data-ct="current" src="assets/ct-current.webp" alt="Axial chest CT, current study, cropped to the nodule"><div class="pane-tag"><b style="color:#ffb400">Current</b><span>Jun 5, 2026</span></div></div>
-                  <div class="pane pri"><img class="ct-img" data-ct="prior" src="assets/ct-prior.webp" alt="Axial chest CT, prior study, cropped to the nodule"><div class="pane-tag"><b style="color:#00d0cd">Prior</b><span>Jun 3, 2025</span></div></div>
-                </div>
-                <div class="callouts">
-                  <svg width="944" height="682" viewBox="0 0 944 682">
-                    <circle class="ring ring-cur" cx="289" cy="379" r="34"/>
-                    <circle class="ring ring-pri" cx="751" cy="379" r="22"/>
-                    <path class="leader lead-cur" d="M289 413 V 440"/>
-                    <path class="leader lead-pri" d="M751 401 V 440"/>
-                    <path class="arrow arr" id="arrPath" d="M733 352 C 670 262, 380 262, 318 346"/>
-                    <path class="arrow-head arr-h" d="M0 0 L -12 -6 L -12 6 Z" transform="translate(318 346) rotate(126)"/>
-                  </svg>
-                  <span class="clabel lab-cur" data-x="289" data-y="440"><em><span class="num">4</span> mm</em> · Current</span>
-                  <span class="clabel lab-pri" data-x="751" data-y="440"><em>4 mm</em> · Prior</span>
-                  <span class="clabel solid lab-arr">Interval growth</span>
-                </div>
-              </section>
-
-              <!-- TRACKING -->
-              <section class="v v-track" data-view="track">
-                <div class="v-head">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr3" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr3)" stroke-width="2.2" stroke-linecap="round"/></svg>
-                  <h2>Case at a glance</h2>
-                </div>
-                <div class="v-body">
-                  <div class="glance" style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
-                    <div class="ph" style="width:150px;height:10px"></div>
-                    <div class="ph-card"><div class="ph l" style="width:72%;height:10px"></div><div class="ph l" style="width:60%;height:10px"></div></div>
-                  </div>
-                  <div class="track-card">
-                    <div class="track-in">
-                      <div class="glance-row"><span class="sec-lbl">Longitudinal tracking</span><span style="flex:1"></span><span class="lnk">Lung nodule program</span></div>
-                      <div class="tl">
-                        <div class="tl-line"><i></i></div>
-                        <div class="tl-node" style="left:11%"><span class="tl-dotw"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Screening</b><small>May 28, 2026</small><span class="badge done">Eligible</span></div>
-                        <div class="tl-node" style="left:37%"><span class="tl-dotw"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>LDCT</b><small>Jun 3, 2026</small><span class="badge done">Lung-RADS 2</span></div>
-                        <div class="tl-node" style="left:63%"><span class="tl-dotw"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>CT</b><small>Jun 5, 2026</small><span class="badge done">Lung-RADS 4A</span></div>
-                        <div class="tl-node tl-fu" style="left:89%"><span class="tl-dotw"><span class="tl-dot pend"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="3"/></svg></span><span class="tl-dot miss"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></span></span><b>Follow-up visit</b><small>Jun 30, 2026</small>
-                          <span class="flip"><span class="badge ok booked">Booked</span><span class="badge ns">No show</span><span class="pulse"></span></span>
-                          <span class="badge brand resched">Rescheduled · Jul 14, 2026</span>
+                      </section>
+                      <section class="gsec s-pri">
+                        <span class="sec-lbl">Priors</span>
+                        <div class="pair">
+                          <div class="ctf cur"><img class="ct-img" data-ct="current" src="assets/ct-current.webp" alt="Current CT, cropped to the nodule"><svg width="404" height="190"><circle class="ring rg-c" cx="234" cy="95" r="24"/></svg><span class="tag" style="color:#ffb400">Current · Jun 5, 2026</span><span class="clabel lab-c"><em><span class="num">4</span> mm</em> · Current</span></div>
+                          <div class="ctf pri"><img class="ct-img" data-ct="prior" src="assets/ct-prior.webp" alt="Prior CT, cropped to the nodule"><svg width="404" height="190"><circle class="ring rg-p" cx="234" cy="95" r="15"/></svg><span class="tag" style="color:#00d0cd">Prior · Jun 3, 2025</span><span class="clabel lab-p"><em>4 mm</em> · Prior</span></div>
                         </div>
-                      </div>
-                    </div>
+                      </section>
+                      <section class="gsec s-his">
+                        <span class="sec-lbl">Relevant clinical history</span>
+                        <div class="lines3">
+                          <div class="row"><b>Moderate COPD</b>, stable on inhaled therapy</div>
+                          <div class="row"><b>Current smoker</b> · 32 pack-years</div>
+                          <div class="row"><b>No personal cancer history</b></div>
+                        </div>
+                      </section>
+                      <section class="gsec s-car">
+                        <span class="sec-lbl">Care team activity</span>
+                        <div class="lines3">
+                          <div class="row"><span class="chk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Patient enrolled into <b>screening</b></div>
+                          <div class="row"><span class="chk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Lung screening <b>eligibility reviewed</b></div>
+                          <div class="row"><span class="chk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span><b>Follow-up visit</b> due Jun 30 · Jane Roe</div>
+                        </div>
+                      </section>
+                    </div></div>
                   </div>
-                  <div class="ph" style="width:180px;height:10px;margin-top:4px"></div>
-                  <div class="ph-card"><div class="ph l" style="width:66%;height:10px"></div><div class="ph l" style="width:48%;height:10px"></div></div>
+                  <div class="ph-card"><div class="ph l" style="width:62%;height:10px"></div><div class="ph l" style="width:48%;height:10px"></div></div>
                 </div>
               </section>
 
-              <!-- LETTER (device context) -->
+              <!-- b2a/b2b · appointments -->
+              <section class="v v-appts" data-view="appts">
+                <div class="v-head"><span class="gi"></span><h2>Appointments</h2></div>
+                <div class="v-body" style="flex-direction:row;align-items:flex-start">
+                  <div class="pcard appts">
+                    <div class="row"><span class="sec-lbl">Appointments</span><span class="sp"></span><span class="mono">Jun 30, 2026</span></div>
+                    <div class="slot"><span class="t">09:00</span><span class="bar" style="width:130px"></span><span class="sp"></span><span class="badge done">Booked</span></div>
+                    <div class="slot av s-target"><span class="t">10:30</span><span class="avt">Available</span><span class="sp"></span><span class="btn pri sm book">Book</span><span class="ring2"></span>
+                      <div class="fill"><b>John Doe</b><span>· Follow-up CT</span>
+                        <span class="flip"><span class="badge ok b-book">Booked</span><span class="badge brand b-conf">Confirmed</span><span class="badge ns b-ns">No show</span><span class="badge brand b-res"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Rescheduled · Jul 14, 2026</span><span class="pulse"></span></span></div></div>
+                    <div class="slot"><span class="t">11:15</span><span class="bar" style="width:110px"></span><span class="sp"></span><span class="badge done">Booked</span></div>
+                    <div class="slot av"><span class="t">13:00</span><span class="avt">Available</span><span class="sp"></span><span class="btn pri sm">Book</span></div>
+                    <div class="slot"><span class="t">14:30</span><span class="bar" style="width:150px"></span><span class="sp"></span><span class="badge done">Booked</span></div>
+                  </div>
+                  <div class="ph-card" style="flex:1"><div class="ph l" style="width:60%;height:10px"></div><div class="ph l" style="width:80%;height:10px"></div><div class="ph l" style="width:44%;height:10px"></div></div>
+                </div>
+              </section>
+
+              <!-- b2c · outreach -->
               <section class="v v-letter" data-view="letter">
-                <div class="v-head">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round"><path d="M4 5h4M4 12h4M4 19h4M8 5v14M12 5h8M12 12h6M12 19h8"/></svg>
-                  <h2>Case feed</h2>
-                </div>
+                <div class="v-head"><span class="gi"></span><h2>Outreach</h2></div>
                 <div class="v-body" style="gap:14px">
                   <div class="prompt">
-                    <span class="aira-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr4" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr4)" stroke-width="2.2" stroke-linecap="round"/></svg></span>
-                    <p>Follow-up visit missed on Jun 30, 2026. <span>Reach the patient?</span></p>
-                    <span class="btn sec">SMS</span><span class="btn sec">Call</span>
+                    <span class="gi" style="width:32px;height:32px;border-radius:50%"></span>
+                    <p>Follow-up CT due for John Doe. <span>Reach the patient?</span></p>
+                    <span class="btn sec sms-btn">SMS</span><span class="btn sec call-btn">Call</span>
                     <span class="btn pri send-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg>Send letter</span>
                   </div>
                   <div class="ph-card"><div class="ph l" style="width:40%;height:10px"></div><div class="ph l" style="width:76%;height:10px"></div></div>
                   <div class="ph-card"><div class="ph l" style="width:52%;height:10px"></div><div class="ph l" style="width:64%;height:10px"></div><div class="ph l" style="width:30%;height:10px"></div></div>
-                  <div class="ph-card"><div class="ph l" style="width:46%;height:10px"></div><div class="ph l" style="width:70%;height:10px"></div></div>
                 </div>
               </section>
 
@@ -469,29 +454,41 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
     </div>
   </div>
 
-  <!-- ================= captions (kinetic; text comes from COPY) ================= -->
+  <!-- ================= captions (kinetic; screenshot text from COPY) ================= -->
   <div class="cap">
-    <div class="cb cb-1"><div class="ml t-label-overline"><span class="n">01</span><span class="rule"></span><span>Report summary</span></div><h2 class="kt" data-copy="s1"></h2></div>
-    <div class="cb cb-3"><div class="ml t-label-overline"><span class="n">03</span><span class="rule"></span></div><h2 class="kt big" data-copy="s3"></h2></div>
-    <div class="cb cb-4a"><div class="ml t-label-overline"><span class="n">04</span><span class="rule"></span><span>Tracking</span></div><h2 class="kt" data-copy="s4a"></h2></div>
-    <div class="cb cb-4b"><div class="ml t-label-overline"><span class="n">05</span><span class="rule"></span><span>Outreach</span></div><h2 class="kt" data-copy="s4b"></h2></div>
+    <div class="cb cb-b1a"><div class="ml t-label-overline"><span class="n">1/4</span><span class="rule"></span></div><h2 class="kt" data-copy="b1a"></h2></div>
+    <div class="cb cb-b1b"><div class="ml t-label-overline"><span class="n">1/4</span><span class="rule"></span></div><h2 class="kt" data-copy="b1b"></h2></div>
+    <div class="cb cb-b2a"><div class="ml t-label-overline"><span class="n">2/4</span><span class="rule"></span></div><h2 class="kt" data-copy="b2a"></h2></div>
+    <div class="cb cb-b2b"><div class="ml t-label-overline"><span class="n">2/4</span><span class="rule"></span></div><h2 class="kt" data-copy="b2b"></h2></div>
+    <div class="cb cb-b2c"><div class="ml t-label-overline"><span class="n">2/4</span><span class="rule"></span></div><h2 class="kt" data-copy="b2c"></h2></div>
   </div>
-  <!-- scene 2 side words -->
-  <div class="sw l sw2l" style="right:1228px;top:300px"><div class="ml t-label-overline" style="justify-content:flex-end;margin-bottom:14px"><span class="n">02</span><span class="rule"></span></div><div class="kt big" data-copy="s2.l"></div></div>
-  <div class="sw r sw2r" style="left:1212px;top:332px"><div class="kt big" data-copy="s2.r"></div></div>
-  <!-- scene 5 headline split + body + prior-auth caption -->
-  <div class="sw l sw5l" style="right:1076px;top:330px"><div class="ml t-label-overline" style="justify-content:flex-end;margin-bottom:14px"><span class="n">06</span><span class="rule"></span></div><div class="kt big" data-copy="s5.l"></div></div>
-  <div class="sw r sw5r" style="left:1092px;top:362px"><div class="kt big" data-copy="s5.r"></div></div>
-  <div class="s5-body"><div class="kt kb p1" data-copy="s5.body.0"></div><div class="kt kb p2" data-copy="s5.body.1"></div><span class="upc cap-upc up1">Upcoming</span></div>
-  <div class="s5-pa"><h2 class="kt" data-copy="s5b"></h2><span class="upc cap-upc up2">Upcoming</span></div>
+  <!-- bullet 3 headline split + body; bullet 4 caption -->
+  <div class="sw l sw5l" style="right:1090px;top:320px"><div class="ml t-label-overline" style="justify-content:flex-end;margin-bottom:14px"><span class="n">3/4</span><span class="rule"></span></div><div class="kt big" data-copy="b3.l"></div></div>
+  <div class="sw r sw5r" style="left:1112px;top:352px"><div class="kt big" data-copy="b3.r"></div></div>
+  <div class="s5-body"><div class="kt kb p1" data-copy="b3.body.0"></div><div class="kt kb p2" data-copy="b3.body.1"></div><span class="upc cap-upc up1">Upcoming</span></div>
+  <div class="s5-pa"><div class="ml t-label-overline" style="justify-content:center"><span class="n">4/4</span><span class="rule"></span></div><h2 class="kt" data-copy="b4"></h2><span class="upc cap-upc up2">Upcoming</span></div>
 
   <!-- ================= lifted components ================= -->
   <div class="lift p">
-    <div class="lifted lift-report"><div class="lift-shadow"></div></div>
-    <div class="morph">
+    <div class="lifted lift-ref"><div class="lift-shadow"></div></div>
+    <div class="lifted lift-spec" style="transform-origin:0 50%"></div>
+    <div class="lifted lift-rec"><div class="lift-shadow"></div></div>
+    <div class="lifted lift-appts"><div class="lift-shadow"></div></div>
+    <svg class="lsvg" width="1600" height="1000" viewBox="0 0 1600 1000"><path class="hair sync" id="syncPath" d="M0 0"/></svg>
+    <svg class="lsvg" width="1600" height="1000" viewBox="0 0 1600 1000"><circle class="dot sd1" r="4.5"/><circle class="dot sd2" r="4.5"/><circle class="dot sd3" r="4.5"/></svg>
+    <div class="pcard emr"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="1.8"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v13c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8v-13M4.5 12c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8"/></svg><span class="big">EMR</span></div>
+    <span class="badge brand synced"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Synced to EMR</span>
+    <div class="pcard resq"><span class="badge ns">No show</span>
+      <div class="who">John Doe · Follow-up CT</div>
+      <div class="q">Reschedule?</div>
+      <div class="acts"><span class="btn pri sm yes">Yes</span><span class="btn sec sm">Not now</span></div>
+    </div>
+
+    <!-- letter morph (reused from the approved film) -->
+    <div class="morph m-letter">
       <div class="m-old"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg>Send letter</div>
       <div class="m-new">
-        <div class="lcard-h"><span class="lcard-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg></span><b>Follow-up reminder (patient)</b><small>Northfield Pulmonology Clinic · Jane Roe</small></div>
+        <div class="lcard-h"><span class="lcard-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg></span><b>Letter · follow-up reminder</b><small>Northfield Pulmonology Clinic · Jane Roe</small></div>
         <div class="lcard-b">Dear Mr. Doe,
 
 <span class="ltext"></span><span class="caret"></span>
@@ -500,7 +497,7 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
         <div class="lcard-f">
           <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Language <em>English</em></span>
           <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Contact <em>Address verified</em></span>
-          <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Protocol <em>Lung-RADS 4A</em></span>
+          <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Template <em>Protocol-based</em></span>
         </div>
       </div>
     </div>
@@ -510,93 +507,77 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
       <span class="step st2"><span class="act"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><span class="lbl">Assessment</span></span>
       <span class="step st3"><span class="act"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><span class="lbl">Sent to patient</span></span>
     </div>
-    <svg class="bigcheck" width="88" height="88" viewBox="0 0 88 88"><g class="qcheck"><circle cx="44" cy="44" r="44"/><path d="M27 45 l12 12 l23 -26"/></g></svg>
+    <!-- SMS and phone: same morph language, from their buttons -->
+    <div class="morph sec0 m-sms">
+      <div class="m-old">SMS</div>
+      <div class="m-new mcard"><div class="row"><span class="sec-lbl">SMS</span><span class="sp"></span><span class="swap"><span class="badge ok st-sms" style="opacity:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Sent</span></span></div>
+        <div class="bubble"><span class="sms-t"></span></div></div>
+    </div>
+    <div class="morph sec0 m-call">
+      <div class="m-old">Call</div>
+      <div class="m-new mcard"><div class="row"><span class="sec-lbl">Phone</span><span class="sp"></span><span class="swap"><span class="badge ok st-call" style="opacity:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Reached</span></span></div>
+        <div class="callrow"><span class="callic"><span class="wave"></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>
+          <span class="swap" style="justify-items:start"><span class="calling" style="justify-self:start">Calling John Doe…</span><span class="reached" style="justify-self:start;opacity:0;font-weight:600">John Doe · 00:42</span></span></div></div>
+    </div>
+    <div class="lang"><b>40+ languages</b><span class="greet"><span class="g1">Hello</span><span class="g2" style="opacity:0">Hola</span><span class="g3" style="opacity:0">Bonjour</span></span></div>
   </div>
 
-  <!-- ================= 3D tilt stage (scenes 2 and 5) ================= -->
+  <!-- ================= 3D tilt stage (bullets 3 and 4) ================= -->
   <div class="tilt p">
-    <div class="tgrp tg2">
-      <div class="panel feed-panel">
-        <div class="v-head">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round"><path d="M4 5h4M4 12h4M4 19h4M8 5v14M12 5h8M12 12h6M12 19h8"/></svg>
-          <h2>Case feed</h2>
-        </div>
-        <div class="fchips">
-          <span class="fchip on">All</span><span class="fchip">Decisions <i>0</i></span><span class="fchip">Letters <i>2</i></span><span class="fchip">Forms <i>3</i></span><span class="fchip">Notes <i>3</i></span><span class="fchip">DICOMs <i>1</i></span><span class="fchip">Reports <i>3</i></span>
-        </div>
-        <div class="feed">
-          <div class="fitem"><div class="fdate">Jun 3, 2026</div>
-            <div class="fcard">
-              <div class="fcard-h"><span class="mod">CT</span><span class="fcard-t"><b>CT LUNG SCREENING</b><span class="fcard-m"><span>Exam date <em>Jun 2, 2026</em></span><span>Qure.ai · Jun 3, 2026 · 11:42 AM</span></span></span>
-                <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
-              <div class="aitags"><span class="ai-l">AI tags</span>
-                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Indication: lung cancer screening · &gt;20 pack year</span>
-                <span class="tag rec">Nodule size: &lt;6mm</span>
-                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Priority: Routine</span>
-              </div>
-            </div>
-          </div>
-          <div class="fitem">
-            <div class="frow"><span class="aira-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr2" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr2)" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>Report summary</b><span class="fm">Aira · Jun 3, 2026 · 11:42 AM</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
-          </div>
-          <div class="fitem"><div class="fdate">Jun 2, 2026</div>
-            <div class="fcard">
-              <div class="fcard-h"><span class="mod">CT</span><span class="fcard-t"><b>CT CHEST</b><span class="fcard-m"><span>Exam date <em>Jun 2, 2026</em></span><span>Qure.ai · Jun 2, 2026 · 10:05 AM</span></span></span>
-                <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
-              <div class="aitags"><span class="ai-l">AI tags</span>
-                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Recommendation present: Yes</span>
-                <span class="tag rec">Nodule size: &gt;6mm</span>
-                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Priority: Low</span>
-              </div>
-            </div>
-          </div>
-          <div class="fitem"><div class="fdate">May 28, 2026</div>
-            <div class="fcard">
-              <div class="fcard-h"><span class="mod" style="font-size:10px">ASMT</span><span class="fcard-t"><b>LUNG SCREENING ELIGIBILITY ASSESSMENT</b><span class="fcard-m"><span>Exam date <em>May 28, 2026</em></span><span>Screening program · May 28, 2026 · 04:15 PM</span></span></span>
-                <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
-              <div class="aitags"><span class="ai-l">AI tags</span>
-                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Indication: lung cancer screening · &gt;20 pack year</span>
-                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Eligibility: met</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="tgrp tg5">
       <div class="panel ucard proto">
         <div class="ucard-h"><span class="sec-lbl">Auto-protocol</span><span class="upc">Upcoming</span></div>
-        <h3>Lung-RADS 4A → PET-CT</h3>
+        <h3>Missed appointment → follow-up task</h3>
         <div class="flow">
-          <svg width="482" height="250" viewBox="0 0 482 250"><path class="conn c1" d="M48 66 V 98"/><path class="conn c2" d="M48 150 V 182"/></svg>
-          <div class="fnode" style="top:14px"><span class="k">If</span><b>Lung-RADS 4A</b><span class="badge done">Trigger</span></div>
-          <div class="fnode" style="top:98px"><span class="k">Then</span><b>Order PET-CT</b><span class="badge brand">Action</span></div>
-          <div class="fnode" style="top:182px"><span class="k">Track</span><b>Result to completion</b><span class="badge brand">Action</span></div>
+          <svg class="fsvg" width="500" height="260"><path class="conn c1" d="M0 0"/><path class="conn c2" d="M0 0"/></svg>
+          <div><span class="sub">EMR events</span>
+            <div class="evs">
+              <div class="evr">Lab result filed</div>
+              <div class="evr">Report finalised</div>
+              <div class="evr ev-miss"><span class="hit"></span><b style="font-weight:600">Missed appointment</b><span class="badge peach">Task</span></div>
+              <div class="evr">Referral received</div>
+            </div></div>
+          <div><span class="sub">Rule checks</span>
+            <div class="rules">
+              <div class="ckr"><span class="o"><span class="chk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span>Event is a missed appointment</div>
+              <div class="ckr"><span class="o"><span class="chk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span>Hospital workflow</div>
+              <div class="ckr"><span class="o"><span class="chk"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span>Program rule: follow-up is still due</div>
+            </div>
+            <div class="result"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Rule matched · task created</div>
+            <div class="task">Reschedule missed appointment<span class="mono">Follow-up</span></div>
+          </div>
         </div>
-        <div class="vrow vr1"><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Tested on sample cases</b><span class="r">All passed</span></div>
+        <div class="vrow vr1"><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Tested on sample cases</b><span class="r">3 of 3 passed</span></div>
         <div class="vrow vr2"><span class="hov"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Clinical sign-off</b><span class="r">Dr. Jane Doe, MD</span></div>
       </div>
-      <div class="panel ucard docc">
-        <div class="ucard-h"><span class="sec-lbl">Prior-auth documentation</span><span class="upc">Upcoming</span></div>
-        <h3>PET-CT · Health Plan</h3>
+      <div class="panel ucard recc">
+        <div class="ucard-h"><span class="sec-lbl">Patient record</span></div>
         <div class="doc">
-          <dl class="dsec"><dt>Patient</dt><dd>John Doe · QR-0000-0000-XX</dd></dl>
-          <dl class="dsec"><dt>Payer</dt><dd>Health Plan</dd></dl>
-          <dl class="dsec"><dt>Service</dt><dd>PET-CT, skull base to mid-thigh</dd></dl>
-          <dl class="dsec"><dt>Justification</dt><dd>8mm solid nodule, interval growth from 4mm · <b>Lung-RADS 4A</b></dd></dl>
-          <dl class="dsec"><dt>Payer criteria</dt><dd>Met · 3 of 3</dd></dl>
-          <dl class="dsec"><dt>Ordering</dt><dd>Dr. Jane Doe, MD</dd></dl>
+          <dl class="dsec r1"><dt>Patient</dt><dd>John Doe · 64M</dd></dl>
+          <dl class="dsec r2"><dt>Diagnosis</dt><dd>Pulmonary nodule, 8 mm</dd></dl>
+          <dl class="dsec r3"><dt>Procedure</dt><dd>PET-CT</dd></dl>
+          <dl class="dsec r4"><dt>Justification</dt><dd>Growth 4 → 8 mm · Lung-RADS 4A</dd></dl>
+          <dl class="dsec r5"><dt>Payer</dt><dd>Health Plan · 3 criteria</dd></dl>
+        </div>
+      </div>
+      <div class="panel ucard docc">
+        <div class="ucard-h"><span class="sec-lbl">Prior-auth document</span><span class="upc">Upcoming</span></div>
+        <div class="doc">
+          <dl class="dsec d1"><dt>Patient</dt><dd>John Doe · 64M</dd><span class="chk pc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></dl>
+          <dl class="dsec d2"><dt>Diagnosis</dt><dd>Pulmonary nodule, 8 mm</dd><span class="chk pc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></dl>
+          <dl class="dsec d3"><dt>Procedure</dt><dd>PET-CT</dd><span class="chk pc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></dl>
+          <dl class="dsec d4"><dt>Justification</dt><dd>Growth 4 → 8 mm · Lung-RADS 4A</dd><span class="chk pc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></dl>
+          <dl class="dsec d5"><dt>Payer criteria</dt><dd>Health Plan · 3 criteria</dd><span class="chk pc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></dl>
+          <div class="met"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>Payer criteria met · 3 of 3</div>
         </div>
       </div>
     </div>
   </div>
+  <div class="flys p"></div>
 
   <!-- ================= open caption + end wordmark ================= -->
   <div class="hero">
-    <h2 class="hero-cap t-heading-h4 kt" data-copy="s0"></h2>
+    <h2 class="hero-cap t-heading-h4 kt" data-copy="title"></h2>
     <span class="wm end-wm"><span class="wm-q">qTrack</span><span class="wm-move">Move</span></span>
   </div>
 
@@ -610,7 +591,6 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
 <div class="rbar" id="rbar">
   <button class="rb-play" id="rbPlay">Pause</button>
   <div class="rb-scenes" id="rbScenes"></div>
-  <div class="rb-copy">Copy <span class="rb-seg" id="rbCopy"><button data-set="screenshot">Screenshot</button><button data-set="film">Film</button></span></div>
   <div class="rb-speed" id="rbSpeed"><button data-s=".25">0.25×</button><button data-s=".5">0.5×</button><button data-s="1" class="on">1×</button></div>
   <div class="rb-ticks" id="rbTicks"></div>
   <div class="rb-scrub"><input type="range" id="rbScrub" min="0" max="1000" step="1" value="0" aria-label="Timeline"><span class="rb-time" id="rbTime">0.00 / 0.00s</span></div>
@@ -629,38 +609,25 @@ body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
    CONFIG
    ====================================================================== */
 const REVIEW_MODE = true;             // true: "REVIEW · replace scans" tag; false: production (checks the scans were replaced)
-const COPY_SET    = 'screenshot';     // 'screenshot' (verbatim from the qTrack content screenshot) | 'film'
 const CT_ORIGINAL_SHA256 = {          // hashes of the review scans shipped with this build (assets/ct-*.webp)
   current:'fa19d4ca9349ddd3e416da8ddbd155aa9d7aa7bf2ce7669e44901f72fa8ef0d9',
   prior:  'd8265917ddb7ec6373111fa11c896e922a9b3f25a6b5709ad9fc52be6327782e'
 };
 
-/* All caption text. key = words that flash Qure Peach, then settle to Indigo ("|"-separated).
+/* Caption text: the qTrack screenshot, verbatim, segmented by phrase per beat.
+   key = words that flash Qure Peach, then settle to Indigo ("|"-separated).
    Captions longer than 12 words reveal line by line at the smaller body size. */
 const COPY = {
-  screenshot: {
-    s0:  { t:'Turns Referrals into Finished Care. Your Protocols, Automated.', key:'Finished|Care.' },
-    s1:  { t:'Missed referrals are auto-routed to the right specialist with one longitudinal record, including the finding, priors, history and care to date.', key:'longitudinal' },
-    s2:  { l:'Case', r:'feed', key:'feed' },
-    s3:  { t:'CT comparison', key:'comparison' },
-    s4a: { t:'Tracks appointments through completion with two-way EMR sync. No-shows are traced and rescheduled.', key:'rescheduled.' },
-    s4b: { t:'Patients are reached by SMS, phone or letter with protocol-based templates in 40+ languages.', key:'40+|languages.' },
-    s5:  { l:'Your protocols,', r:'automated.', key:'automated.',
+  title: { t:'Turns Referrals into Finished Care. Your Protocols, Automated.', key:'Finished|Care.' },
+  b1a:   { t:'Missed referrals are auto-routed to the right specialist', key:'auto-routed' },
+  b1b:   { t:'with one longitudinal record, including the finding, priors, history and care to date.', key:'longitudinal' },
+  b2a:   { t:'Tracks appointments through completion with two-way EMR sync.', key:'two-way' },
+  b2b:   { t:'No-shows are traced and rescheduled.', key:'rescheduled.' },
+  b2c:   { t:'Patients are reached by SMS, phone or letter with protocol-based templates in 40+ languages.', key:'40+|languages.' },
+  b3:    { l:'Your protocols,', r:'automated.', key:'automated.',
            body:[ 'Every hospital can create its own protocols, test them on sample cases, and nothing goes live without clinical sign-off.',
                   'qTrack lets your team move at AI speed, yet stay in clinical control.' ], bodyKey:'sign-off.|control.' },
-    s5b: { t:'Auto-generated billable prior-auth documentation as per payer criteria, reducing denials.', key:'reducing|denials.' },
-  },
-  film: {
-    s0:  { t:'Turns Referrals into Finished Care.', key:'Finished|Care.' },
-    s1:  { t:'One longitudinal record, including the finding, priors, history and care to date.', key:'longitudinal' },
-    s2:  { l:'Case', r:'feed', key:'feed' },
-    s3:  { t:'CT comparison', key:'comparison' },
-    s4a: { t:'No-shows are traced and rescheduled.', key:'rescheduled.' },
-    s4b: { t:'Patients are reached by SMS, phone or letter with protocol-based templates in 40+ languages.', key:'40+|languages.' },
-    s5:  { l:'Your protocols,', r:'automated.', key:'automated.',
-           body:[ 'Nothing goes live without clinical sign-off.' ], bodyKey:'clinical|sign-off.' },
-    s5b: { t:'', key:'' },
-  },
+  b4:    { t:'Auto-generated billable prior-auth documentation as per payer criteria, reducing denials.', key:'reducing|denials.' },
 };
 
 (function(){
@@ -690,27 +657,27 @@ async function verifyScans(){
 
 /* offset of el inside the stage, ignoring transforms */
 function pos(el){ let x=0,y=0,n=el; while(n && n!==stage){ x+=n.offsetLeft; y+=n.offsetTop; n=n.offsetParent; } return {x,y,w:el.offsetWidth,h:el.offsetHeight}; }
+/* on-screen rect in stage coordinates (includes 3D transforms) */
+function srect(el){ const st = stage.getBoundingClientRect(), k = st.width/1600, r = el.getBoundingClientRect();
+  return {x:(r.left-st.left)/k, y:(r.top-st.top)/k, w:r.width/k, h:r.height/k}; }
 
 /* ---------------- copy ---------------- */
-function getCopy(set, path){ return path.split('.').reduce((o,k)=>o==null?o:o[k], COPY[set]); }
-function applyCopy(set){
+function getCopy(path){ return path.split('.').reduce((o,k)=>o==null?o:o[k], COPY); }
+function applyCopy(){
   $$('[data-copy]').forEach(el=>{
-    const path = el.dataset.copy, v = getCopy(set, path);
+    const path = el.dataset.copy, v = getCopy(path);
     let text = '', key = '';
-    if(typeof v === 'string'){ text = v; const parent = getCopy(set, path.split('.')[0]); key = path.includes('body') ? (parent.bodyKey||'') : (parent.key||''); }
+    if(typeof v === 'string'){ text = v; const parent = getCopy(path.split('.')[0]); key = path.includes('body') ? (parent.bodyKey||'') : (parent.key||''); }
     else if(v){ text = v.t||''; key = v.key||''; }
-    el.textContent = text; el.dataset.key = key;
-    el.hidden = !text;
-    // long captions: line-by-line at the smaller body size (big side words keep their size)
+    el.textContent = text; el.dataset.key = key; el.hidden = !text;
     if(!el.classList.contains('big')){
-      const long = text.trim().split(/\s+/).length > 12;
-      el.classList.toggle('kb', long || el.closest('.s5-body') !== null);
-      el.classList.toggle('t-heading-h4', !(long || el.closest('.s5-body') !== null));
+      const long = text.trim().split(/\s+/).length > 12, body = long || el.closest('.s5-body') !== null;
+      el.classList.toggle('kb', body); el.classList.toggle('t-heading-h4', !body);
     }
   });
 }
 
-/* ---------------- kinetic type ---------------- */
+/* ---------------- kinetic type (unchanged from the approved film) ---------------- */
 function prepKinetic(h){
   if(h._split) return h;
   const long = h.textContent.trim().split(/\s+/).length > 12;
@@ -748,9 +715,8 @@ function capOut(tl, block, at){ tl.to(block, {autoAlpha:0, y:-10, duration:.35, 
 function countUp(tl, el, from, to, at, dur){
   tl.fromTo(el, {textContent:from}, {textContent:to, snap:{textContent:1}, duration:dur, ease:'power2.out'}, at);
 }
-/* typing with micro-pauses at punctuation, ~28 chars/s */
-function typeIn(tl, el, text, at){
-  const CPS = 28; let t = at, acc = '';
+function typeIn(tl, el, text, at, cps){
+  const CPS = cps||28; let t = at, acc = '';
   text.split(/(?<=[.,])/).forEach(chunk=>{
     acc += chunk; const d = chunk.length / CPS;
     tl.to(el, {text:{value:acc, delimiter:''}, duration:d, ease:'none'}, t);
@@ -759,54 +725,80 @@ function typeIn(tl, el, text, at){
   });
   return t;
 }
+function pop(tl, el, at){ tl.fromTo(el, {scale:0}, {scale:1, duration:.22, ease:'emph'}, at); }
+function swapTo(tl, from, to, at){ tl.to(from, {opacity:0, y:-4, duration:.18, ease:'power2.in'}, at); tl.fromTo(to, {opacity:0, y:4}, {opacity:1, y:0, duration:.22, ease:'emph'}, at+.16); }
+/* cursor glide (MotionPath) + click dip; target responds 0.96 → 1 */
+function cursorTo(tl, cur, x, y, at, dur){
+  tl.to(cur, {opacity:1, duration:.2, ease:'none'}, at);
+  tl.to(cur, {duration:dur||.85, ease:'glide', motionPath:{path:[{x:1660,y:1060},{x:(x+1660)/2+80,y:Math.max(y,700)},{x,y}], curviness:1.2}}, at);
+}
+function click(tl, cur, at, target){
+  tl.to(cur, {scale:.96, duration:.1, ease:'power2.out', transformOrigin:'0 0'}, at);
+  tl.to(cur, {scale:1, duration:.18, ease:'emph'}, at+.1);
+  if(target){ tl.fromTo(target, {scale:1}, {scale:.96, duration:.1, ease:'power2.out', immediateRender:false}, at); tl.to(target, {scale:1, duration:.2, ease:'emph'}, at+.1); }
+}
+function cursorOut(tl, cur, at){ tl.to(cur, {opacity:0, x:'+=40', y:'+=60', duration:.4, ease:'glide'}, at); }
 
-/* lift-out clone of the report summary card */
-const report = $('.g-report'), liftR = $('.lift-report');
-function buildLiftClone(){
-  liftR.querySelectorAll('.glance').forEach(n=>n.remove());
-  const r = pos(report), c = report.cloneNode(true);
+/* lift-out clone of a device component (identical pixels, then lifts) */
+function liftClone(src, holder){
+  holder.querySelectorAll(':scope > :not(.lift-shadow)').forEach(n=>n.remove());
+  const r = pos(src), c = src.cloneNode(true);
   c.style.width = r.w + 'px'; c.style.margin = 0;
-  liftR.appendChild(c);
-  Object.assign(liftR.style, {left:r.x+'px', top:r.y+'px', width:r.w+'px', height:r.h+'px'});
+  holder.appendChild(c);
+  Object.assign(holder.style, {left:r.x+'px', top:r.y+'px', width:r.w+'px', height:r.h+'px'});
+  return c;
+}
+/* lift-out (approved): component scales up with a growing shadow; the shell recedes to a pre-blurred layer at 35% */
+function liftOut(tl, holder, src, blur, at, to){
+  const dev = $('.device');
+  tl.set(holder, {visibility:'visible'}, at).set(src, {opacity:0}, at);
+  tl.fromTo(holder, {scale:1, y:0, x:0}, Object.assign({scale:1.15, y:-24, x:0, duration:.8, ease:'glide'}, to||{}), at);
+  const sh = holder.querySelector('.lift-shadow'); if(sh) tl.fromTo(sh, {opacity:0}, {opacity:1, duration:.8, ease:'glide'}, at);
+  tl.to(dev, {opacity:0, scale:.98, duration:.6, ease:'glide'}, at);
+  tl.fromTo(blur, {opacity:0, scale:.98}, {opacity:.35, duration:.6, ease:'glide', immediateRender:false}, at);
+}
+/* the shell comes back sharp on a new view */
+function shellIn(tl, view, at){
+  const dev = $('.device');
+  $$('.v').forEach(v=>{ if(v!==view) tl.set(v, {autoAlpha:0}, at); });
+  tl.set(view, {autoAlpha:1}, at);
+  tl.fromTo(dev, {opacity:0, scale:.98, y:24}, {opacity:1, scale:1, y:0, duration:.7, ease:'emph', immediateRender:false}, at+.05);
 }
 
-/* sign-off row position on the tilted card (measured in its final pose) */
-function measureSign(){
-  const pr = $('.proto'), st = stage.getBoundingClientRect(), k = st.width/1600;
-  gsap.set(pr, {autoAlpha:1, yPercent:0, rotationX:12, x:0, scale:1});
-  const r = $('.vr2').getBoundingClientRect();
-  gsap.set(pr, {autoAlpha:0});
-  return {x:(r.left - st.left)/k + r.width/k*.42, y:(r.top - st.top)/k + r.height/k*.55};
+/* sign-off row position on the tilted protocol card (final pose) */
+function measureTilt(){
+  const pr = $('.proto'), rc = $('.recc'), dc = $('.docc');
+  gsap.set([pr, rc, dc], {autoAlpha:1, yPercent:0, rotationX:12, x:0, scale:1});
+  const s = srect($('.vr2'));
+  const fields = [1,2,3,4,5].map(i=>({from:srect($('.recc .r'+i)), to:srect($('.docc .d'+i))}));
+  gsap.set([pr, rc, dc], {autoAlpha:0});
+  return {sign:{x:s.x + s.w*.42, y:s.y + s.h*.55}, fields};
 }
 
 /* ======================================================================
-   MASTER TIMELINE
+   MASTER TIMELINE  (labels = segment names for data-start / data-end)
    ====================================================================== */
-const SCENES = [['open','Open'],['report','Report summary'],['feed','Case feed'],['pv','CT comparison'],
-                ['track','Tracking'],['letter','Letter'],['up','Auto-protocols'],['end','End']];
-const T = {open:0, report:2.3, feed:7.35, pv:11.2, track:16.2, letter:19.6, up:26.6, end:32.6};
-const TOTAL = 34.8;
+const SCENES = [['title','Title'],['b1a','1a Routed'],['b1b','1b Record'],['b2a','2a Appointments'],['b2b','2b No-show'],['b2c','2c Outreach'],['b3','3 Protocols'],['b4','4 Prior-auth'],['end','End']];
+const T = {title:0, b1a:2.3, b1b:5.6, b2a:14.5, b2b:19.1, b2c:22.7, b3:31.6, b4:36.4, end:40.3};
+const TOTAL = 42.5;
 
 function build(){
   const tl = gsap.timeline({paused:true, repeat:-1, defaults:{ease:'emph'}});
   Object.entries(T).forEach(([k,v])=>tl.addLabel(k, v));
 
   /* ---------- geometry ---------- */
-  const dev = $('.device'), dbody = $('.dbody');
-  const views = n => $('.v-'+n);
+  const dev = $('.device'), dbody = $('.dbody'), cam = $('.cam');
+  const view = n => $('.v-'+n);
   const tbWm = $('.tb-wm'), tbMove = $('.tb-wm .wm-move'), endWm = $('.end-wm');
-  const SIGN = measureSign();
-  buildLiftClone();
+  const TP = measureTilt();
   const tbR = pos(tbWm);
-  const K = 168/22;                                       // hero size / title-bar size
+  const K = 168/22;
   const heroW = tbWm.offsetWidth*K, heroH = tbWm.offsetHeight*K;
   const heroX = 800 - heroW/2, heroY = 420 - heroH/2;
   const DEV_Y0 = 120;
-  const wmX0 = heroX - tbR.x, wmY0 = heroY - tbR.y - DEV_Y0; // local offset that puts the title-bar wordmark at stage centre
+  const wmX0 = heroX - tbR.x, wmY0 = heroY - tbR.y - DEV_Y0;
   gsap.set(endWm, {x:800 - endWm.offsetWidth/2, y:heroY});
-  const btn = $('.send-btn'), bR = pos(btn), morph = $('.morph');
-  const CARD = {x:620, y:330, w:860, h:262};
-  gsap.set(morph.querySelector('.m-new'), {width:CARD.w});
+  const cur = $('.cursor');
 
   /* ---------- initial state (t = 0 == last frame of the loop) ---------- */
   const face = [$('.dface'), $('.tb-bg'), $('.tb-url'), $('.tb-dots'), $('.viewport')];
@@ -814,25 +806,20 @@ function build(){
   gsap.set(dbody, {rotationX:8});
   gsap.set(face, {opacity:0});
   gsap.set(tbWm, {x:wmX0, y:wmY0, scale:K, opacity:0});
-  gsap.set(tbMove, {scale:(.15*168/K)/9, x:(1.1*.15*168/K)-6, y:(2.6*.15*168/K)-9});   // hero proportions of the MOVE tag
-  gsap.set($$('.v'), {autoAlpha:0}); gsap.set(views('cag'), {autoAlpha:1});
+  gsap.set(tbMove, {scale:(.15*168/K)/9, x:(1.1*.15*168/K)-6, y:(2.6*.15*168/K)-9});
+  gsap.set($$('.v'), {autoAlpha:0}); gsap.set(view('ref'), {autoAlpha:1});
   gsap.set($$('.device-blur'), {opacity:0, scale:.98});
   gsap.set($$('.cb, .sw, .s5-body, .s5-pa, .hero-cap'), {autoAlpha:0});
   gsap.set($$('.cb'), {yPercent:-50});
   gsap.set($$('.panel'), {autoAlpha:0});
-  gsap.set(morph, {x:bR.x, y:bR.y, width:bR.w, height:bR.h});
-  gsap.set($('.steps'), {x:CARD.x + CARD.w/2, y:CARD.y - 64, xPercent:-50});
-  gsap.set($('.bigcheck'), {x:CARD.x + CARD.w/2 - 44, y:CARD.y + CARD.h/2 - 44, scale:.6});
-  gsap.set($('.cursor'), {x:1660, y:1060});
-  $$('.clabel[data-x]').forEach(l=>gsap.set(l, {x:+l.dataset.x, y:+l.dataset.y, xPercent:-50}));
+  gsap.set(cur, {x:1660, y:1060});
 
-  /* ======================= 0 · OPEN ======================= */
-  let t = T.open;
+  /* ======================= TITLE · reuses scene 0 ======================= */
+  let t = T.title;
   tl.set($('.hero-cap'), {autoAlpha:1}, t+.10);
   textIn(tl, $('.hero-cap'), t+.10);
   tl.fromTo(tbWm, {opacity:0, y:wmY0+30, scale:K*.96}, {opacity:1, y:wmY0, scale:K, duration:.7}, t+.55);
   tl.to($('.hero-cap'), {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, t+1.4);
-  // ONE continuous move: the frame rises while the wordmark (inside it) interpolates into its slot
   const RISE = t+1.4, RD = 1.0;
   tl.to(dev, {y:0, duration:RD, ease:'glide'}, RISE);
   tl.to(dbody, {rotationX:0, duration:RD, ease:'glide'}, RISE);
@@ -840,112 +827,156 @@ function build(){
   tl.to(tbWm, {x:0, y:0, scale:1, duration:RD, ease:'glide'}, RISE);
   tl.to(tbMove, {x:0, y:0, scale:1, duration:RD, ease:'glide'}, RISE);
 
-  /* ======================= 1 · REPORT SUMMARY ======================= */
-  t = T.report;
-  capIn(tl, $('.cb-1'), t);
-  const L = t+.7;
-  tl.set(liftR, {visibility:'visible'}, L).set(report, {opacity:0}, L);
-  tl.fromTo(liftR, {scale:1, y:0, x:0}, {scale:1.15, y:-24, x:-14, duration:.8, ease:'glide'}, L);
-  tl.fromTo(liftR.querySelector('.lift-shadow'), {opacity:0}, {opacity:1, duration:.8, ease:'glide'}, L);
-  tl.to(dev, {opacity:0, scale:.98, duration:.6, ease:'glide'}, L);
-  tl.fromTo($('.db-cag'), {opacity:0, scale:.98}, {opacity:.35, duration:.6, ease:'glide'}, L);
-  tl.to(liftR, {scale:1.17, duration:3.3, ease:'none'}, L+.85);            // camera drift +1.5%
-  const lp = liftR.querySelectorAll('.rs p');
-  tl.to(liftR.querySelector('.rs-skel'), {opacity:0, duration:.2, ease:'none'}, L+.55);
-  tl.fromTo(lp, {y:44, opacity:0}, {y:0, opacity:1, duration:.5, ease:'emph', stagger:.07}, L+.6);
-  liftR.querySelectorAll('.hl').forEach((m,i)=>
-    tl.to(m, {backgroundSize:'100% 100%, 100% 2px', duration:.45, ease:'power2.inOut'}, t+2.0 + i*.6));
-  tl.fromTo(liftR.querySelectorAll('.chip'), {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22, ease:'emph', stagger:.06}, t+3.8);
-  capOut(tl, $('.cb-1'), T.feed - .2);
-  tl.to(liftR, {y:-70, opacity:0, duration:.5, ease:'glide'}, T.feed - .15);
-  tl.to($('.db-cag'), {opacity:0, duration:.5, ease:'glide'}, T.feed - .15);
+  /* ======================= b1a · routed (lift-out + MotionPath) ======================= */
+  t = T.b1a;
+  capIn(tl, $('.cb-b1a'), t);
+  const ref = $('.v-ref .refcard'), specRow = $('.v-ref .spec-row');
+  const refH = $('.lift-ref'), specH = $('.lift-spec');
+  const refC = liftClone(ref, refH), specC = liftClone(specRow, specH);
+  const L1 = t+.65;
+  tl.set(specH, {visibility:'visible'}, L1).set(specRow, {opacity:0}, L1);
+  liftOut(tl, refH, ref, $('.db-ref'), L1, {scale:1.1, y:-12});
+  tl.fromTo(specH, {y:0}, {y:-8, duration:.8, ease:'glide'}, L1);
+  // travel along a curved path to the right specialist
+  const rp = pos(ref), chipB = specC.querySelector('.sp-b'), cp = pos(specRow);
+  const chipX = cp.x + chipB.offsetLeft + chipB.offsetWidth/2, chipY = cp.y + chipB.offsetTop + chipB.offsetHeight;
+  const dx = chipX - (rp.x + rp.w/2), dy = (chipY - 8 + 20 + rp.h*1.1/2) - (rp.y + rp.h/2);
+  const M1 = t+1.4;
+  tl.to(refH, {duration:1.1, ease:'glide', motionPath:{path:[{x:0,y:-12},{x:dx*.45+40,y:dy*.35+40},{x:dx,y:dy}], curviness:1.3}}, M1);
+  tl.to(specC.querySelectorAll('.sp-a, .sp-c'), {opacity:.35, duration:.4, ease:'glide'}, M1+.3);
+  tl.to(chipB.querySelector('.ring2'), {opacity:1, duration:.3}, M1+1.0);
+  pop(tl, chipB.querySelector('.tick'), M1+1.1);
+  swapTo(tl, refC.querySelector('.st-miss'), refC.querySelector('.st-routed'), M1+1.15);
+  capOut(tl, $('.cb-b1a'), T.b1b - .2);
 
-  /* ======================= 2 · CASE FEED (3D tilt) ======================= */
-  t = T.feed;
-  const fp = $('.feed-panel');
-  tl.set(fp, {autoAlpha:1}, t);
-  tl.fromTo(fp, {yPercent:40, rotationX:28, opacity:0}, {yPercent:0, rotationX:12, opacity:1, duration:1.0, ease:'glide'}, t);
-  tl.fromTo($('.tg2'), {scale:1}, {scale:1.015, duration:4.0, ease:'none'}, t);
-  tl.set([$('.sw2l'), $('.sw2r')], {autoAlpha:1}, t+.2);
-  mlIn(tl, $('.sw2l .ml'), t+.2);
-  textIn(tl, $('.sw2l .kt'), t+.3);
-  textIn(tl, $('.sw2r .kt'), t+.42);
-  tl.fromTo(fp.querySelectorAll('.fitem'), {y:12, opacity:0}, {y:0, opacity:1, duration:.45, ease:'emph', stagger:.12}, t+.75);
-  tl.fromTo(fp.querySelectorAll('.tag'), {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22, ease:'emph', stagger:.06}, t+1.05);
-  tl.to(fp, {yPercent:14, opacity:0, duration:.55, ease:'glide'}, T.pv - .2);
-  tl.to([$('.sw2l'), $('.sw2r')], {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, T.pv - .25);
+  /* ======================= b1b · one longitudinal record (reuses scene 1 + scene 3) ======================= */
+  t = T.b1b;
+  tl.to([refH, specH], {autoAlpha:0, y:'-=30', duration:.4, ease:'glide'}, t-.1);
+  tl.to($('.db-ref'), {opacity:0, duration:.4, ease:'glide'}, t-.1);
+  shellIn(tl, view('rec'), t);
+  capIn(tl, $('.cb-b1b'), t+.1);
+  const rec = $('.g-record'), recH = $('.lift-rec');
+  const recC = liftClone(rec, recH);
+  const L2 = t+.8;
+  liftOut(tl, recH, rec, $('.db-rec'), L2, {scale:1.15, y:-24, x:-14});
+  tl.to(recH, {scale:1.17, duration:7.2, ease:'none'}, L2+.85);                      // camera drift +1.5%
+  // report summary: lines run up fast, peach sweeps, bold pills pop (scene 1)
+  tl.to(recC.querySelector('.rs-skel'), {opacity:0, duration:.2, ease:'none'}, L2+.55);
+  tl.fromTo(recC.querySelectorAll('.rs p'), {y:44, opacity:0}, {y:0, opacity:1, duration:.5, ease:'emph', stagger:.07}, L2+.6);
+  recC.querySelectorAll('.hl').forEach((m,i)=>tl.to(m, {backgroundSize:'100% 100%, 100% 2px', duration:.45, ease:'power2.inOut'}, t+2.0 + i*.5));
+  tl.fromTo(recC.querySelectorAll('.rs .chip'), {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22, ease:'emph', stagger:.06}, t+3.5);
+  // fast scroll through the record
+  const scroll = recC.querySelector('.gscroll'), SH = 258;
+  // priors: camera push, bold rings, 4 → 8 mm (scene 3, compressed to ~2.5s)
+  const P = t+4.0;
+  tl.to(scroll, {y:-SH, duration:.6, ease:'power2.inOut'}, P);
+  tl.fromTo(recC.querySelectorAll('.ctf img'), {scale:1}, {scale:1.35, duration:.8, ease:'glide'}, P+.45);
+  tl.fromTo(recC.querySelector('.rg-p'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.45, ease:'power2.inOut'}, P+1.0);
+  tl.fromTo(recC.querySelector('.lab-p'), {opacity:0, y:8}, {opacity:1, y:0, duration:.35}, P+1.25);
+  tl.fromTo(recC.querySelector('.rg-c'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.45, ease:'power2.inOut'}, P+1.3);
+  tl.fromTo(recC.querySelector('.lab-c'), {opacity:0, y:8}, {opacity:1, y:0, duration:.35}, P+1.55);
+  countUp(tl, recC.querySelector('.lab-c .num'), 4, 8, P+1.6, .75);
+  // relevant clinical history
+  const H = t+6.6;
+  tl.to(scroll, {y:-SH*2, duration:.6, ease:'power2.inOut'}, H);
+  tl.fromTo(recC.querySelectorAll('.s-his .row'), {y:12, opacity:0}, {y:0, opacity:1, duration:.4, ease:'emph', stagger:.06}, H+.45);
+  // care team activity
+  const C = t+7.7;
+  tl.to(scroll, {y:-SH*3, duration:.6, ease:'power2.inOut'}, C);
+  recC.querySelectorAll('.s-car .row').forEach((r,i)=>{ tl.fromTo(r, {y:12, opacity:0}, {y:0, opacity:1, duration:.4}, C+.45+i*.06); pop(tl, r.querySelector('.chk'), C+.6+i*.12); });
+  capOut(tl, $('.cb-b1b'), T.b2a - .2);
+  tl.to(recH, {y:'-=46', opacity:0, duration:.5, ease:'glide'}, T.b2a - .15);
+  tl.to($('.db-rec'), {opacity:0, duration:.5, ease:'glide'}, T.b2a - .15);
 
-  /* ======================= 3 · CT COMPARISON ======================= */
-  t = T.pv;
-  tl.set(views('cag'), {autoAlpha:0}, t).set(views('pv'), {autoAlpha:1}, t);
-  tl.fromTo(dev, {opacity:0, scale:.98, y:24}, {opacity:1, scale:1, y:0, duration:.7, ease:'emph', immediateRender:false}, t+.05);
-  capIn(tl, $('.cb-3'), t+.15);
-  const cam = $('.cam');
-  tl.set(cam, {transformOrigin:'520px 379px'}, t);
-  tl.fromTo(cam, {scale:1}, {scale:1.3, duration:1.0, ease:'glide'}, t+.7);
-  tl.to(cam, {scale:1.32, duration:3.4, ease:'none'}, t+1.7);
-  tl.to($$('.pane-tag'), {opacity:0, duration:.3, ease:'none'}, t+1.0);
-  tl.fromTo($('.ring-pri'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.5, ease:'power2.inOut'}, t+1.8);
-  tl.fromTo($('.lead-pri'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.2, ease:'none'}, t+2.2);
-  tl.fromTo($('.lab-pri'), {opacity:0, y:448}, {opacity:1, y:440, duration:.4}, t+2.25);
-  tl.fromTo($('.ring-cur'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.5, ease:'power2.inOut'}, t+2.3);
-  tl.fromTo($('.lead-cur'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.2, ease:'none'}, t+2.7);
-  tl.fromTo($('.lab-cur'), {opacity:0, y:448}, {opacity:1, y:440, duration:.4}, t+2.75);
-  countUp(tl, $('.lab-cur .num'), 4, 8, t+2.85, .8);
-  const arr = $('#arrPath'), lab = $('.lab-arr'), glide = gsap.parseEase('glide');
-  tl.fromTo(arr, {drawSVG:'0%'}, {drawSVG:'100%', duration:.8, ease:'glide'}, t+3.75);
-  tl.fromTo(lab, {opacity:0}, {opacity:1, duration:.2, ease:'none'}, t+3.8);
-  tl.to(lab, {duration:.8, ease:x=>Math.min(glide(x), .5)*2,
-      motionPath:{path:arr, align:arr, alignOrigin:[.5,.5], start:0, end:.5}}, t+3.75);
-  tl.fromTo($('.arr-h'), {opacity:0}, {opacity:1, duration:.15, ease:'none'}, t+4.45);
-  capOut(tl, $('.cb-3'), T.track - .2);
-  tl.to($('.callouts'), {opacity:0, duration:.3, ease:'none'}, T.track - .2);
+  /* ======================= b2a · appointments + two-way EMR sync ======================= */
+  t = T.b2a;
+  shellIn(tl, view('appts'), t);
+  capIn(tl, $('.cb-b2a'), t+.1);
+  const appts = $('.v-appts .appts'), apH = $('.lift-appts');
+  const apC = liftClone(appts, apH);
+  const L3 = t+.75;
+  liftOut(tl, apH, appts, $('.db-appts'), L3, {scale:1.08, y:-16, x:-30});
+  const ap = pos(appts), apCx = ap.x + ap.w/2 - 30, apR = apCx + ap.w*1.08/2;
+  const emr = $('.emr'), EX = 1330, EY = 380;
+  gsap.set(emr, {x:EX, y:EY});
+  tl.fromTo(emr, {opacity:0, y:EY+20}, {opacity:1, y:EY, duration:.55}, L3+.5);
+  const sp = $('#syncPath');
+  sp.setAttribute('d', `M${apR+6} ${EY+64} C ${apR+50} ${EY+30}, ${EX-50} ${EY+30}, ${EX-4} ${EY+64}`);
+  tl.fromTo(sp, {drawSVG:'0%'}, {drawSVG:'100%', duration:.5, ease:'glide'}, L3+.7);
+  // cursor picks an empty slot; Book press; slot fills
+  const tgt = apC.querySelector('.s-target'), book = tgt.querySelector('.book');
+  const bpos = pos(appts.querySelector('.s-target .book'));
+  const sc = 1.08, ocx = ap.x + ap.w/2, ocy = ap.y + ap.h/2;
+  const bx = ocx + (bpos.x + bpos.w*.5 - ocx)*sc - 30, by = ocy + (bpos.y + bpos.h*.6 - ocy)*sc - 16;
+  cursorTo(tl, cur, bx, by, t+1.4);
+  click(tl, cur, t+2.3, book);
+  tl.to(book, {opacity:0, duration:.15}, t+2.45);
+  tl.to(tgt.querySelector('.ring2'), {opacity:1, duration:.2}, t+2.45);
+  tl.to(tgt.querySelector('.avt'), {opacity:0, duration:.15}, t+2.45);
+  tl.to(tgt, {borderStyle:'solid', backgroundColor:'#ffffff', duration:.01}, t+2.5);
+  tl.fromTo(tgt.querySelector('.fill'), {opacity:0, x:8}, {opacity:1, x:0, duration:.35}, t+2.5);
+  tl.to(tgt.querySelector('.ring2'), {opacity:0, duration:.4}, t+2.95);
+  cursorOut(tl, cur, t+2.7);
+  // sync dots to the EMR node and back
+  const dots = [$('.sd1'), $('.sd2'), $('.sd3')];
+  gsap.set(dots, {opacity:0});
+  dots.forEach((d,i)=>{ const a = t+2.75+i*.15;
+    tl.set(d, {opacity:1}, a);
+    tl.to(d, {motionPath:{path:sp, align:sp, alignOrigin:[.5,.5], start:0, end:1}, duration:.55, ease:'power2.inOut'}, a);
+    tl.set(d, {opacity:0}, a+.55);
+    tl.set(d, {opacity:1}, a+.8);
+    tl.to(d, {motionPath:{path:sp, align:sp, alignOrigin:[.5,.5], start:1, end:0}, duration:.55, ease:'power2.inOut'}, a+.8);
+    tl.set(d, {opacity:0}, a+1.35); });
+  gsap.set($('.synced'), {x:EX+64, y:EY+150, xPercent:-50});
+  tl.fromTo($('.synced'), {opacity:0, y:EY+158}, {opacity:1, y:EY+150, duration:.35}, t+4.0);
+  swapTo(tl, tgt.querySelector('.b-book'), tgt.querySelector('.b-conf'), t+4.2);
+  capOut(tl, $('.cb-b2a'), T.b2b - .2);
 
-  /* ======================= 4a · TRACKING ======================= */
-  t = T.track;
-  tl.to(views('pv'), {autoAlpha:0, duration:.35, ease:'none'}, t);
-  tl.to(cam, {scale:1, y:-40, duration:.8, ease:'glide'}, t);
-  tl.set(cam, {transformOrigin:'472px 300px'}, t+.81);
-  tl.fromTo(views('track'), {autoAlpha:0}, {autoAlpha:1, duration:.35, ease:'none'}, t+.15);
-  tl.to(cam, {scale:1.015, duration:2.6, ease:'none'}, t+.82);
-  capIn(tl, $('.cb-4a'), t+.15);
-  const L0 = t+.5, LD = 1.0;
-  tl.fromTo($('.tl-line i'), {scaleX:0}, {scaleX:1, duration:LD, ease:'glide'}, L0);
-  $$('.tl-node').forEach((n,i)=>tl.fromTo(n, {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22}, L0 + [0,.36,.64,.92][i]*LD));
-  const F = L0 + LD + .3;
-  tl.to($('.booked'), {rotationY:90, duration:.18, ease:'power2.in'}, F);
-  tl.fromTo($('.flip .ns'), {rotationY:-90, opacity:1}, {rotationY:0, duration:.22, ease:'power2.out'}, F+.18);
-  tl.to($('.tl-dot.pend'), {opacity:0, duration:.2, ease:'none'}, F+.1);
-  tl.to($('.tl-dot.miss'), {opacity:1, duration:.2, ease:'none'}, F+.1);
-  tl.fromTo($('.pulse'), {scale:1, opacity:.7}, {scale:1.5, opacity:0, duration:.7, ease:'emph'}, F+.45);
-  tl.fromTo($('.resched'), {y:-6, opacity:0}, {y:0, opacity:1, duration:.45}, F+.85);
-  capOut(tl, $('.cb-4a'), T.letter - .2);
+  /* ======================= b2b · no-show flip + pulse (scene 4a), reschedule ======================= */
+  t = T.b2b;
+  capIn(tl, $('.cb-b2b'), t);
+  tl.to([emr, $('.synced'), sp], {autoAlpha:0, duration:.35, ease:'glide'}, t);
+  tl.to(tgt.querySelector('.b-conf'), {rotationY:90, duration:.18, ease:'power2.in'}, t+.35);
+  tl.fromTo(tgt.querySelector('.b-ns'), {rotationY:-90, opacity:1}, {rotationY:0, duration:.22, ease:'power2.out'}, t+.53);
+  tl.set(tgt.querySelector('.b-conf'), {opacity:0}, t+.54);
+  tl.fromTo(tgt.querySelector('.pulse'), {scale:1, opacity:.7}, {scale:1.5, opacity:0, duration:.7, ease:'emph', immediateRender:false}, t+.8);
+  const rq = $('.resq'), RQX = 1190, RQY = 560;
+  gsap.set(rq, {x:RQX, y:RQY});
+  tl.fromTo(rq, {opacity:0, y:RQY+20, scale:.98}, {opacity:1, y:RQY, scale:1, duration:.55}, t+1.1);
+  const yes = rq.querySelector('.yes'), yr = {x:RQX + yes.offsetLeft + yes.offsetWidth*.5, y:RQY + yes.offsetTop + yes.offsetHeight*.6};
+  cursorTo(tl, cur, yr.x, yr.y, t+1.4, .75);
+  click(tl, cur, t+2.2, yes);
+  cursorOut(tl, cur, t+2.5);
+  swapTo(tl, tgt.querySelector('.b-ns'), tgt.querySelector('.b-res'), t+2.45);
+  tl.to(tgt.querySelector('.ring2'), {opacity:1, duration:.2}, t+2.55);
+  tl.to(tgt.querySelector('.ring2'), {opacity:0, duration:.45}, t+3.0);
+  tl.to(rq, {opacity:0, y:RQY-10, duration:.35, ease:'glide'}, t+2.8);
+  capOut(tl, $('.cb-b2b'), T.b2c - .2);
+  tl.to(apH, {y:'-=46', opacity:0, duration:.5, ease:'glide'}, T.b2c - .15);
+  tl.to($('.db-appts'), {opacity:0, duration:.5, ease:'glide'}, T.b2c - .15);
 
-  /* ======================= 4b · LETTER ======================= */
-  t = T.letter;
-  tl.to(views('track'), {autoAlpha:0, duration:.35, ease:'none'}, t);
-  tl.fromTo(views('letter'), {autoAlpha:0}, {autoAlpha:1, duration:.35, ease:'none'}, t+.15);
-  tl.to(cam, {scale:1, y:0, duration:.6, ease:'glide'}, t);
-  capIn(tl, $('.cb-4b'), t+.15);
-  const cur = $('.cursor'), bx = bR.x + bR.w*.55, by = bR.y + bR.h*.55;
-  tl.to(cur, {opacity:1, duration:.2, ease:'none'}, t+.35);
-  tl.to(cur, {duration:.95, ease:'glide', motionPath:{path:[{x:1660,y:1060},{x:1560,y:700},{x:bx,y:by}], curviness:1.2}}, t+.35);
-  const C = t+1.3;
-  tl.to(cur, {scale:.96, duration:.1, ease:'power2.out', transformOrigin:'0 0'}, C);
-  tl.to(cur, {scale:1, duration:.18, ease:'emph'}, C+.1);
-  tl.fromTo(btn, {scale:1}, {scale:.96, duration:.1, ease:'power2.out'}, C);
-  tl.to(btn, {scale:1, duration:.2, ease:'emph'}, C+.1);
-  tl.to(cur, {opacity:0, x:'+=40', y:'+=60', duration:.4, ease:'glide'}, C+.35);
-  // morph: ONE container. Old label gone within the first 9% of the size change;
-  // new content fades in only over the last 30% (container is > 85% of final size by then).
-  const M = C+.3, MD = .9;
+  /* ======================= b2c · SMS, phone or letter (scene 4b morph, typing, pills) ======================= */
+  t = T.b2c;
+  shellIn(tl, view('letter'), t);
+  capIn(tl, $('.cb-b2c'), t+.1);
+  const btn = $('.send-btn'), bR = pos(btn), morph = $('.m-letter');
+  const CARD = {x:620, y:250, w:860, h:262};
+  gsap.set(morph.querySelector('.m-new'), {width:CARD.w});
+  gsap.set(morph, {x:bR.x, y:bR.y, width:bR.w, height:bR.h});
+  gsap.set($('.steps'), {x:CARD.x + CARD.w/2, y:CARD.y - 64, xPercent:-50});
+  cursorTo(tl, cur, bR.x + bR.w*.55, bR.y + bR.h*.55, t+.35, .95);
+  const CL = t+1.3;
+  click(tl, cur, CL, btn);
+  cursorOut(tl, cur, CL+.35);
+  // morph: ONE container; no text while the container is under 60% of its final size
+  const M = CL+.3, MD = .9;
   tl.set(morph, {visibility:'visible'}, M).set(btn, {opacity:0}, M);
   tl.to(morph, {x:CARD.x, y:CARD.y, width:CARD.w, height:CARD.h, borderRadius:16, backgroundColor:'#ffffff', duration:MD, ease:'glide'}, M);
   tl.to(morph.querySelector('.m-old'), {opacity:0, duration:MD*.09, ease:'none'}, M);
   tl.fromTo(morph.querySelector('.m-new'), {opacity:0}, {opacity:1, duration:MD*.3, ease:'none'}, M+MD*.7);
   tl.to(morph, {boxShadow:'0 44px 80px -24px rgba(42,40,140,.34), 0 14px 32px -12px rgba(42,40,140,.18)', duration:MD, ease:'glide'}, M);
   tl.to(dev, {opacity:0, scale:.98, duration:.7, ease:'glide'}, M);
-  tl.fromTo($('.db-letter'), {opacity:0, scale:.98}, {opacity:.35, duration:.7, ease:'glide'}, M);
+  tl.fromTo($('.db-letter'), {opacity:0, scale:.98}, {opacity:.35, duration:.7, ease:'glide', immediateRender:false}, M);
   const S = M+MD-.1;
   tl.set($('.steps'), {visibility:'visible'}, S);
   tl.fromTo($('.steps'), {opacity:0, y:CARD.y-56}, {opacity:1, y:CARD.y-64, duration:.4}, S);
@@ -956,9 +987,8 @@ function build(){
   const caret = morph.querySelector('.caret');
   tl.fromTo(caret, {opacity:0}, {opacity:1, duration:.01}, S+.2);
   tl.set(morph.querySelector('.ltext'), {text:''}, S);
-  const tEnd = typeIn(tl, morph.querySelector('.ltext'), 'Your follow-up chest CT is due. Please call 555-0100 to rebook.', S+.3);
-  tl.to(caret, {opacity:0, duration:.01, repeat:3, yoyo:true, repeatDelay:.25}, tEnd+.05);
-  tl.set(caret, {opacity:0}, tEnd+1.0);
+  const tEnd = typeIn(tl, morph.querySelector('.ltext'), 'Your follow-up CT is due. Please call 555-0100.', S+.3);
+  tl.set(caret, {opacity:0}, tEnd+.1);
   const P1 = tEnd + .05;
   tl.to($('.st1 .act'), {opacity:0, duration:.2, ease:'none'}, P1);
   tl.fromTo($('.st1 .on'), {scale:0}, {scale:1, duration:.22}, P1);
@@ -977,59 +1007,108 @@ function build(){
   const P3 = P2 + .3;
   tl.fromTo($('.st3 .on'), {scale:0}, {scale:1, duration:.22}, P3);
   tl.to($('.st3'), {color:'#0c1723', duration:.2, ease:'none'}, P3);
-  tl.to(morph, {x:CARD.x+980, rotation:4, rotationY:-14, opacity:0, duration:.7, ease:'glide', transformPerspective:1400}, P3+.1);
-  tl.fromTo($('.bigcheck'), {scale:.6, opacity:0}, {scale:1, opacity:1, duration:.5}, P3+.25);
-  const E4 = P3 + .75;
-  capOut(tl, $('.cb-4b'), E4);
-  tl.to([$('.steps'), $('.bigcheck')], {opacity:0, y:'-=12', duration:.4, ease:'glide'}, E4);
-  tl.to($('.db-letter'), {opacity:0, duration:.5, ease:'glide'}, E4);
+  // letter card settles up-left; SMS and PHONE morph out of their buttons beside it
+  const Q = P3 + .35;
+  tl.to($('.steps'), {opacity:0, y:'-=10', duration:.35, ease:'glide'}, Q);
+  tl.to(morph, {x:610, y:226, scale:.7, duration:.7, ease:'glide'}, Q);
+  const SM = {sms:{el:$('.m-sms'), btn:$('.sms-btn'), x:1230, y:226}, call:{el:$('.m-call'), btn:$('.call-btn'), x:1230, y:400}};
+  Object.values(SM).forEach((m,i)=>{
+    const r = pos(m.btn), at = Q+.2+i*.15;
+    gsap.set(m.el.querySelector('.m-new'), {width:320});
+    gsap.set(m.el, {x:r.x, y:r.y, width:r.w, height:r.h});
+    tl.set(m.el, {visibility:'visible'}, at);
+    tl.to(m.el, {x:m.x, y:m.y, width:320, height:150, borderRadius:14, duration:.8, ease:'glide'}, at);
+    tl.to(m.el.querySelector('.m-old'), {opacity:0, duration:.8*.09, ease:'none'}, at);
+    tl.fromTo(m.el.querySelector('.m-new'), {opacity:0}, {opacity:1, duration:.8*.3, ease:'none'}, at+.8*.7);
+    tl.to(m.el, {boxShadow:'0 34px 60px -24px rgba(42,40,140,.3), inset 0 0 0 1px #dee1e2', duration:.8, ease:'glide'}, at);
+  });
+  tl.set($('.sms-t'), {text:''}, t);
+  const smsEnd = typeIn(tl, $('.sms-t'), 'Hi John, your follow-up CT is due.', Q+1.05, 34);
+  tl.fromTo($('.st-sms'), {opacity:0, y:4}, {opacity:1, y:0, duration:.25}, smsEnd+.1);
+  tl.fromTo($('.m-call .wave'), {opacity:.7, scale:1}, {opacity:0, scale:1.5, duration:.7, repeat:1, ease:'emph', immediateRender:false}, Q+1.1);
+  swapTo(tl, $('.calling'), $('.reached'), Q+2.0);
+  tl.fromTo($('.st-call'), {opacity:0, y:4}, {opacity:1, y:0, duration:.25}, Q+2.2);
+  const lang = $('.lang');
+  gsap.set(lang, {x:1230, y:574});
+  tl.fromTo(lang, {opacity:0, y:584}, {opacity:1, y:574, duration:.4}, Q+1.3);
+  swapTo(tl, $('.g1'), $('.g2'), Q+1.75);
+  swapTo(tl, $('.g2'), $('.g3'), Q+2.2);
+  capOut(tl, $('.cb-b2c'), T.b3 - .25);
+  tl.to([morph, SM.sms.el, SM.call.el, lang], {opacity:0, y:'-=24', duration:.45, ease:'glide'}, T.b3 - .25);
+  tl.to($('.db-letter'), {opacity:0, duration:.5, ease:'glide'}, T.b3 - .25);
 
-  /* ======================= 5 · AUTO-PROTOCOLS (three beats, no overlap of main moves) ======================= */
-  t = T.up;
-  const pr = $('.proto'), dc = $('.docc');
-  const b1 = $('.s5-body .p1'), b2 = $('.s5-body .p2'), hasB2 = !b2.hidden;
-  // (a) 0–1.8s: card rises with its tilt; side words; body lines
+  /* ======================= b3 · protocol card, 3D tilt (scene 5) ======================= */
+  t = T.b3;
+  const pr = $('.proto');
+  const b1 = $('.s5-body .p1'), b2 = $('.s5-body .p2');
   tl.set(pr, {autoAlpha:1}, t);
   tl.fromTo(pr, {yPercent:40, rotationX:28, opacity:0, x:0, scale:1}, {yPercent:0, rotationX:12, opacity:1, duration:1.0, ease:'glide'}, t);
-  tl.fromTo($('.tg5'), {scale:1}, {scale:1.015, duration:6.2, ease:'none'}, t);
+  tl.fromTo($('.tg5'), {scale:1}, {scale:1.015, duration:4.8, ease:'none'}, t);
   tl.set([$('.sw5l'), $('.sw5r'), $('.s5-body')], {autoAlpha:1, y:0}, t+.2);
   mlIn(tl, $('.sw5l .ml'), t+.2);
   textIn(tl, $('.sw5l .kt'), t+.3);
   textIn(tl, $('.sw5r .kt'), t+.48);
-  tl.fromTo($$('.conn'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.35, ease:'power2.inOut', stagger:.3}, t+.9);
-  tl.fromTo($('.vr1 .on'), {scale:0}, {scale:1, duration:.22}, t+1.45);
   textIn(tl, b1, t+1.0);
   tl.fromTo($('.up1'), {opacity:0, y:8}, {opacity:1, y:0, duration:.4}, t+1.45);
-  // (b) 1.8–3.4s: cursor hovers the sign-off row; it highlights and its check ticks
+  // concept inside the card: EMR events → rule checks → task (node DrawSVG)
+  const evs = $$('.evr'), miss = $('.ev-miss');
+  evs.forEach((e,i)=>{ const a = t+.8+i*.14;
+    tl.to(e, {opacity:1, duration:.12}, a);
+    if(e!==miss) tl.to(e, {opacity:.35, duration:.3}, a+.2);
+    else { tl.to(e.querySelector('.hit'), {opacity:1, duration:.2}, a+.05); tl.fromTo(e.querySelector('.badge'), {scale:.8}, {scale:1, duration:.22}, a+.05); } });
+  const fl = $('.flow');
+  const rel = (el)=>{ let x=0,y=0,n=el; while(n && n!==fl){ x+=n.offsetLeft; y+=n.offsetTop; n=n.offsetParent; } return {x,y,w:el.offsetWidth,h:el.offsetHeight}; };
+  const m1 = rel(miss), r1 = rel($('.rules')), rs = rel($('.result')), tk = rel($('.task'));
+  $('.c1').setAttribute('d', `M${m1.x+m1.w+2} ${m1.y+m1.h/2} C ${m1.x+m1.w+16} ${m1.y+m1.h/2}, ${r1.x-16} ${r1.y+12}, ${r1.x-4} ${r1.y+12}`);
+  $('.c2').setAttribute('d', `M${rs.x+18} ${rs.y+rs.h} V ${tk.y-2}`);
+  tl.fromTo($('.c1'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.35, ease:'power2.inOut'}, t+1.4);
+  $$('.proto .ckr .chk').forEach((c,i)=>pop(tl, c, t+1.6+i*.14));
+  tl.fromTo($('.result'), {opacity:0, y:6}, {opacity:1, y:0, duration:.3}, t+2.05);
+  tl.fromTo($('.c2'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.25, ease:'power2.inOut'}, t+2.25);
+  tl.fromTo($('.task'), {opacity:0, y:6}, {opacity:1, y:0, duration:.3}, t+2.4);
+  pop(tl, $('.vr1 .on'), t+2.65);
+  // cursor ticks the sign-off row
   tl.set(cur, {x:1660, y:1060, scale:1, opacity:0}, t);
-  tl.to(cur, {opacity:1, duration:.2, ease:'none'}, t+1.8);
-  tl.to(cur, {duration:.8, ease:'glide', motionPath:{path:[{x:1660,y:1060},{x:1300,y:900},{x:SIGN.x,y:SIGN.y}], curviness:1.2}}, t+1.8);
-  tl.to($('.vr2 .hov'), {opacity:1, duration:.25, ease:'none'}, t+2.6);
-  tl.fromTo($('.vr2 .on'), {scale:0}, {scale:1, duration:.22}, t+2.8);
-  if(hasB2){
-    tl.to(b1, {opacity:0, y:-8, duration:.3, ease:'glide'}, t+2.8);
-    tl.set(b2, {opacity:1}, t+2.95);
-    textIn(tl, b2, t+2.95);
-  }
-  tl.to(cur, {opacity:0, x:'+=30', y:'+=40', duration:.35, ease:'glide'}, t+3.05);
-  // (c) 3.4–6.0s: card recedes; prior-auth document rises and fills; its caption reveals
-  const R = t+3.4;
-  tl.to(pr, {x:-250, scale:.9, opacity:.35, duration:.8, ease:'glide'}, R);
-  tl.to([$('.sw5l'), $('.sw5r'), $('.s5-body')], {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, R);
-  tl.set(dc, {autoAlpha:1}, R+.1);
-  tl.fromTo(dc, {yPercent:40, rotationX:28, opacity:0}, {yPercent:0, rotationX:12, opacity:1, duration:.9, ease:'glide'}, R+.1);
-  const pa = $('.s5-pa .kt');
-  if(!pa.hidden){
-    tl.set($('.s5-pa'), {autoAlpha:1, y:0}, R+.5);
-    const paEnd = textIn(tl, pa, R+.5);
-    tl.fromTo($('.up2'), {opacity:0, y:8}, {opacity:1, y:0, duration:.4}, Math.min(paEnd, R+1.4));
-  }
-  tl.fromTo(dc.querySelectorAll('.dsec'), {y:12, opacity:0}, {y:0, opacity:1, duration:.4, ease:'emph', stagger:.1}, R+.9);
+  cursorTo(tl, cur, TP.sign.x, TP.sign.y, t+2.6, .8);
+  tl.to($('.vr2 .hov'), {opacity:1, duration:.25, ease:'none'}, t+3.4);
+  pop(tl, $('.vr2 .on'), t+3.6);
+  tl.to(b1, {opacity:0, y:-8, duration:.3, ease:'glide'}, t+3.6);
+  tl.set(b2, {opacity:1}, t+3.75);
+  textIn(tl, b2, t+3.75);
+  cursorOut(tl, cur, t+3.85);
 
-  /* ======================= 6 · END ======================= */
+  /* ======================= b4 · prior-auth document fill (scene 5, beat c) ======================= */
+  t = T.b4;
+  const rc = $('.recc'), dc = $('.docc');
+  tl.to(pr, {x:-250, scale:.9, opacity:0, duration:.7, ease:'glide'}, t);
+  tl.to([$('.sw5l'), $('.sw5r'), $('.s5-body')], {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, t);
+  [rc, dc].forEach((c,i)=>{ tl.set(c, {autoAlpha:1}, t+.1+i*.1);
+    tl.fromTo(c, {yPercent:40, rotationX:28, opacity:0}, {yPercent:0, rotationX:12, opacity:1, duration:.9, ease:'glide'}, t+.1+i*.1); });
+  tl.set($('.s5-pa'), {autoAlpha:1, y:0}, t+.3);
+  mlIn(tl, $('.s5-pa .ml'), t+.3);
+  const paEnd = textIn(tl, $('.s5-pa .kt'), t+.4);
+  tl.fromTo($('.up2'), {opacity:0, y:8}, {opacity:1, y:0, duration:.4}, Math.min(paEnd, t+1.3));
+  const flys = $('.flys');
+  TP.fields.forEach((f,i)=>{
+    const el = document.createElement('div'); el.className = 'fly'; el.textContent = $('.recc .r'+(i+1)+' dd').textContent; flys.appendChild(el);
+    const a = t+1.15 + i*.32;
+    const x0 = f.from.x + 120, y0 = f.from.y + 4, x1 = f.to.x + 120, y1 = f.to.y + 4, mx = (x0+x1)/2, my = Math.min(y0,y1) - 70;
+    tl.set(el, {x:x0, y:y0}, t);
+    tl.to(el, {opacity:1, duration:.1}, a);
+    tl.to($('.recc .r'+(i+1)), {borderColor:'#008280', duration:.15}, a);
+    tl.to(el, {duration:.55, ease:'glide', motionPath:{path:[{x:x0,y:y0},{x:mx,y:my},{x:x1,y:y1}], curviness:1.2}}, a);
+    tl.to(el, {opacity:0, duration:.1}, a+.55);
+    tl.to($('.recc .r'+(i+1)), {borderColor:'#c8cdd1', duration:.3}, a+.55);
+    tl.to($('.docc .d'+(i+1)+' dd'), {opacity:1, duration:.2}, a+.52);
+    tl.to($('.docc .d'+(i+1)), {borderStyle:'solid', duration:.01}, a+.52);
+    pop(tl, $('.docc .d'+(i+1)+' .chk'), a+.58);
+  });
+  tl.fromTo($('.met'), {opacity:0, y:6}, {opacity:1, y:0, duration:.35}, t+3.0);
+
+  /* ======================= END · scene 6 ======================= */
   t = T.end;
-  tl.to(pr, {x:-60, y:-30, scale:.86, opacity:0, duration:.8, ease:'glide'}, t);
-  tl.to(dc, {x:-200, y:-30, scale:.86, opacity:0, duration:.8, ease:'glide'}, t);
+  tl.to(rc, {x:80, y:-30, scale:.86, opacity:0, duration:.8, ease:'glide'}, t);
+  tl.to(dc, {x:-80, y:-30, scale:.86, opacity:0, duration:.8, ease:'glide'}, t);
   tl.to($('.s5-pa'), {autoAlpha:0, y:-10, duration:.4, ease:'glide'}, t);
   tl.fromTo(endWm, {opacity:0, y:heroY+16, scale:1.03}, {opacity:1, y:heroY, scale:1, duration:.9, ease:'glide'}, t+.4);
   tl.to(endWm, {opacity:0, duration:.5, ease:'none'}, TOTAL - .5);
@@ -1037,42 +1116,46 @@ function build(){
   return tl;
 }
 
-/* ---------------- lifecycle: build inside a gsap.context so a copy switch reverts cleanly ---------------- */
-let master, ctx, activeSet = COPY_SET;
-function start(set){
+/* ---------------- lifecycle ---------------- */
+let master, ctx;
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches || /[?&]rm=1/.test(location.search);
+function start(){
   if(ctx) ctx.revert();
   $$('.kt').forEach(h=>{ delete h._split; delete h._keys; delete h._mode; });
-  activeSet = set;
-  applyCopy(set);
+  $('.flys').innerHTML = '';
+  applyCopy();
   ctx = gsap.context(()=>{ master = build(); }, stage);
   return master;
 }
-
-window.qtrackFilm = {
-  ready:false, scenes:SCENES, labels:T, duration:TOTAL,
-  get timeline(){ return master; },
-  get copySet(){ return activeSet; },
-  /* swap the copy set and restart the current scene (used by the review switch) */
-  setCopy(set){
-    if(!COPY[set] || set === activeSet) return;
-    const playing = master && !master.paused(), ts = master ? master.timeScale() : 1;
-    const label = master ? (master.currentLabel() || 'open') : 'open';
-    start(set); master.timeScale(ts).seek(label);
-    playing ? master.play() : master.pause();
-    film.dispatchEvent(new CustomEvent('qtrack:rebuilt', {detail:{timeline:master}}));
-  }
-};
+function staticFrame(){   // reduced motion: the record (bullet 1) with its caption
+  master.pause(); master.seek(T.b2a - .3);
+  gsap.set($('.cursor'), {opacity:0});
+}
+function playSegment(){
+  const s = film.dataset.start, e = film.dataset.end;
+  if(!s) return false;
+  const names = SCENES.map(x=>x[0]), end = e || names[names.indexOf(s)+1] || 'end';
+  master.pause();
+  window.qtrackFilm.segment = gsap.timeline({repeat:-1}).add(master.tweenFromTo(s, end, {ease:'none'}));
+  return true;
+}
+window.qtrackFilm = { ready:false, scenes:SCENES, labels:T, duration:TOTAL, copy:COPY, get timeline(){ return master; } };
 
 Promise.all([document.fonts.ready,
   document.fonts.load('300 64px "Aether Neue"'), document.fonts.load('600 14px "IBM Plex Sans"'),
   document.fonts.load('400 14px "DM Mono"'), document.fonts.load('500 14px "DM Mono"'),
-  document.fonts.load('400 14px "IBM Plex Mono"'), document.fonts.load('400 14px "DM Sans"')])
+  document.fonts.load('500 12px "IBM Plex Mono"'), document.fonts.load('400 14px "DM Sans"')])
 .then(()=>new Promise(r=>{ const w=()=>document.fonts.status==='loaded'?r():setTimeout(w,30); w(); }))
 .then(()=>{
   fit();
-  start(COPY_SET);
+  start();
   window.qtrackFilm.ready = true;
-  if(!film.hasAttribute('data-manual')) master.play(0);
+  if(reduce) staticFrame();
+  else if(!playSegment() && !film.hasAttribute('data-manual')) master.play(0);
+  if('IntersectionObserver' in window && !reduce){
+    new IntersectionObserver(es=>es.forEach(e=>{ const tl = window.qtrackFilm.segment || master;
+      if(e.isIntersecting){ if(film.dataset.userPaused!=='1') tl.play(); } else tl.pause(); }), {threshold:.15}).observe(film);
+  }
   film.dispatchEvent(new CustomEvent('qtrack:ready', {detail:{timeline:master}}));
 });
 })();
@@ -1083,31 +1166,31 @@ Promise.all([document.fonts.ready,
 (function(){
   const film = document.getElementById('qtrack-film');
   const tl = () => window.qtrackFilm.timeline;
-  film.addEventListener('qtrack:ready', ()=>{
+  // the film may already be ready (all fonts inlined) before this script runs
+  const init = ()=>{
+    if(init.done) return; init.done = true;
     const dur = tl().duration();
     const play = document.getElementById('rbPlay'), scrub = document.getElementById('rbScrub'), time = document.getElementById('rbTime');
-    const sc = document.getElementById('rbScenes'), ticks = document.getElementById('rbTicks'), copy = document.getElementById('rbCopy');
+    const sc = document.getElementById('rbScenes'), ticks = document.getElementById('rbTicks');
     const q = new URLSearchParams(location.search);
     window.qtrackFilm.scenes.forEach(([k,n])=>{
       const b = document.createElement('button'); b.textContent = n; b.onclick = ()=>tl().seek(k); sc.appendChild(b);
       const s = document.createElement('span'); s.textContent = '|'; s.title = n; s.style.left = (window.qtrackFilm.labels[k]/dur*100)+'%'; ticks.appendChild(s);
     });
-    const markCopy = ()=>copy.querySelectorAll('button').forEach(b=>b.classList.toggle('on', b.dataset.set===window.qtrackFilm.copySet));
-    copy.querySelectorAll('button').forEach(b=>b.onclick = ()=>{ window.qtrackFilm.setCopy(b.dataset.set); markCopy(); });
-    markCopy();
+    const setPaused = p => { tl().paused(p); film.dataset.userPaused = p ? '1' : '0'; };
     gsap.ticker.add(()=>{ const t = tl(); scrub.value = Math.round(t.time()/dur*1000); time.textContent = t.time().toFixed(2)+' / '+dur.toFixed(2)+'s'; play.textContent = t.paused() ? 'Play' : 'Pause'; });
-    play.onclick = ()=>tl().paused(!tl().paused());
-    scrub.oninput = ()=>{ tl().pause(); tl().seek(scrub.value/1000*dur); };
+    play.onclick = ()=>setPaused(!tl().paused());
+    scrub.oninput = ()=>{ setPaused(true); tl().seek(scrub.value/1000*dur); };
     document.getElementById('rbSpeed').querySelectorAll('button').forEach(b=>b.onclick = ()=>{ tl().timeScale(+b.dataset.s); document.querySelectorAll('#rbSpeed button').forEach(x=>x.classList.toggle('on', x===b)); });
     document.addEventListener('keydown', ev=>{
       if(ev.target.tagName==='INPUT' && ev.key!==' ') return;
-      if(ev.key===' '){ ev.preventDefault(); tl().paused(!tl().paused()); }
-      if(ev.key==='ArrowRight'){ tl().pause(); tl().seek(Math.min(dur, tl().time()+1/30)); }
-      if(ev.key==='ArrowLeft'){ tl().pause(); tl().seek(Math.max(0, tl().time()-1/30)); }
+      if(ev.key===' '){ ev.preventDefault(); setPaused(!tl().paused()); }
+      if(ev.key==='ArrowRight'){ setPaused(true); tl().seek(Math.min(dur, tl().time()+1/30)); }
+      if(ev.key==='ArrowLeft'){ setPaused(true); tl().seek(Math.max(0, tl().time()-1/30)); }
     });
-    if(q.get('copy')) { window.qtrackFilm.setCopy(q.get('copy')); markCopy(); }
-    if(q.has('t')){ tl().pause(); tl().seek(+q.get('t')); }
-  });
+    if(q.has('t')){ setPaused(true); tl().seek(+q.get('t')); }
+  };
+  if(window.qtrackFilm && window.qtrackFilm.ready) init(); else film.addEventListener('qtrack:ready', init);
 })();
 </script>
 <!-- REVIEW:SCRIPT:END -->
