@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>qTrack Motion Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+/* ======================================================================
+   qTrack film — stage, product rebuild, marketing layer
+   ====================================================================== */
+@font-face{font-family:"Aether Neue";src:url(assets/fonts/AetherNeue-Light.woff2) format("woff2");font-weight:300;font-display:block}
+@font-face{font-family:"IBM Plex Sans";src:url(assets/fonts/ibm-plex-sans-latin.woff2) format("woff2");font-weight:100 700;font-display:block}
+@font-face{font-family:"IBM Plex Mono";src:url(assets/fonts/ibm-plex-mono-400-latin.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"IBM Plex Mono";src:url(assets/fonts/ibm-plex-mono-500-latin.woff2) format("woff2");font-weight:500;font-display:block}
+
+:root{
+  /* colour tokens */
+  --indigo:#2A288C; --peach:#FF7869; --lav:#D9D9FF; --lav-tint:#F5F5FF; --ink:#303030;
+  --font-heading:"Aether Neue","DM Sans",system-ui,sans-serif;
+  --font-body:"DM Sans",system-ui,sans-serif;
+  --font-mono:"DM Mono",ui-monospace,monospace;
+  --page-bg:#ffffff;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page-bg:#ffffff}}
+:root[data-theme="dark"]{--page-bg:#ffffff}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page-bg)}
+
+/* ---------- film container: scales the 1600x1000 stage to its width ---------- */
+.qtrack-film{position:relative;width:100%;aspect-ratio:16/10;overflow:hidden;background:#fff}
+.stage{position:absolute;left:0;top:0;width:1600px;height:1000px;overflow:hidden;transform-origin:0 0;
+  background:#fff;isolation:isolate;font-family:var(--font-body);color:var(--ink);-webkit-font-smoothing:antialiased;
+  --fs-h4:35px;}
+
+/* backgrounds */
+.bg-lav{position:absolute;inset:0;background:rgba(217,217,255,.4)}
+.field{position:absolute;inset:0;background:var(--lav-tint);opacity:0;overflow:hidden}
+.blob{position:absolute;border-radius:50%;will-change:transform}
+.blob.b1{width:1300px;height:1300px;left:-360px;top:180px;background:radial-gradient(circle,rgba(217,217,255,1) 0%,rgba(217,217,255,.55) 38%,rgba(217,217,255,0) 70%)}
+.blob.b2{width:1150px;height:1150px;left:760px;top:-420px;background:radial-gradient(circle,rgba(255,120,105,.30) 0%,rgba(255,120,105,.12) 40%,rgba(255,120,105,0) 70%)}
+.blob.b3{width:1000px;height:1000px;left:640px;top:420px;background:radial-gradient(circle,rgba(255,255,255,1) 0%,rgba(255,255,255,.6) 40%,rgba(255,255,255,0) 70%)}
+
+/* type roles (qure-type.css, desktop tokens pinned on the stage) */
+.t-heading-h4{font-family:var(--font-heading);font-weight:300;font-size:var(--fs-h4);line-height:1.05;line-height:round(1.05em,1px);letter-spacing:-0.03em}
+.t-label-overline{font-family:var(--font-mono);font-weight:400;font-size:14px;line-height:18px;letter-spacing:0.06em;text-transform:uppercase}
+
+/* kinetic captions */
+.cap{position:absolute;left:96px;top:0;bottom:0;width:400px}
+.cb{position:absolute;left:0;right:0;top:500px;display:flex;flex-direction:column;gap:22px;visibility:hidden}
+.ml{display:flex;align-items:center;gap:14px;color:var(--indigo)}
+.ml .n{color:var(--peach)}
+.ml .rule{width:32px;height:1px;background:var(--peach);transform-origin:0 50%}
+.kh{color:var(--indigo);margin:0}
+.kh.big{font-family:var(--font-heading);font-weight:300;font-size:64px;line-height:64px;letter-spacing:-0.04em}
+.w{display:inline-block;position:relative}
+.kw{position:absolute;left:0;top:0;color:var(--peach);opacity:0;white-space:nowrap}
+.sw{position:absolute;visibility:hidden;color:var(--indigo)}
+.sw .kh.big{white-space:nowrap}
+.sw.r{text-align:left}
+.sw.l{text-align:right}
+.s5-top{position:absolute;left:0;right:0;top:132px;text-align:center;visibility:hidden}
+.s5-top .kh{font-size:40px;line-height:42px}
+
+/* wordmark */
+.wm{display:inline-flex;align-items:flex-start;color:var(--indigo);white-space:nowrap}
+.wm-q{font-family:var(--font-heading);font-weight:300;letter-spacing:-0.045em;line-height:1}
+.wm-move{font-family:var(--font-mono);font-weight:400;color:var(--peach);letter-spacing:.1em;text-transform:uppercase;line-height:1;font-size:.15em;margin-top:2.6em;margin-left:1.1em}
+.hero{position:absolute;inset:0;pointer-events:none}
+.hero-wm{position:absolute;left:0;top:0;font-size:168px;transform-origin:0 0;opacity:0}
+.hero-cap{position:absolute;left:0;right:0;top:600px;text-align:center;color:var(--indigo);margin:0;visibility:hidden}
+.end-wm{position:absolute;left:0;top:0;font-size:168px;opacity:0}
+
+/* device */
+.device-wrap{position:absolute;inset:0;perspective:1400px;perspective-origin:1048px 1000px}
+.device,.device-blur{position:absolute;left:576px;top:96px;width:944px;height:808px;border-radius:20px}
+.device{background:#fff;overflow:hidden;transform-origin:50% 100%;
+  box-shadow:0 0 0 1px var(--lav),0 32px 64px -28px rgba(42,40,140,.22),0 10px 24px -14px rgba(42,40,140,.14)}
+.device-blur{overflow:hidden;opacity:0;pointer-events:none}
+.device-blur img{width:100%;height:100%;display:block;object-fit:cover}
+.titlebar{height:40px;display:flex;align-items:center;gap:16px;padding:0 18px;border-bottom:1px solid var(--lav);background:#fff;position:relative;z-index:3}
+.titlebar .wm{font-size:22px}
+.titlebar .wm-move{font-size:9px;margin-top:9px;margin-left:6px}
+.tb-dots{display:flex;gap:6px;margin-left:auto}
+.tb-dots i{width:8px;height:8px;border-radius:50%;background:#e6e6f2}
+.tb-url{width:260px;height:20px;border-radius:999px;background:#f1f1f8;position:absolute;left:50%;margin-left:-130px}
+.viewport{position:absolute;left:0;right:0;top:40px;bottom:0;overflow:hidden;background:#f3f4f4}
+.cam{position:absolute;left:0;right:0;top:86px;bottom:0;transform-origin:472px 341px}
+
+/* REVIEW tag */
+.review-tag{position:absolute;right:24px;bottom:20px;display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);font:500 12px/1 var(--font-mono);letter-spacing:.06em;color:var(--indigo);z-index:40}
+.review-tag::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--peach)}
+
+/* UPCOMING pill (site pill) */
+.upc{display:inline-flex;align-items:center;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);color:var(--indigo);font:500 12px/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+
+/* qure check mark (stand-in until the official SVG is supplied) */
+.qcheck{display:block}
+.qcheck circle{fill:var(--peach)}
+.qcheck path{fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+/* cursor */
+.cursor{position:absolute;left:0;top:0;width:26px;height:32px;opacity:0;z-index:50;filter:drop-shadow(0 4px 6px rgba(12,23,35,.28));pointer-events:none}
+
+/* ======================================================================
+   PRODUCT — rebuilt from Command_Centre_v22.html (Qure SDS tokens)
+   ====================================================================== */
+.p{--bg1:#fff;--bg2:#f3f4f4;--bg3:#e8e9ea;--bd:#dee1e2;--bd2:#c8cdd1;--bd3:#bbbfc2;--tx:#0c1723;--tx2:#39414c;--tx3:#6b7280;
+   --brand:#008280;--brand3:#e0f0ef;--letter:#036869;--urg3:#fbdee1;--urg:#93212f;--ok3:#d4f1e4;--ok:#005c32;
+   font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--tx);font-size:13px;line-height:1.4}
+.p svg{display:block}
+.ph{background:#e2e4e6;border-radius:6px}
+.ph.l{background:#eceef0}
+.ph-card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.pbar{position:absolute;left:0;right:0;top:0;height:86px;background:var(--bg1);border-bottom:1px solid var(--bd3);padding:12px 20px;display:flex;flex-direction:column;gap:8px;z-index:2}
+.pbar-r1{display:flex;align-items:center;gap:8px}
+.pbar h1{margin:0;font-size:20px;font-weight:700;white-space:nowrap;letter-spacing:-.005em}
+.ib{width:28px;height:28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2);flex:none}
+.vsep{width:1px;height:22px;background:var(--bd);flex:none}
+.upd{font-size:13px;font-style:italic;color:var(--tx2);white-space:nowrap}
+.pbar-r2{display:flex;align-items:center;gap:4px 18px;font-size:13px;white-space:nowrap}
+.pbar-r2>span{display:inline-flex;align-items:center;gap:6px}
+.pbar-r2 .ic{color:var(--tx2)}
+.dotted{text-decoration:underline dotted #8a9096;text-underline-offset:3px}
+.views{position:absolute;inset:0}
+.v{position:absolute;inset:0;opacity:0;visibility:hidden}
+.v-head{display:flex;align-items:center;gap:10px;height:52px;padding:0 16px;border-bottom:1px solid var(--bd);background:var(--bg3)}
+.v-head h2{margin:0;font-size:16px;font-weight:600;flex:1}
+.v-body{padding:16px;display:flex;flex-direction:column;gap:16px}
+.sec-lbl{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);white-space:nowrap}
+.lnk{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:var(--tx2)}
+.v-cag,.v-track,.v-letter{background:var(--bg3)}
+.glance{background:var(--bg2);border:1px solid var(--bd);border-radius:16px}
+.glance-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--bd)}
+.glance-top span{flex:1;font-size:13px;font-style:italic;color:var(--tx2)}
+.glance-in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px}
+.glance-row{display:flex;align-items:center;gap:8px}
+.rs{position:relative;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px 16px;overflow:hidden}
+.rs-lines{display:flex;flex-direction:column;gap:10px}
+.rs p{margin:0 -6px;padding:2px 6px;border-radius:6px;font-size:13px;line-height:1.55;text-wrap:pretty;opacity:0}
+.rs b{font-weight:600}
+.rs-skel{position:absolute;left:16px;right:16px;top:18px;display:flex;flex-direction:column;gap:14px}
+.rs-skel i{height:10px;border-radius:6px;background:#eceef0}
+.hl{color:inherit;background-color:transparent;padding:0 2px;margin:0 -2px;border-radius:3px;
+  background-image:linear-gradient(rgba(255,120,105,.22),rgba(255,120,105,.22)),linear-gradient(var(--peach),var(--peach));
+  background-repeat:no-repeat;background-position:0 0,0 100%;background-size:0% 100%,0% 2px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+.chip{display:inline-flex;align-items:center;height:26px;padding:0 12px;border:1px solid var(--bd3);border-radius:999px;background:#fff;font-size:12px;font-weight:600;color:var(--tx);opacity:0}
+
+/* feed (scene 2 panel) */
+.fchips{display:flex;align-items:center;gap:8px;padding:12px 16px 4px}
+.fchip{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px;border-radius:999px;border:.5px solid var(--bd2);background:#fff;font-size:12px;font-weight:500;color:var(--tx2)}
+.fchip i{font-style:normal;font-size:11px;font-weight:600;padding:0 5px;border-radius:999px;background:var(--bg2);color:var(--tx2)}
+.fchip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.feed{position:relative;padding:8px 16px 0}
+.feed::before{content:"";position:absolute;left:28px;top:34px;bottom:-400px;width:1px;background:var(--bd3)}
+.fdate{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);padding:14px 0 8px}
+.fcard{position:relative;z-index:1;margin:0 0 10px;border-radius:12px;border:.5px solid var(--bd2);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.06),0 2px 8px rgba(12,23,35,.04);overflow:hidden}
+.fcard-h{display:flex;align-items:center;gap:12px;padding:12px 14px 12px 12px}
+.mod{flex:0 0 32px;width:32px;height:32px;border-radius:8px;border:.5px solid var(--bd2);background:var(--bg2);color:var(--tx2);font-size:11px;font-weight:600;letter-spacing:.04em;display:inline-flex;align-items:center;justify-content:center}
+.fcard-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fcard-t b{font-size:14px;font-weight:600;line-height:20px;white-space:nowrap}
+.fcard-m{display:flex;gap:2px 10px;font-size:12px;line-height:16px;color:var(--tx3);white-space:nowrap}
+.fcard-m em{font-style:normal;color:var(--tx)}
+.sqbtn{height:24px;min-width:24px;padding:0 6px;border:.5px solid var(--bd2);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:var(--tx2)}
+.aitags{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:10px 14px;border-top:.5px solid var(--bd)}
+.ai-l{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;border:1px dashed var(--bd2);background:#fff;color:var(--tx2);font-size:12px;line-height:16px;white-space:nowrap}
+.tag.rec{border:1px solid transparent;background:var(--brand3);color:var(--brand)}
+.frow{position:relative;z-index:1;margin:0 0 10px 12px;border-radius:8px;border:.5px solid var(--bd);background:#fff;box-shadow:0 1px 2px rgba(12,23,35,.05);display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px}
+.frow b{flex:1;font-size:14px;font-weight:600;line-height:20px}
+.frow .fm{font-size:12px;line-height:16px;color:var(--tx3)}
+.aira-ic{flex:0 0 32px;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#fff;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3px var(--brand)}
+
+/* CT viewer */
+.v-pv{background:#0f1b27}
+.pv-bar{height:52px;display:flex;align-items:center;gap:6px;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(20,31,42,.97);color:#cdd1d4}
+.pv-bar .ib{color:#cdd1d4;width:36px;height:36px}
+.pv-bar .vsep{background:rgba(255,255,255,.12);height:24px;margin:0 4px}
+.pv-panes{position:absolute;left:12px;right:12px;top:64px;bottom:12px;display:flex;gap:4px}
+.pane{position:relative;flex:1 1 0;overflow:hidden;background:#000}
+.pane img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 50%}
+.pane-tag{position:absolute;top:20px;left:22px;display:flex;flex-direction:column;gap:2px;text-shadow:0 1px 2px #000}
+.pane-tag b{font-weight:400;font-size:15px;line-height:20px;letter-spacing:.06em;text-transform:uppercase}
+.pane-tag span{font-size:13px;line-height:18px;color:#9ea3a8}
+.pane.cur{box-shadow:inset 0 0 0 1px rgba(0,208,205,.45)}
+.callouts{position:absolute;inset:0;pointer-events:none}
+.callouts svg{position:absolute;left:0;top:0;overflow:visible}
+.ring{fill:none;stroke:var(--peach);stroke-width:4px;vector-effect:non-scaling-stroke}
+.leader{fill:none;stroke:var(--peach);stroke-width:1px;vector-effect:non-scaling-stroke}
+.arrow{fill:none;stroke:var(--peach);stroke-width:2.5px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.arrow-head{fill:var(--peach)}
+.clabel{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:999px;background:rgba(15,27,39,.9);box-shadow:inset 0 0 0 1px rgba(255,120,105,.8);color:#fff;font:500 12px/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;opacity:0}
+.clabel em{font-style:normal;color:var(--peach)}
+.clabel.solid{background:var(--peach);box-shadow:none;color:#fff}
+
+/* tracking */
+.track-card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px}
+.track-in{padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.tl{position:relative;background:#fff;border:1px solid var(--bd);border-radius:12px;height:210px}
+.tl-line{position:absolute;left:11%;right:11%;top:66px;height:2px;background:var(--bd);border-radius:2px}
+.tl-line i{position:absolute;inset:0;background:var(--brand);border-radius:2px;transform-origin:0 50%;transform:scaleX(0)}
+.tl-node{position:absolute;top:52px;width:180px;margin-left:-90px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;opacity:0}
+.tl-dotw{position:relative;width:30px;height:30px}
+.tl-dot{position:absolute;inset:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #fff}
+.tl-dot.pend{background:#fff;color:var(--tx3);box-shadow:0 0 0 4px #fff,inset 0 0 0 1.5px var(--bd3)}
+.tl-dot.miss{background:#fff;color:var(--urg);box-shadow:0 0 0 4px #fff,inset 0 0 0 1.5px var(--urg);opacity:0}
+.tl-node b{font-size:14px;font-weight:600;line-height:18px}
+.tl-node small{font-size:12px;line-height:16px;color:var(--tx3);margin-top:-6px}
+.badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.badge.ok{background:var(--ok3);color:var(--ok)} .badge.done{background:var(--bg2);color:var(--tx2)}
+.badge.ns{background:var(--urg3);color:var(--urg);letter-spacing:.08em;text-transform:uppercase}
+.badge.brand{background:var(--brand3);color:var(--brand)}
+.flip{position:relative;width:84px;height:20px;perspective:300px}
+.flip .badge{position:absolute;left:50%;top:0;transform:translateX(-50%);backface-visibility:hidden}
+.flip .ns{opacity:0}
+.pulse{position:absolute;left:50%;top:50%;width:84px;height:30px;margin:-15px 0 0 -42px;border-radius:999px;box-shadow:0 0 0 2px var(--peach);opacity:0}
+.resched{opacity:0}
+
+/* letter view (device) */
+.prompt{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 14px 12px 12px;box-shadow:0 1px 2px rgba(12,23,35,.05)}
+.prompt p{margin:0;flex:1;font-size:14px;line-height:20px}
+.prompt p span{color:var(--tx3)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border-radius:8px;font:600 13px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
+.btn.pri{background:var(--brand);color:#fff}
+.btn.sec{background:#fff;color:var(--tx2);box-shadow:inset 0 0 0 1px var(--bd2)}
+
+/* lifted layer */
+.lift{position:absolute;inset:0;pointer-events:none}
+.lifted{position:absolute;transform-origin:50% 50%;visibility:hidden}
+.lift-shadow{position:absolute;inset:0;border-radius:16px;box-shadow:0 44px 80px -24px rgba(42,40,140,.34),0 14px 32px -12px rgba(42,40,140,.18);opacity:0}
+
+/* morph: Send letter button -> letter card */
+.morph{position:absolute;left:0;top:0;overflow:hidden;visibility:hidden;background:#008280;border-radius:8px}
+.morph .m-old{position:absolute;left:0;top:0;height:34px;display:flex;align-items:center;gap:8px;padding:0 14px;color:#fff;font:600 13px/1 "IBM Plex Sans",sans-serif;white-space:nowrap}
+.morph .m-new{position:absolute;left:0;top:0;width:820px;opacity:0}
+.lcard-h{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;background:var(--letter);color:#fff}
+.lcard-h b{flex:1;font-size:14px;font-weight:600;line-height:20px}
+.lcard-h small{font-size:12px;line-height:16px;color:rgba(255,255,255,.9)}
+.lcard-ic{flex:0 0 32px;width:32px;height:32px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#fff;color:#2f6fe0;box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 3px currentColor}
+.lcard-b{padding:18px 22px 10px;font-size:15px;line-height:22px;white-space:pre-wrap;min-height:150px}
+.caret{display:inline-block;width:1.5px;height:17px;background:var(--brand);vertical-align:-3px;margin-left:1px}
+.lcard-f{display:flex;gap:8px;padding:12px 22px 18px;border-top:.5px solid var(--bd)}
+.ck{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 10px 0 6px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 .5px var(--bd2);font-size:12px;color:var(--tx2);opacity:.45}
+.ck .sd{width:16px;height:16px;border-radius:50%;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center;transform:scale(0)}
+.ck em{font-style:normal;color:var(--tx3)}
+.steps{position:absolute;left:0;top:0;display:flex;align-items:center;visibility:hidden}
+.steps-track{position:absolute;left:30px;right:30px;top:50%;height:2px;margin-top:-1px;background:var(--bd2)}
+.steps-track i{position:absolute;inset:0;background:var(--brand);transform-origin:0 50%;transform:scaleX(0)}
+.step{position:relative;display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 16px 0 8px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--bd2),0 6px 18px -8px rgba(42,40,140,.25);font-size:13px;font-weight:600;color:var(--tx3);white-space:nowrap;overflow:hidden}
+.step+.step{margin-left:40px}
+.step .sd{position:relative;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--bd3)}
+.step .sd .on{position:absolute;inset:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;transform:scale(0)}
+.step .act{position:absolute;inset:0;border-radius:999px;background:var(--brand3);box-shadow:inset 0 0 0 1px var(--brand);opacity:0}
+.step .lbl{position:relative}
+.step .shim{position:absolute;inset:0;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.85) 50%,transparent 80%);opacity:0}
+.bigcheck{position:absolute;left:0;top:0;opacity:0}
+
+/* tilt stage (scenes 2 and 5) */
+.tilt{position:absolute;inset:0;perspective:1400px;perspective-origin:800px 300px}
+.tgrp{position:absolute;inset:0;transform-origin:800px 600px;perspective:1400px;perspective-origin:800px 300px}
+.panel{position:absolute;visibility:hidden;transform-origin:50% 0%;backface-visibility:hidden}
+.feed-panel{left:420px;top:236px;width:760px;height:900px;background:var(--bg3);border-radius:18px;overflow:hidden;
+  box-shadow:0 0 0 1px var(--bd),0 50px 90px -30px rgba(42,40,140,.30)}
+.fitem{opacity:0}
+.ucard{background:#fff;border:1px solid var(--bd);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 0 0 1px rgba(217,217,255,.6),0 50px 90px -30px rgba(42,40,140,.30)}
+.ucard-h{display:flex;align-items:center;gap:8px}
+.ucard-h .sec-lbl{flex:1}
+.ucard h3{margin:0;font-size:19px;font-weight:600;letter-spacing:-.01em}
+.proto{left:540px;top:300px;width:520px}
+.docc{left:800px;top:300px;width:520px}
+.flow{position:relative;height:250px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px}
+.fnode{position:absolute;left:24px;right:24px;height:52px;border-radius:10px;background:#fff;border:.5px solid var(--bd2);box-shadow:0 1px 2px rgba(12,23,35,.06);display:flex;align-items:center;gap:10px;padding:0 12px}
+.fnode .k{font:500 10px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);width:46px}
+.fnode b{font-size:14px;font-weight:600}
+.fnode .badge{margin-left:auto}
+.flow svg{position:absolute;left:0;top:0}
+.flow .conn{fill:none;stroke:var(--brand);stroke-width:1.5}
+.vrow{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:.5px solid var(--bd2);font-size:13px;overflow:hidden}
+.vrow .hov{position:absolute;inset:0;background:var(--brand3);box-shadow:inset 0 0 0 1px var(--brand);border-radius:10px;opacity:0}
+.vrow .sd{position:relative;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--bd3);flex:none}
+.vrow .sd .on{position:absolute;inset:0;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;transform:scale(0)}
+.vrow b{position:relative;font-weight:600}
+.vrow span.r{position:relative;margin-left:auto;font-size:12px;color:var(--tx3)}
+.doc{position:relative;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.dsec{background:#fff;border:.5px solid var(--bd2);border-radius:8px;padding:9px 12px;display:grid;grid-template-columns:120px 1fr;gap:4px 12px;font-size:12.5px;line-height:17px;margin:0;opacity:0}
+.dsec dt{font:500 10px/17px "IBM Plex Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin:0}
+.dsec dd{margin:0;color:var(--tx)}
+.dsec dd b{font-weight:600}
+
+/* reduced motion: static scene-3 keyframe + caption (the film script sets this state) */
+.qtrack-film.is-static .cursor{display:none}
+
+/* ======================================================================
+   REVIEW BAR — preview only. Everything between the REVIEW markers is
+   stripped from qtrack-film.html.
+   ====================================================================== */
+/* REVIEW:CSS:START */
+body.preview{background:#f4f4fb;font-family:var(--font-body);color:#303030}
+.pv-wrap{max-width:min(1440px,calc((100vh - 150px)*1.6 + 48px));margin:0 auto;padding:16px 24px 140px}
+.pv-wrap .qtrack-film{border-radius:14px;box-shadow:0 0 0 1px #D9D9FF}
+.rbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(1392px,calc(100% - 32px));background:#fff;border-radius:16px;
+  box-shadow:0 0 0 1px #D9D9FF,0 16px 40px -16px rgba(42,40,140,.3);padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:10px 16px;align-items:center;z-index:100}
+.rbar button{font:500 12px/1 var(--font-mono);letter-spacing:.06em;text-transform:uppercase;height:32px;padding:0 12px;border-radius:999px;border:0;background:#fff;color:#2A288C;box-shadow:inset 0 0 0 1px #D9D9FF;cursor:pointer}
+.rbar button:hover{box-shadow:inset 0 0 0 1px #2A288C}
+.rbar button.on{background:#2A288C;color:#fff;box-shadow:none}
+.rbar button:focus-visible{outline:2px solid #FF7869;outline-offset:2px}
+.rb-play{width:76px}
+.rb-scenes,.rb-speed{display:flex;gap:6px;flex-wrap:wrap}
+.rb-scrub{grid-column:1/-1;display:flex;align-items:center;gap:12px}
+.rb-scrub input{flex:1;accent-color:#FF7869}
+.rb-time{font:500 13px/1 var(--font-mono);color:#2A288C;min-width:120px;text-align:right}
+.rb-ticks{position:relative;height:14px;grid-column:1/-1;margin:-6px 132px 0 0}
+.rb-ticks span{position:absolute;top:0;font:500 10px/14px var(--font-mono);color:rgba(42,40,140,.6);transform:translateX(-50%);white-space:nowrap}
+@media (max-width:760px){.rbar{grid-template-columns:1fr}.rb-ticks{display:none}}
+/* REVIEW:CSS:END */
+</style>
+</head>
+<body class="preview">
+<!-- REVIEW:WRAP:START --><div class="pv-wrap"><!-- REVIEW:WRAP:END -->
+
+<div class="qtrack-film" id="qtrack-film" data-start="" data-end="">
+<div class="stage" id="stage" role="img" aria-label="qTrack product film: a referral is tracked from report summary through CT comparison, no-show follow-up and patient letter to automated protocols.">
+
+  <div class="bg-lav"></div>
+  <div class="field"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+  <!-- ================= device ================= -->
+  <div class="device-wrap">
+    <div class="device-blur db-cag"><img src="assets/blur-cag.webp" alt=""></div>
+    <div class="device-blur db-letter"><img src="assets/blur-letter.webp" alt=""></div>
+    <div class="device">
+      <div class="titlebar">
+        <span class="wm tb-wm"><span class="wm-q">qTrack</span><span class="wm-move">Move</span></span>
+        <span class="tb-url"></span>
+        <span class="tb-dots"><i></i><i></i><i></i></span>
+      </div>
+      <div class="viewport p">
+        <header class="pbar">
+          <div class="pbar-r1">
+            <h1>John Doe | 64M · 01/01/1962 · QR-0000-0000-XX</h1>
+            <span class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+            <span class="ib"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></span>
+            <span class="vsep"></span>
+            <span class="upd">Patient profile updated 12 minutes ago</span>
+          </div>
+          <div class="pbar-r2">
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>(555) 010-0000</span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>john.doe@example.com</span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><span class="dotted">100 Example St, Springfield</span></span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M10 13v2a5 5 0 0 0 10 0v-2"/><circle cx="20" cy="11" r="2"/></svg></span>Dr. Jane Doe, MD</span>
+            <span><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/></svg></span>Health Plan</span>
+          </div>
+        </header>
+        <div class="cam">
+          <div class="views">
+
+            <!-- CASE AT A GLANCE -->
+            <section class="v v-cag" data-view="cag">
+              <div class="v-head">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr1" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr1)" stroke-width="2.2" stroke-linecap="round"/></svg>
+                <h2>Case at a glance</h2>
+              </div>
+              <div class="v-body">
+                <div class="glance g-report">
+                  <div class="glance-top"><span>Updated 12 minutes ago</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></div>
+                  <div class="glance-in">
+                    <div class="glance-row"><span class="sec-lbl">Report summary</span><span style="flex:1"></span><span class="lnk">Case feed <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 4h6v6M20 4l-8 8M10 20H4v-6M4 20l8-8"/></svg></span></div>
+                    <div class="rs">
+                      <div class="rs-skel"><i style="width:84%"></i><i style="width:92%"></i><i style="width:70%"></i><i style="width:58%"></i></div>
+                      <div class="rs-lines">
+                        <p>LDCT chest (Jun 3, 2026) found a <b><mark class="hl">4mm solid nodule</mark></b> — Lung-RADS 2. Referred by Dr. Jane Doe following annual screening visit.</p>
+                        <p>Latest: CT chest without contrast (Jun 5, 2026) shows <b><mark class="hl">interval growth to 8mm</mark></b> — <mark class="hl">Lung-RADS 4A</mark>. PET-CT and/or tissue sampling recommended.</p>
+                        <p>Ancillary: <b>moderate coronary calcification</b> noted on the same scan — flagged for cardiology correlation.</p>
+                        <div class="chips"><span class="chip">CT Chest Jun 5, 2026</span><span class="chip">LDCT May 23, 2026</span><span class="chip">Biopsy Apr 18, 2025</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="glance" style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
+                  <div class="ph" style="width:150px;height:10px"></div>
+                  <div class="ph-card"><div class="ph l" style="width:62%;height:10px"></div><div class="ph l" style="width:78%;height:10px"></div><div class="ph l" style="width:54%;height:10px"></div></div>
+                </div>
+                <div class="ph" style="width:180px;height:10px;margin-top:4px"></div>
+                <div class="ph-card"><div class="ph l" style="width:70%;height:10px"></div><div class="ph l" style="width:58%;height:10px"></div></div>
+              </div>
+            </section>
+
+            <!-- CT COMPARISON -->
+            <section class="v v-pv" data-view="pv">
+              <div class="pv-bar">
+                <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h4"/></svg></span>
+                <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1"/><rect x="13" y="9" width="8" height="11" rx="1"/></svg></span>
+                <span class="vsep"></span>
+                <span class="ib"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M7 2a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9zM10.3 10.3 14 14M5 6.5h4M7 4.5v4"/></svg></span>
+                <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="10" y="3" width="4" height="18" rx="1"/></svg></span>
+                <span class="ib"><svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 4.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M3 13l1-1M12 4l1-1"/></svg></span>
+                <span class="ib" style="background:rgba(0,208,205,.14);color:#33dad8;border-radius:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></span>
+                <span style="flex:1"></span>
+                <span class="ib"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+              </div>
+              <div class="pv-panes">
+                <div class="pane cur"><img class="ct-img" data-ct="current" src="assets/ct-current.webp" alt="Axial chest CT, current study, cropped to the nodule"><div class="pane-tag"><b style="color:#ffb400">Current</b><span>Jun 5, 2026</span></div></div>
+                <div class="pane pri"><img class="ct-img" data-ct="prior" src="assets/ct-prior.webp" alt="Axial chest CT, prior study, cropped to the nodule"><div class="pane-tag"><b style="color:#00d0cd">Prior</b><span>Jun 3, 2025</span></div></div>
+              </div>
+              <div class="callouts">
+                <svg width="944" height="682" viewBox="0 0 944 682">
+                  <circle class="ring ring-cur" cx="289" cy="379" r="34"/>
+                  <circle class="ring ring-pri" cx="751" cy="379" r="22"/>
+                  <path class="leader lead-cur" d="M289 413 V 440"/>
+                  <path class="leader lead-pri" d="M751 401 V 440"/>
+                  <path class="arrow arr" id="arrPath" d="M733 352 C 670 262, 380 262, 318 346"/>
+                  <path class="arrow-head arr-h" d="M0 0 L -12 -6 L -12 6 Z" transform="translate(318 346) rotate(126)"/>
+                </svg>
+                <span class="clabel lab-cur" data-x="289" data-y="440"><em><span class="num">4</span> mm</em> · Current</span>
+                <span class="clabel lab-pri" data-x="751" data-y="440"><em>4 mm</em> · Prior</span>
+                <span class="clabel solid lab-arr">Interval growth</span>
+              </div>
+            </section>
+
+            <!-- TRACKING -->
+            <section class="v v-track" data-view="track">
+              <div class="v-head">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr3" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr3)" stroke-width="2.2" stroke-linecap="round"/></svg>
+                <h2>Case at a glance</h2>
+              </div>
+              <div class="v-body">
+                <div class="glance" style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:10px">
+                  <div class="ph" style="width:150px;height:10px"></div>
+                  <div class="ph-card"><div class="ph l" style="width:72%;height:10px"></div><div class="ph l" style="width:60%;height:10px"></div></div>
+                </div>
+                <div class="track-card">
+                  <div class="track-in">
+                    <div class="glance-row"><span class="sec-lbl">Longitudinal tracking</span><span style="flex:1"></span><span class="lnk">Lung nodule program</span></div>
+                    <div class="tl">
+                      <div class="tl-line"><i></i></div>
+                      <div class="tl-node" style="left:11%"><span class="tl-dotw"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Screening</b><small>May 28, 2026</small><span class="badge done">Eligible</span></div>
+                      <div class="tl-node" style="left:37%"><span class="tl-dotw"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>LDCT</b><small>Jun 3, 2026</small><span class="badge done">Lung-RADS 2</span></div>
+                      <div class="tl-node" style="left:63%"><span class="tl-dotw"><span class="tl-dot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>CT</b><small>Jun 5, 2026</small><span class="badge done">Lung-RADS 4A</span></div>
+                      <div class="tl-node tl-fu" style="left:89%"><span class="tl-dotw"><span class="tl-dot pend"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="3"/></svg></span><span class="tl-dot miss"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 7v6M12 17h.01"/></svg></span></span><b>Follow-up visit</b><small>Jun 30, 2026</small>
+                        <span class="flip"><span class="badge ok booked">Booked</span><span class="badge ns">No show</span><span class="pulse"></span></span>
+                        <span class="badge brand resched">Rescheduled · Jul 14, 2026</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ph" style="width:180px;height:10px;margin-top:4px"></div>
+                <div class="ph-card"><div class="ph l" style="width:66%;height:10px"></div><div class="ph l" style="width:48%;height:10px"></div></div>
+              </div>
+            </section>
+
+            <!-- LETTER (device context) -->
+            <section class="v v-letter" data-view="letter">
+              <div class="v-head">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round"><path d="M4 5h4M4 12h4M4 19h4M8 5v14M12 5h8M12 12h6M12 19h8"/></svg>
+                <h2>Case feed</h2>
+              </div>
+              <div class="v-body" style="gap:14px">
+                <div class="prompt">
+                  <span class="aira-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr4" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr4)" stroke-width="2.2" stroke-linecap="round"/></svg></span>
+                  <p>Follow-up visit missed on Jun 30, 2026. <span>Reach the patient?</span></p>
+                  <span class="btn sec">SMS</span><span class="btn sec">Call</span>
+                  <span class="btn pri send-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg>Send letter</span>
+                </div>
+                <div class="ph-card"><div class="ph l" style="width:40%;height:10px"></div><div class="ph l" style="width:76%;height:10px"></div></div>
+                <div class="ph-card"><div class="ph l" style="width:52%;height:10px"></div><div class="ph l" style="width:64%;height:10px"></div><div class="ph l" style="width:30%;height:10px"></div></div>
+                <div class="ph-card"><div class="ph l" style="width:46%;height:10px"></div><div class="ph l" style="width:70%;height:10px"></div></div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= captions (kinetic) ================= -->
+  <div class="cap">
+    <div class="cb cb-1"><div class="ml t-label-overline"><span class="n">01</span><span class="rule"></span><span>Report summary</span></div>
+      <h2 class="kh t-heading-h4" data-key="longitudinal">One longitudinal record, including the finding, priors, history and care to date.</h2></div>
+    <div class="cb cb-3"><div class="ml t-label-overline"><span class="n">03</span><span class="rule"></span></div>
+      <h2 class="kh big" data-key="comparison">CT comparison</h2></div>
+    <div class="cb cb-4a"><div class="ml t-label-overline"><span class="n">04</span><span class="rule"></span><span>Tracking</span></div>
+      <h2 class="kh t-heading-h4" data-key="rescheduled.">No-shows are traced and rescheduled.</h2></div>
+    <div class="cb cb-4b"><div class="ml t-label-overline"><span class="n">05</span><span class="rule"></span><span>Outreach</span></div>
+      <h2 class="kh t-heading-h4" data-key="40+|languages.">Patients are reached by SMS, phone or letter with protocol-based templates in 40+ languages.</h2></div>
+  </div>
+  <!-- scene 2 side words -->
+  <div class="sw l sw2l" style="right:1228px;top:300px"><div class="ml t-label-overline" style="justify-content:flex-end;margin-bottom:14px"><span class="n">02</span><span class="rule"></span></div><div class="kh big">Case</div></div>
+  <div class="sw r sw2r" style="left:1212px;top:332px"><div class="kh big" data-key="feed">feed</div></div>
+  <!-- scene 5 side words + line -->
+  <div class="sw l sw5l" style="right:1076px;top:330px"><div class="ml t-label-overline" style="justify-content:flex-end;margin-bottom:14px"><span class="n">06</span><span class="rule"></span></div><div class="kh big">Your protocols,</div></div>
+  <div class="sw r sw5r" style="left:1092px;top:362px"><div class="kh big" data-key="automated.">automated.</div></div>
+  <div class="s5-top"><h2 class="kh t-heading-h4" data-key="clinical|sign-off.">Nothing goes live without clinical sign-off.</h2></div>
+
+  <!-- ================= lifted components ================= -->
+  <div class="lift p">
+    <div class="lifted lift-report"><div class="lift-shadow"></div></div>
+    <div class="morph">
+      <div class="m-old"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg>Send letter</div>
+      <div class="m-new">
+        <div class="lcard-h"><span class="lcard-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h20v16H2zM2 7l10 6 10-6"/></svg></span><b>Follow-up reminder (patient)</b><small>Northfield Pulmonology Clinic · Jane Roe</small></div>
+        <div class="lcard-b">Dear Mr. Doe,
+
+<span class="ltext"></span><span class="caret"></span>
+
+<span class="lsign">Jane Roe, Care Coordinator</span></div>
+        <div class="lcard-f">
+          <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Language <em>English</em></span>
+          <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Contact <em>Address verified</em></span>
+          <span class="ck"><span class="sd"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span>Protocol <em>Lung-RADS 4A</em></span>
+        </div>
+      </div>
+    </div>
+    <div class="steps">
+      <span class="steps-track"><i></i></span>
+      <span class="step st1"><span class="act"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><span class="lbl">Generating letter</span><span class="shim"></span></span>
+      <span class="step st2"><span class="act"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><span class="lbl">Assessment</span></span>
+      <span class="step st3"><span class="act"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><span class="lbl">Sent to patient</span></span>
+    </div>
+    <svg class="bigcheck" width="88" height="88" viewBox="0 0 88 88"><g class="qcheck"><circle cx="44" cy="44" r="44"/><path d="M27 45 l12 12 l23 -26"/></g></svg>
+  </div>
+
+  <!-- ================= 3D tilt stage (scenes 2 and 5) ================= -->
+  <div class="tilt p">
+    <div class="tgrp tg2">
+      <div class="panel feed-panel">
+        <div class="v-head">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#008280" stroke-width="2" stroke-linecap="round"><path d="M4 5h4M4 12h4M4 19h4M8 5v14M12 5h8M12 12h6M12 19h8"/></svg>
+          <h2>Case feed</h2>
+        </div>
+        <div class="fchips">
+          <span class="fchip on">All</span><span class="fchip">Decisions <i>0</i></span><span class="fchip">Letters <i>2</i></span><span class="fchip">Forms <i>3</i></span><span class="fchip">Notes <i>3</i></span><span class="fchip">DICOMs <i>1</i></span><span class="fchip">Reports <i>3</i></span>
+        </div>
+        <div class="feed">
+          <div class="fitem"><div class="fdate">Jun 3, 2026</div>
+            <div class="fcard">
+              <div class="fcard-h"><span class="mod">CT</span><span class="fcard-t"><b>CT LUNG SCREENING</b><span class="fcard-m"><span>Exam date <em>Jun 2, 2026</em></span><span>Qure.ai · Jun 3, 2026 · 11:42 AM</span></span></span>
+                <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+              <div class="aitags"><span class="ai-l">AI tags</span>
+                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Indication: lung cancer screening · &gt;20 pack year</span>
+                <span class="tag rec">Nodule size: &lt;6mm</span>
+                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Priority: Routine</span>
+              </div>
+            </div>
+          </div>
+          <div class="fitem">
+            <div class="frow"><span class="aira-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><defs><linearGradient id="agr2" x1="0" x2="1"><stop offset="0" stop-color="#ff7869"/><stop offset="1" stop-color="#98aed9"/></linearGradient></defs><path d="M7.5 7C4.6 7 3 9.3 3 12s1.6 5 4.5 5c3.4 0 5.6-10 9-10C19.4 7 21 9.3 21 12s-1.6 5-4.5 5c-3.4 0-5.6-10-9-10z" stroke="url(#agr2)" stroke-width="2.2" stroke-linecap="round"/></svg></span><b>Report summary</b><span class="fm">Aira · Jun 3, 2026 · 11:42 AM</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+          </div>
+          <div class="fitem"><div class="fdate">Jun 2, 2026</div>
+            <div class="fcard">
+              <div class="fcard-h"><span class="mod">CT</span><span class="fcard-t"><b>CT CHEST</b><span class="fcard-m"><span>Exam date <em>Jun 2, 2026</em></span><span>Qure.ai · Jun 2, 2026 · 10:05 AM</span></span></span>
+                <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+              <div class="aitags"><span class="ai-l">AI tags</span>
+                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Recommendation present: Yes</span>
+                <span class="tag rec">Nodule size: &gt;6mm</span>
+                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Priority: Low</span>
+              </div>
+            </div>
+          </div>
+          <div class="fitem"><div class="fdate">May 28, 2026</div>
+            <div class="fcard">
+              <div class="fcard-h"><span class="mod" style="font-size:10px">ASMT</span><span class="fcard-t"><b>LUNG SCREENING ELIGIBILITY ASSESSMENT</b><span class="fcard-m"><span>Exam date <em>May 28, 2026</em></span><span>Screening program · May 28, 2026 · 04:15 PM</span></span></span>
+                <span class="sqbtn"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/></svg></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#39414c" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></div>
+              <div class="aitags"><span class="ai-l">AI tags</span>
+                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Indication: lung cancer screening · &gt;20 pack year</span>
+                <span class="tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Eligibility: met</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tgrp tg5">
+      <div class="panel ucard proto">
+        <div class="ucard-h"><span class="sec-lbl">Auto-protocol</span><span class="upc">Upcoming</span></div>
+        <h3>Lung-RADS 4A → PET-CT</h3>
+        <div class="flow">
+          <svg width="482" height="250" viewBox="0 0 482 250"><path class="conn c1" d="M48 66 V 98"/><path class="conn c2" d="M48 150 V 182"/></svg>
+          <div class="fnode" style="top:14px"><span class="k">If</span><b>Lung-RADS 4A</b><span class="badge done">Trigger</span></div>
+          <div class="fnode" style="top:98px"><span class="k">Then</span><b>Order PET-CT</b><span class="badge brand">Action</span></div>
+          <div class="fnode" style="top:182px"><span class="k">Track</span><b>Result to completion</b><span class="badge brand">Action</span></div>
+        </div>
+        <div class="vrow vr1"><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Tested on sample cases</b><span class="r">All passed</span></div>
+        <div class="vrow vr2"><span class="hov"></span><span class="sd"><span class="on"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></span><b>Clinical sign-off</b><span class="r">Dr. Jane Doe, MD</span></div>
+      </div>
+      <div class="panel ucard docc">
+        <div class="ucard-h"><span class="sec-lbl">Prior-auth documentation</span><span class="upc">Upcoming</span></div>
+        <h3>PET-CT · Health Plan</h3>
+        <div class="doc">
+          <dl class="dsec"><dt>Patient</dt><dd>John Doe · QR-0000-0000-XX</dd></dl>
+          <dl class="dsec"><dt>Payer</dt><dd>Health Plan</dd></dl>
+          <dl class="dsec"><dt>Service</dt><dd>PET-CT, skull base to mid-thigh</dd></dl>
+          <dl class="dsec"><dt>Justification</dt><dd>8mm solid nodule, interval growth from 4mm · <b>Lung-RADS 4A</b></dd></dl>
+          <dl class="dsec"><dt>Payer criteria</dt><dd>Met · 3 of 3</dd></dl>
+          <dl class="dsec"><dt>Ordering</dt><dd>Dr. Jane Doe, MD</dd></dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= hero wordmark ================= -->
+  <div class="hero">
+    <h2 class="hero-cap t-heading-h4 kh" data-key="Finished|Care.">Turns Referrals into Finished Care.</h2>
+    <span class="wm hero-wm"><span class="wm-q">qTrack</span><span class="wm-move">Move</span></span>
+    <span class="wm end-wm"><span class="wm-q">qTrack</span><span class="wm-move">Move</span></span>
+  </div>
+
+  <svg class="cursor" viewBox="0 0 26 32" width="26" height="32" aria-hidden="true"><path d="M2 2 L2 25 L8.2 19.3 L12.6 29 L16.6 27.2 L12.3 17.8 L20.5 17.8 Z" fill="#fff" stroke="#303030" stroke-width="1.3" stroke-linejoin="round"/></svg>
+
+  <div class="review-tag">REVIEW · replace scans</div>
+</div>
+</div>
+
+<!-- REVIEW:BAR:START -->
+<div class="rbar" id="rbar">
+  <button class="rb-play" id="rbPlay">Pause</button>
+  <div class="rb-scenes" id="rbScenes"></div>
+  <div class="rb-speed" id="rbSpeed"><button data-s=".25">0.25×</button><button data-s=".5">0.5×</button><button data-s="1" class="on">1×</button></div>
+  <div class="rb-ticks" id="rbTicks"></div>
+  <div class="rb-scrub"><input type="range" id="rbScrub" min="0" max="1000" step="1" value="0" aria-label="Timeline"><span class="rb-time" id="rbTime">0.00 / 0.00s</span></div>
+</div>
+</div>
+<!-- REVIEW:BAR:END -->
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/TextPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/MotionPathPlugin.min.js"></script>
+<script>
+/* ======================================================================
+   CONFIG
+   ====================================================================== */
+const REVIEW_MODE = true;            // true: "REVIEW · replace scans" tag; false: production
+const CT_ORIGINAL_SHA256 = {          // hashes of the review scans shipped with this build
+  'assets/ct-current.webp':'fa19d4ca9349ddd3e416da8ddbd155aa9d7aa7bf2ce7669e44901f72fa8ef0d9',
+  'assets/ct-prior.webp':'d8265917ddb7ec6373111fa11c896e922a9b3f25a6b5709ad9fc52be6327782e'
+};
+const COLORS = { indigo:'#2A288C', peach:'#FF7869', lavender:'#D9D9FF' };
+
+(function(){
+gsap.registerPlugin(CustomEase, TextPlugin, DrawSVGPlugin, SplitText, MotionPathPlugin);
+CustomEase.create('emph',  '0.2,0,0,1');      // entrances
+CustomEase.create('glide', '0.45,0,0.15,1');  // camera moves and morphs
+
+const film  = document.getElementById('qtrack-film');
+const stage = document.getElementById('stage');
+const $  = s => stage.querySelector(s);
+const $$ = s => [...stage.querySelectorAll(s)];
+
+/* scale the 1600x1000 stage to the container width (transform on the stage only) */
+function fit(){ stage.style.transform = 'scale(' + (film.clientWidth / 1600) + ')'; }
+new ResizeObserver(fit).observe(film); fit();
+
+if(!REVIEW_MODE){ $('.review-tag').remove(); verifyScans(); }
+async function verifyScans(){
+  try{
+    for(const [url,hash] of Object.entries(CT_ORIGINAL_SHA256)){
+      const buf = await (await fetch(url)).arrayBuffer();
+      const hex = [...new Uint8Array(await crypto.subtle.digest('SHA-256', buf))].map(b=>b.toString(16).padStart(2,'0')).join('');
+      if(hex === hash){ console.error('Original review CT scans still in use.'); return; }
+    }
+  }catch(e){ console.warn('[qtrack-film] could not verify CT scans (needs http/https):', e.message); }
+}
+
+/* offset of el inside the stage, ignoring transforms */
+function pos(el){ let x=0,y=0,n=el; while(n && n!==stage){ x+=n.offsetLeft; y+=n.offsetTop; n=n.offsetParent; } return {x,y,w:el.offsetWidth,h:el.offsetHeight}; }
+
+/* kinetic words: SplitText + peach overlay on key words */
+function prepKinetic(h){
+  if(h._words) return h;
+  const split = SplitText.create(h, {type:'words', wordsClass:'w'});
+  const keys = (h.dataset.key||'').split('|').filter(Boolean);
+  h._words = split.words;
+  h._keys = [];
+  split.words.forEach((w,i)=>{ if(keys.includes(w.textContent.trim())){ const o=document.createElement('span'); o.className='kw'; o.textContent=w.textContent; w.appendChild(o); h._keys.push({el:o,i}); } });
+  return h;
+}
+function wordsIn(tl, h, at){
+  prepKinetic(h);
+  tl.fromTo(h._words, {y:12, opacity:0}, {y:0, opacity:1, duration:.5, ease:'emph', stagger:.06}, at);
+  h._keys.forEach(k=>{ const t = at + k.i*.06;
+    tl.fromTo(k.el, {opacity:0}, {opacity:1, duration:.2, ease:'none'}, t+.04)
+      .to(k.el, {opacity:0, duration:.6, ease:'glide'}, t+.85); });
+}
+function mlIn(tl, ml, at){
+  if(!ml) return;
+  tl.fromTo(ml, {x:-12, opacity:0}, {x:0, opacity:1, duration:.45, ease:'emph'}, at);
+  tl.fromTo(ml.querySelector('.rule'), {scaleX:0}, {scaleX:1, duration:.55, ease:'glide'}, at+.05);
+}
+function capIn(tl, block, at){
+  tl.set(block, {autoAlpha:1, y:0}, at);
+  mlIn(tl, block.querySelector('.ml'), at);
+  block.querySelectorAll('.kh').forEach(h=>wordsIn(tl, h, at+.12));
+}
+function capOut(tl, block, at){ tl.to(block, {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, at); }
+
+/* stepped count-up: 4 → 5 → 6 → 7 → 8 */
+function countUp(tl, el, from, to, at, dur){
+  tl.fromTo(el, {textContent:from}, {textContent:to, snap:{textContent:1}, duration:dur, ease:'power2.out'}, at);
+}
+
+/* typing with micro-pauses at punctuation, ~28 chars/s */
+function typeIn(tl, el, text, at){
+  const CPS = 28; let t = at, acc = '';
+  text.split(/(?<=[.,])/).forEach(chunk=>{
+    acc += chunk; const d = chunk.length / CPS;
+    tl.to(el, {text:{value:acc, delimiter:''}, duration:d, ease:'none'}, t);
+    t += d;
+    if(acc.length < text.length) t += (/[.]\s*$/.test(chunk) ? .22 : /,\s*$/.test(chunk) ? .12 : 0);
+  });
+  return t;
+}
+
+/* lift-out layer for the report summary card */
+const report = $('.g-report');
+const liftR  = $('.lift-report');
+function buildLiftClone(){
+  const r = pos(report);
+  const c = report.cloneNode(true);
+  c.style.width = r.w + 'px'; c.style.margin = 0;
+  liftR.appendChild(c);
+  Object.assign(liftR.style, {left:r.x+'px', top:r.y+'px', width:r.w+'px', height:r.h+'px'});
+  return r;
+}
+
+/* ======================================================================
+   MASTER TIMELINE
+   ====================================================================== */
+const SCENES = [
+  ['open',   'Open'],
+  ['report', 'Report summary'],
+  ['feed',   'Case feed'],
+  ['pv',     'CT comparison'],
+  ['track',  'Tracking'],
+  ['letter', 'Letter'],
+  ['up',     'Auto-protocols'],
+  ['end',    'End'],
+];
+let master;
+
+function build(){
+  const T = {open:0, report:2.3, feed:7.35, pv:11.2, track:16.2, letter:19.6, up:26.6, end:31.6};
+  const TOTAL = 33.8;
+  const tl = gsap.timeline({paused:true, repeat:-1, defaults:{ease:'emph'}});
+  Object.entries(T).forEach(([k,v])=>tl.addLabel(k, v));
+
+  /* ---------- geometry ---------- */
+  const dev = $('.device'), devWrap = $('.device-wrap'), field = $('.field');
+  const views = n => $('.v-'+n);
+  const heroWm = $('.hero-wm'), endWm = $('.end-wm'), tbWm = $('.tb-wm');
+  const tbR = pos(tbWm);
+  const hwW = heroWm.offsetWidth, hwH = heroWm.offsetHeight;
+  const heroX = 800 - hwW/2, heroY = 420 - hwH/2;
+  gsap.set([heroWm, endWm], {x:heroX, y:heroY});
+  const tbScale = 22/168;
+  const rR = buildLiftClone();
+  const btn = $('.send-btn'); const bR = pos(btn);
+  const morph = $('.morph');
+  const CARD = {x:620, y:330, w:860, h:262};
+  gsap.set(morph.querySelector('.m-new'), {width:CARD.w});
+
+  /* ---------- initial state (t = 0 == last frame) ---------- */
+  gsap.set(field, {opacity:1});
+  gsap.set(dev, {opacity:0, y:120, rotationX:8});
+  gsap.set($$('.v'), {autoAlpha:0}); gsap.set(views('cag'), {autoAlpha:1});
+  gsap.set($$('.device-blur'), {opacity:0, scale:.98});
+  gsap.set(tbWm, {opacity:0});
+  gsap.set($$('.cb, .sw, .s5-top, .hero-cap'), {autoAlpha:0});
+  gsap.set($$('.cb'), {yPercent:-50});
+  gsap.set($$('.panel'), {autoAlpha:0});
+  gsap.set(morph, {x:bR.x, y:bR.y, width:bR.w, height:bR.h});
+  gsap.set($('.steps'), {x:CARD.x + CARD.w/2, y:CARD.y - 64, xPercent:-50});
+  gsap.set($('.bigcheck'), {x:CARD.x + CARD.w/2 - 44, y:CARD.y + CARD.h/2 - 44, scale:.6});
+  gsap.set($('.cursor'), {x:1660, y:1060});
+  $$('.clabel[data-x]').forEach(l=>gsap.set(l, {x:+l.dataset.x, y:+l.dataset.y, xPercent:-50}));
+
+  /* ======================= 0 · OPEN ======================= */
+  let t = T.open;
+  wordsIn(tl, $('.hero-cap'), t+.10); tl.set($('.hero-cap'), {autoAlpha:1}, t+.10);
+  tl.fromTo(heroWm, {opacity:0, y:heroY+30, scale:.96}, {opacity:1, y:heroY, scale:1, duration:.7}, t+.55);
+  tl.to($('.hero-cap'), {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, t+1.4);
+  tl.to(dev, {opacity:1, y:0, rotationX:0, duration:1.0, ease:'glide'}, t+1.35);
+  tl.to(field, {opacity:0, duration:1.0, ease:'glide'}, t+1.4);
+  tl.to(heroWm, {x:tbR.x, y:tbR.y + 1, scale:tbScale, duration:.9, ease:'glide'}, t+1.5);
+  tl.to(tbWm, {opacity:1, duration:.16, ease:'none'}, t+2.28);
+  tl.to(heroWm, {opacity:0, duration:.16, ease:'none'}, t+2.3);
+
+  /* ======================= 1 · REPORT SUMMARY ======================= */
+  t = T.report;
+  capIn(tl, $('.cb-1'), t);
+  // lift-out
+  const L = t+.7;
+  tl.set(liftR, {visibility:'visible'}, L).set(report, {opacity:0}, L);
+  tl.fromTo(liftR, {scale:1, y:0, x:0}, {scale:1.15, y:-24, x:-14, duration:.8, ease:'glide'}, L);
+  tl.fromTo(liftR.querySelector('.lift-shadow'), {opacity:0}, {opacity:1, duration:.8, ease:'glide'}, L);
+  tl.to(dev, {opacity:0, scale:.98, duration:.6, ease:'glide'}, L);
+  tl.fromTo($('.db-cag'), {opacity:0, scale:.98}, {opacity:.35, duration:.6, ease:'glide'}, L);
+  tl.to(field, {opacity:1, duration:.8, ease:'glide'}, L);
+  tl.to(liftR, {scale:1.17, duration:3.3, ease:'none'}, L+.85);            // camera drift +1.5%
+  // lines: short fast run, then settle
+  const lp = liftR.querySelectorAll('.rs p');
+  tl.to(liftR.querySelector('.rs-skel'), {opacity:0, duration:.2, ease:'none'}, L+.55);
+  tl.fromTo(lp, {y:44, opacity:0}, {y:0, opacity:1, duration:.5, ease:'emph', stagger:.07}, L+.6);
+  // peach sweeps (background-size wipe)
+  liftR.querySelectorAll('.hl').forEach((m,i)=>
+    tl.to(m, {backgroundSize:'100% 100%, 100% 2px', duration:.45, ease:'power2.inOut'}, t+2.0 + i*.6));
+  tl.fromTo(liftR.querySelectorAll('.chip'), {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22, ease:'emph', stagger:.06}, t+3.8);
+  // out
+  capOut(tl, $('.cb-1'), T.feed - .2);
+  tl.to(liftR, {y:-70, opacity:0, duration:.5, ease:'glide'}, T.feed - .15);
+  tl.to($('.db-cag'), {opacity:0, duration:.5, ease:'glide'}, T.feed - .15);
+
+  /* ======================= 2 · CASE FEED (3D tilt) ======================= */
+  t = T.feed;
+  const fp = $('.feed-panel');
+  tl.set(fp, {autoAlpha:1}, t);
+  tl.fromTo(fp, {yPercent:40, rotationX:28, opacity:0}, {yPercent:0, rotationX:12, opacity:1, duration:1.0, ease:'glide'}, t);
+  tl.fromTo($('.tg2'), {scale:1}, {scale:1.015, duration:4.0, ease:'none'}, t);
+  tl.set([$('.sw2l'), $('.sw2r')], {autoAlpha:1}, t+.2);
+  mlIn(tl, $('.sw2l .ml'), t+.2);
+  wordsIn(tl, $('.sw2l .kh'), t+.3);
+  wordsIn(tl, $('.sw2r .kh'), t+.42);
+  tl.fromTo(fp.querySelectorAll('.fitem'), {y:12, opacity:0}, {y:0, opacity:1, duration:.45, ease:'emph', stagger:.12}, t+.75);
+  tl.fromTo(fp.querySelectorAll('.tag'), {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22, ease:'emph', stagger:.06}, t+1.05);
+  // out
+  tl.to(fp, {yPercent:14, opacity:0, duration:.55, ease:'glide'}, T.pv - .2);
+  tl.to([$('.sw2l'), $('.sw2r')], {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, T.pv - .25);
+
+  /* ======================= 3 · CT COMPARISON ======================= */
+  t = T.pv;
+  tl.set(views('cag'), {autoAlpha:0}, t).set(views('pv'), {autoAlpha:1}, t);
+  tl.to(field, {opacity:0, duration:.8, ease:'glide'}, t);
+  tl.fromTo(dev, {opacity:0, scale:.98, y:24}, {opacity:1, scale:1, y:0, duration:.7, ease:'emph', immediateRender:false}, t+.05);
+  capIn(tl, $('.cb-3'), t+.15);
+  const cam = $('.cam');
+  tl.set(cam, {transformOrigin:'520px 379px'}, t);
+  tl.fromTo(cam, {scale:1}, {scale:1.3, duration:1.0, ease:'glide'}, t+.7);
+  tl.to(cam, {scale:1.32, duration:3.4, ease:'none'}, t+1.7);                // drift
+  tl.to($$('.pane-tag'), {opacity:0, duration:.3, ease:'none'}, t+1.0);
+  const ringP = $('.ring-pri'), ringC = $('.ring-cur');
+  tl.fromTo(ringP, {drawSVG:'0%'}, {drawSVG:'100%', duration:.5, ease:'power2.inOut'}, t+1.8);
+  tl.fromTo($('.lead-pri'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.2, ease:'none'}, t+2.2);
+  tl.fromTo($('.lab-pri'), {opacity:0, y:448}, {opacity:1, y:440, duration:.4}, t+2.25);
+  tl.fromTo(ringC, {drawSVG:'0%'}, {drawSVG:'100%', duration:.5, ease:'power2.inOut'}, t+2.3);
+  tl.fromTo($('.lead-cur'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.2, ease:'none'}, t+2.7);
+  tl.fromTo($('.lab-cur'), {opacity:0, y:448}, {opacity:1, y:440, duration:.4}, t+2.75);
+  countUp(tl, $('.lab-cur .num'), 4, 8, t+2.85, .8);
+  // arrow + label sliding along it
+  const arr = $('#arrPath'), lab = $('.lab-arr');
+  const glide = gsap.parseEase('glide');
+  tl.fromTo(arr, {drawSVG:'0%'}, {drawSVG:'100%', duration:.8, ease:'glide'}, t+3.75);
+  // label rides the arrow tip until the top of the arc, then stays there
+  tl.fromTo(lab, {opacity:0}, {opacity:1, duration:.2, ease:'none'}, t+3.8);
+  tl.to(lab, {duration:.8, ease:x=>Math.min(glide(x), .5)*2,
+      motionPath:{path:arr, align:arr, alignOrigin:[.5,.5], start:0, end:.5}}, t+3.75);
+  tl.fromTo($('.arr-h'), {opacity:0}, {opacity:1, duration:.15, ease:'none'}, t+4.45);
+  // out
+  capOut(tl, $('.cb-3'), T.track - .2);
+  tl.to($('.callouts'), {opacity:0, duration:.3, ease:'none'}, T.track - .2);
+
+  /* ======================= 4a · TRACKING ======================= */
+  t = T.track;
+  tl.to(views('pv'), {autoAlpha:0, duration:.35, ease:'none'}, t);
+  tl.to(cam, {scale:1, y:-40, duration:.8, ease:'glide'}, t);
+  tl.set(cam, {transformOrigin:'472px 300px'}, t+.81);
+  tl.fromTo(views('track'), {autoAlpha:0}, {autoAlpha:1, duration:.35, ease:'none'}, t+.15);
+  tl.to(cam, {scale:1.015, duration:2.6, ease:'none'}, t+.82);               // drift
+  capIn(tl, $('.cb-4a'), t+.15);
+  const L0 = t+.5, LD = 1.0;
+  tl.fromTo($('.tl-line i'), {scaleX:0}, {scaleX:1, duration:LD, ease:'glide'}, L0);
+  $$('.tl-node').forEach((n,i)=>tl.fromTo(n, {scale:.9, opacity:0}, {scale:1, opacity:1, duration:.22}, L0 + [0,.36,.64,.92][i]*LD));
+  const F = L0 + LD + .3;
+  tl.to($('.booked'), {rotationY:90, duration:.18, ease:'power2.in'}, F);
+  tl.fromTo($('.flip .ns'), {rotationY:-90, opacity:1}, {rotationY:0, duration:.22, ease:'power2.out'}, F+.18);
+  tl.to($('.tl-dot.pend'), {opacity:0, duration:.2, ease:'none'}, F+.1);
+  tl.to($('.tl-dot.miss'), {opacity:1, duration:.2, ease:'none'}, F+.1);
+  tl.fromTo($('.pulse'), {scale:1, opacity:.7}, {scale:1.5, opacity:0, duration:.7, ease:'emph'}, F+.45);
+  tl.fromTo($('.resched'), {y:-6, opacity:0}, {y:0, opacity:1, duration:.45}, F+.85);
+  capOut(tl, $('.cb-4a'), T.letter - .2);
+
+  /* ======================= 4b · LETTER ======================= */
+  t = T.letter;
+  tl.to(views('track'), {autoAlpha:0, duration:.35, ease:'none'}, t);
+  tl.fromTo(views('letter'), {autoAlpha:0}, {autoAlpha:1, duration:.35, ease:'none'}, t+.15);
+  tl.to(cam, {scale:1, y:0, duration:.6, ease:'glide'}, t);
+  capIn(tl, $('.cb-4b'), t+.15);
+  // cursor glides in and clicks
+  const cur = $('.cursor');
+  const bx = bR.x + bR.w*.55, by = bR.y + bR.h*.55;
+  tl.to(cur, {opacity:1, duration:.2, ease:'none'}, t+.35);
+  tl.to(cur, {duration:.95, ease:'glide', motionPath:{path:[{x:1660,y:1060},{x:1560,y:700},{x:bx,y:by}], curviness:1.2}}, t+.35);
+  const C = t+1.3;
+  tl.to(cur, {scale:.96, duration:.1, ease:'power2.out', transformOrigin:'0 0'}, C);
+  tl.to(cur, {scale:1, duration:.18, ease:'emph'}, C+.1);
+  tl.fromTo(btn, {scale:1}, {scale:.96, duration:.1, ease:'power2.out'}, C);
+  tl.to(btn, {scale:1, duration:.2, ease:'emph'}, C+.1);
+  tl.to(cur, {opacity:0, x:'+=40', y:'+=60', duration:.4, ease:'glide'}, C+.35);
+  // morph: button -> letter card (one container)
+  const M = C+.3, MD = .9;
+  tl.set(morph, {visibility:'visible'}, M).set(btn, {opacity:0}, M);
+  tl.to(morph, {x:CARD.x, y:CARD.y, width:CARD.w, height:CARD.h, borderRadius:16, backgroundColor:'#ffffff', duration:MD, ease:'glide'}, M);
+  tl.to(morph.querySelector('.m-old'), {opacity:0, duration:MD*.4, ease:'none'}, M);
+  tl.fromTo(morph.querySelector('.m-new'), {opacity:0}, {opacity:1, duration:MD*.4, ease:'none'}, M+MD*.6);
+  tl.to(dev, {opacity:0, scale:.98, duration:.7, ease:'glide'}, M);
+  tl.fromTo($('.db-letter'), {opacity:0, scale:.98}, {opacity:.35, duration:.7, ease:'glide'}, M);
+  tl.to(field, {opacity:1, duration:.8, ease:'glide'}, M);
+  tl.to(morph, {boxShadow:'0 44px 80px -24px rgba(42,40,140,.34), 0 14px 32px -12px rgba(42,40,140,.18)', duration:MD, ease:'glide'}, M);
+  // steps + typing
+  const S = M+MD-.1;
+  tl.set($('.steps'), {visibility:'visible'}, S);
+  tl.fromTo($('.steps'), {opacity:0, y:CARD.y-56}, {opacity:1, y:CARD.y-64, duration:.4}, S);
+  tl.to($('.st1 .act'), {opacity:1, duration:.2, ease:'none'}, S+.1);
+  tl.set($('.st1 .shim'), {opacity:1}, S+.15);
+  tl.fromTo($('.st1 .shim'), {xPercent:-110}, {xPercent:110, duration:.7, ease:'power2.inOut', repeat:1}, S+.15);
+  tl.set($('.st1 .shim'), {opacity:0}, S+1.56);
+  const caret = morph.querySelector('.caret');
+  tl.fromTo(caret, {opacity:0}, {opacity:1, duration:.01}, S+.2);
+  tl.set(morph.querySelector('.ltext'), {text:''}, S);
+  const tEnd = typeIn(tl, morph.querySelector('.ltext'), 'Your follow-up chest CT is due. Please call 555-0100 to rebook.', S+.3);
+  // caret blink while idle after typing
+  tl.to(caret, {opacity:0, duration:.01, repeat:3, yoyo:true, repeatDelay:.25}, tEnd+.05);
+  tl.set(caret, {opacity:0}, tEnd+1.0);
+  // pills fill with a progress line
+  const P1 = tEnd + .05;
+  tl.to($('.st1 .act'), {opacity:0, duration:.2, ease:'none'}, P1);
+  tl.fromTo($('.st1 .on'), {scale:0}, {scale:1, duration:.22}, P1);
+  tl.to($('.st1'), {color:'#0c1723', duration:.2, ease:'none'}, P1);
+  tl.fromTo($('.steps-track i'), {scaleX:0}, {scaleX:.5, duration:.35, ease:'glide'}, P1);
+  tl.to($('.st2 .act'), {opacity:1, duration:.2, ease:'none'}, P1+.25);
+  morph.querySelectorAll('.ck').forEach((c,i)=>{
+    tl.to(c, {opacity:1, duration:.15, ease:'none'}, P1+.35+i*.08);
+    tl.fromTo(c.querySelector('.sd'), {scale:0}, {scale:1, duration:.22}, P1+.35+i*.08);
+  });
+  const P2 = P1 + .6;
+  tl.to($('.st2 .act'), {opacity:0, duration:.2, ease:'none'}, P2);
+  tl.fromTo($('.st2 .on'), {scale:0}, {scale:1, duration:.22}, P2);
+  tl.to($('.st2'), {color:'#0c1723', duration:.2, ease:'none'}, P2);
+  tl.to($('.steps-track i'), {scaleX:1, duration:.35, ease:'glide'}, P2);
+  const P3 = P2 + .3;
+  tl.fromTo($('.st3 .on'), {scale:0}, {scale:1, duration:.22}, P3);
+  tl.to($('.st3'), {color:'#0c1723', duration:.2, ease:'none'}, P3);
+  // card tilts and flies right; check scales in
+  tl.to(morph, {x:CARD.x+980, rotation:4, rotationY:-14, opacity:0, duration:.7, ease:'glide', transformPerspective:1400}, P3+.1);
+  tl.fromTo($('.bigcheck'), {scale:.6, opacity:0}, {scale:1, opacity:1, duration:.5}, P3+.25);
+  // out
+  const E4 = P3 + .75;  // ≈ T.up - .15
+  capOut(tl, $('.cb-4b'), E4);
+  tl.to([$('.steps'), $('.bigcheck')], {opacity:0, y:'-=12', duration:.4, ease:'glide'}, E4);
+  tl.to($('.db-letter'), {opacity:0, duration:.5, ease:'glide'}, E4);
+
+  /* ======================= 5 · AUTO-PROTOCOLS ======================= */
+  t = T.up;
+  const pr = $('.proto'), dc = $('.docc');
+  tl.set(pr, {autoAlpha:1}, t);
+  tl.fromTo(pr, {yPercent:40, rotationX:28, opacity:0, x:0, scale:1}, {yPercent:0, rotationX:12, opacity:1, duration:1.0, ease:'glide'}, t);
+  tl.fromTo($('.tg5'), {scale:1}, {scale:1.015, duration:5.0, ease:'none'}, t);
+  tl.set([$('.sw5l'), $('.sw5r')], {autoAlpha:1, y:0}, t+.2);
+  mlIn(tl, $('.sw5l .ml'), t+.2);
+  wordsIn(tl, $('.sw5l .kh'), t+.3);
+  wordsIn(tl, $('.sw5r .kh'), t+.48);
+  tl.fromTo($$('.conn'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.35, ease:'power2.inOut', stagger:.3}, t+.95);
+  tl.fromTo($('.vr1 .on'), {scale:0}, {scale:1, duration:.22}, t+1.65);
+  // cursor hovers the sign-off row
+  const sx = SIGN.x, sy = SIGN.y;
+  tl.set(cur, {x:1660, y:1060, scale:1, opacity:0}, t);
+  tl.to(cur, {opacity:1, duration:.2, ease:'none'}, t+1.5);
+  tl.to(cur, {duration:.9, ease:'glide', motionPath:{path:[{x:1660,y:1060},{x:1300,y:900},{x:sx,y:sy}], curviness:1.2}}, t+1.5);
+  tl.to($('.vr2 .hov'), {opacity:1, duration:.25, ease:'none'}, t+2.35);
+  tl.fromTo($('.vr2 .on'), {scale:0}, {scale:1, duration:.22}, t+2.55);
+  tl.to(cur, {opacity:0, x:'+=30', y:'+=40', duration:.4, ease:'glide'}, t+3.0);
+  tl.set($('.s5-top'), {autoAlpha:1}, t+2.6);
+  wordsIn(tl, $('.s5-top .kh'), t+2.6);
+  // protocol recedes, prior-auth document rises beside it
+  const R = t+3.2;
+  tl.to(pr, {x:-250, scale:.9, opacity:.35, duration:.8, ease:'glide'}, R);
+  tl.to([$('.sw5l'), $('.sw5r')], {autoAlpha:0, y:-10, duration:.35, ease:'glide'}, R);
+  tl.set(dc, {autoAlpha:1}, R+.05);
+  tl.fromTo(dc, {yPercent:40, rotationX:28, opacity:0}, {yPercent:0, rotationX:12, opacity:1, duration:.9, ease:'glide'}, R+.05);
+  tl.fromTo(dc.querySelectorAll('.dsec'), {y:12, opacity:0}, {y:0, opacity:1, duration:.4, ease:'emph', stagger:.08}, R+.6);
+
+  /* ======================= 6 · END ======================= */
+  t = T.end;
+  tl.to(pr, {x:-60, y:-30, scale:.86, opacity:0, duration:.8, ease:'glide'}, t);
+  tl.to(dc, {x:-200, y:-30, scale:.86, opacity:0, duration:.8, ease:'glide'}, t);
+  tl.to($('.s5-top'), {autoAlpha:0, y:-10, duration:.4, ease:'glide'}, t);
+  tl.fromTo(endWm, {opacity:0, y:heroY+16, scale:1.03}, {opacity:1, y:heroY, scale:1, duration:.9, ease:'glide'}, t+.4);
+  tl.to(endWm, {opacity:0, duration:.5, ease:'none'}, TOTAL - .5);
+  tl.set({}, {}, TOTAL);
+
+  /* gradient field drift: ±3% over ~6s, periodic with the loop */
+  const CYC = Math.max(1, Math.round(TOTAL/12)), HALF = TOTAL/CYC/2;
+  $$('.blob').forEach((b,i)=>{
+    const dx = [48,-48,40][i], dy = [-30,30,-24][i];
+    tl.fromTo(b, {x:-dx}, {x:dx, duration:HALF, ease:'sine.inOut', repeat:CYC*2-1, yoyo:true}, 0);
+    tl.fromTo(b, {y:-dy}, {y:dy, duration:TOTAL/4, ease:'sine.inOut', repeat:3, yoyo:true}, 0);   // different rate from x (even segment count, so the loop is seamless)
+  });
+  return tl;
+}
+
+/* sign-off row position on the tilted card (measured in its final pose) */
+let SIGN = {x:0,y:0};
+function measureSign(){
+  const pr = $('.proto'); const st = stage.getBoundingClientRect(); const k = st.width/1600;
+  gsap.set(pr, {autoAlpha:1, yPercent:0, rotationX:12});
+  const r = $('.vr2').getBoundingClientRect();
+  SIGN = {x:(r.left - st.left)/k + r.width/k*.42, y:(r.top - st.top)/k + r.height/k*.55};
+  gsap.set(pr, {autoAlpha:0});
+}
+
+/* public API */
+window.qtrackFilm = {
+  ready:false, scenes:SCENES,
+  get timeline(){ return master; }
+};
+
+Promise.all([document.fonts.ready,
+  document.fonts.load('300 64px "Aether Neue"'), document.fonts.load('600 14px "IBM Plex Sans"'),
+  document.fonts.load('400 14px "DM Mono"'), document.fonts.load('400 14px "IBM Plex Mono"'),
+  document.fonts.load('400 14px "DM Sans"')]).then(()=>new Promise(r=>{ const w=()=>document.fonts.status==='loaded'?r():setTimeout(w,30); w(); })).then(()=>{
+  fit();
+  measureSign();
+  master = build();
+  window.qtrackFilm.ready = true;
+  if(!film.hasAttribute('data-manual')) master.play(0);
+  film.dispatchEvent(new CustomEvent('qtrack:ready', {detail:{timeline:master}}));
+});
+})();
+</script>
+
+<!-- REVIEW:SCRIPT:START -->
+<script>
+(function(){
+  const film = document.getElementById('qtrack-film');
+  film.addEventListener('qtrack:ready', e=>{
+    const tl = e.detail.timeline, dur = tl.duration();
+    const play = document.getElementById('rbPlay'), scrub = document.getElementById('rbScrub'), time = document.getElementById('rbTime');
+    const sc = document.getElementById('rbScenes'), ticks = document.getElementById('rbTicks');
+    const q = new URLSearchParams(location.search);
+    window.qtrackFilm.scenes.forEach(([k,n])=>{
+      const b = document.createElement('button'); b.textContent = n; b.onclick = ()=>{ tl.seek(k); if(tl.paused()) tl.pause(); }; sc.appendChild(b);
+      const s = document.createElement('span'); s.textContent = '|'; s.title = n; s.style.left = (tl.labels[k]/dur*100)+'%'; ticks.appendChild(s);
+    });
+    const sync = ()=>{ scrub.value = Math.round(tl.time()/dur*1000); time.textContent = tl.time().toFixed(2)+' / '+dur.toFixed(2)+'s'; play.textContent = tl.paused() ? 'Play' : 'Pause'; };
+    gsap.ticker.add(sync);
+    play.onclick = ()=>{ tl.paused(!tl.paused()); };
+    scrub.oninput = ()=>{ tl.pause(); tl.seek(scrub.value/1000*dur); };
+    document.getElementById('rbSpeed').querySelectorAll('button').forEach(b=>b.onclick = ()=>{ tl.timeScale(+b.dataset.s); document.querySelectorAll('#rbSpeed button').forEach(x=>x.classList.toggle('on', x===b)); });
+    document.addEventListener('keydown', ev=>{
+      if(ev.target.tagName==='INPUT' && ev.key!==' ') return;
+      if(ev.key===' '){ ev.preventDefault(); tl.paused(!tl.paused()); }
+      if(ev.key==='ArrowRight'){ tl.pause(); tl.seek(Math.min(dur, tl.time()+1/30)); }
+      if(ev.key==='ArrowLeft'){ tl.pause(); tl.seek(Math.max(0, tl.time()-1/30)); }
+    });
+    if(q.has('t')){ tl.pause(); tl.seek(+q.get('t')); }
+  });
+})();
+</script>
+<!-- REVIEW:SCRIPT:END -->
+</body>
+</html>
