@@ -132,10 +132,10 @@ function render(){
   const T = AiraStage.T;
   if(q.get('solo') || q.get('t') || q.get('shell')){
     document.body.className = 'sb-solo'; const w = document.getElementById('wrap'); w.innerHTML = '';
-    const st = film(w); const {tl, KF} = AiraStage.timeline(st);
+    const st = film(w); const {tl, KF, SHELL} = AiraStage.timeline(st);
     const k = q.get('solo'), sh = q.get('shell');
     if(sh){ // shell-only render for the pre-blurred layers
-      const SH = {visit:[KF['01c'], '.capture'], rec:[T.ch2+1.4, null], calls:[T.ch3+1.0, '.live'], dash:[T.ch4+2.6, '.chart']}[sh];
+      const SH = {visit:[SHELL.visit, '.capture'], rec:[SHELL.rec, null], calls:[SHELL.calls, '.live'], dash:[SHELL.dash, '.chart']}[sh];
       tl.seek(SH[0]); st.querySelectorAll('.lift, .cursor, .device-blur').forEach(e=>e.style.visibility='hidden');
       gsap.set(st.querySelector('.device'), {opacity:1, scale:1, y:0}); if(SH[1]) gsap.set(st.querySelector('.v '+SH[1]) || [], {opacity:1});
     } else tl.seek(k ? KF[k] : +q.get('t'));

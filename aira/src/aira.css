@@ -27,7 +27,7 @@
 
 /* device (qTrack) */
 .aira-film .device-wrap{position:absolute;inset:0}
-.aira-film .device,.aira-film .device-blur{position:absolute;left:240px;top:64px;width:1120px;height:796px}
+.aira-film .device,.aira-film .device-blur{position:absolute;left:324px;top:123px;width:952px;height:677px}   /* [AIRA] 59.5% of the frame width, as qTrack's 944/1600 */
 .aira-film .dbody{position:absolute;inset:0;transform-origin:50% 100%}
 .aira-film .dface{position:absolute;inset:0;border-radius:20px;background:#fff;
   box-shadow:0 0 0 1px var(--lav),0 32px 64px -28px rgba(42,40,140,.22),0 10px 24px -14px rgba(42,40,140,.14)}
@@ -40,7 +40,7 @@
 .aira-film .tb-dots i{width:8px;height:8px;border-radius:50%;background:#e6e6f2}
 .aira-film .tb-wm{position:absolute;left:18px;top:9px;font-size:22px;z-index:4}
 .aira-film .viewport{position:absolute;left:0;right:0;top:40px;bottom:0;overflow:hidden;background:#f3f4f4;border-radius:0 0 20px 20px}
-.aira-film .cam{position:absolute;left:56px;right:0;top:56px;bottom:0;transform-origin:532px 330px}
+.aira-film .cam{position:absolute;left:56px;right:0;top:56px;bottom:0;transform-origin:448px 290px}
 
 /* site pill (qTrack .upc) — used for the end micro-labels [AIRA] */
 .aira-film .upc{position:absolute;left:0;top:0;display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);
@@ -120,7 +120,7 @@
 .aira-film .dot{width:7px;height:7px;border-radius:50%;background:var(--brand);flex:none}
 
 /* CH1 · capture card */
-.aira-film .capture{width:640px;display:flex;flex-direction:column;gap:12px}
+.aira-film .capture{width:480px;display:flex;flex-direction:column;gap:12px}
 .aira-film .listen{display:flex;align-items:center;gap:12px;height:64px;padding:0 12px;border-radius:10px;background:var(--lav-tint);box-shadow:inset 0 0 0 1px #ebebfb}
 .aira-film .ava{width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--lav);display:flex;align-items:center;justify-content:center;flex:none}
 .aira-film .listen .t b{display:block;font-size:14px;font-weight:600;line-height:18px}
@@ -128,7 +128,7 @@
 .aira-film .wave{position:relative;flex:1;height:40px;margin:0 6px}
 .aira-film .wave i{position:absolute;top:50%;width:3px;margin-top:-1.5px;height:3px;border-radius:2px;background:var(--peach);transform-origin:50% 50%}
 .aira-film .mic{width:38px;height:38px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 0 0 5px rgba(0,130,128,.12)}
-.aira-film .field{position:relative;border:1px solid var(--bd);border-radius:10px;padding:11px 14px;min-height:70px;font-size:15px;line-height:22px;color:var(--tx)}
+.aira-film .field{position:relative;border:1px solid var(--bd);border-radius:10px;padding:11px 14px;min-height:90px;font-size:15px;line-height:22px;color:var(--tx)}
 .aira-film .field.focus{box-shadow:0 0 0 3px var(--brand3);border-color:#9fd0cc}
 .aira-film .chips{display:flex;gap:8px;flex-wrap:wrap;min-height:26px}
 .aira-film .chip .cbg{position:absolute;inset:-1px;border-radius:999px;background:var(--brand);opacity:0}
@@ -136,7 +136,7 @@
 .aira-film .chip span{position:relative}
 
 /* CH2 · recommendation card + treatment row */
-.aira-film .rec{width:378px}
+.aira-film .rec{width:370px}
 .aira-film .rec .hd{display:flex;align-items:center;gap:8px}
 .aira-film .rec .ava{width:26px;height:26px}
 .aira-film .rec h3{margin:10px 0 0;font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.01em}
@@ -149,7 +149,7 @@
 .aira-film .acc-m .m-new{color:var(--brand);opacity:0}
 
 /* CH3 · call list + conversation */
-.aira-film .calls{width:520px;display:flex;flex-direction:column;gap:8px}
+.aira-film .calls{width:440px;display:flex;flex-direction:column;gap:8px}
 .aira-film .crow{position:relative;height:52px;border:1px solid var(--bd);border-radius:10px;padding:0 12px;display:flex;align-items:center;gap:12px;background:#fff}
 .aira-film .crow .pi{width:30px;height:30px;border-radius:50%;background:var(--bg2);color:var(--tx3);display:inline-flex;align-items:center;justify-content:center;flex:none}
 .aira-film .crow .pi.ok{background:var(--brand3);color:var(--brand)}
@@ -179,17 +179,17 @@
 .aira-film .xchip.alert .chk{background:var(--peach)}
 
 /* CH4 · map, trend card, chart, notification */
-.aira-film .mapc{width:340px;height:560px}
-.aira-film .mapsvg{position:absolute;left:44px;top:58px;overflow:visible}
+.aira-film .mapc{width:300px;height:480px}
+.aira-film .mapsvg{position:absolute;left:35px;top:52px;overflow:visible}
 .aira-film .mapsvg path{fill:#D9D9FF;stroke:#fff;stroke-width:.8px;vector-effect:non-scaling-stroke}
 .aira-film .mloc{position:absolute;left:16px;bottom:16px;font-size:13px;color:var(--tx2)}
 .aira-film .mloc b{font-weight:600;color:var(--tx)}
-.aira-film .tcard{position:relative;width:300px;height:118px}
+.aira-film .tcard{position:relative;width:250px;height:118px}
 .aira-film .tcard .wow{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:600;color:var(--urg)}
 .aira-film .tcard .ring2{position:absolute;inset:-1px;border-radius:12px;box-shadow:0 0 0 2px var(--brand);opacity:0}
 .aira-film .tag{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:4px;font:500 10px/1 "IBM Plex Mono",monospace;letter-spacing:.08em;background:var(--urg3);color:var(--urg)}
 .aira-film .spark{position:absolute;right:16px;bottom:14px}
-.aira-film .chart{position:relative;width:678px;height:302px}
+.aira-film .chart{position:relative;width:550px;height:260px}
 .aira-film .chart .sub{margin-top:2px;font-size:12.5px;color:var(--tx3)}
 .aira-film .plot{position:absolute;left:16px;top:66px;overflow:visible}
 .aira-film .thr-l{font:500 10px/1 "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;fill:var(--tx3)}

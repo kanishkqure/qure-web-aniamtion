@@ -91,6 +91,14 @@ function bind(stage, opts){
     tl.set(view, {autoAlpha:1}, at);
     tl.fromTo(dev, {opacity:0, scale:.98, y:24}, {opacity:1, scale:1, y:0, duration:.7, ease:'emph', immediateRender:false}, at+.05);
   };
+  /* [AIRA] view change on a sharp shell (CH2 -> CH3): the old view leaves as the new one rises,
+     overlapping by 0.35 s — the shellIn entrance applied to the view instead of the device */
+  M.viewSwap = (tl, from, to, at) => {
+    tl.to(from, {opacity:0, y:-16, duration:.4, ease:'glide'}, at);
+    tl.set(from, {visibility:'hidden', y:0}, at+.4);
+    tl.set(to, {visibility:'visible'}, at+.05);
+    tl.fromTo(to, {opacity:0, y:24, scale:.98}, {opacity:1, y:0, scale:1, duration:.7, ease:'emph', immediateRender:false}, at+.05);
+  };
   /* qTrack beat exit for a lifted holder: up and out */
   M.liftExit = (tl, els, blur, at) => {
     tl.to(els, {y:'-=46', opacity:0, duration:.5, ease:'glide'}, at);

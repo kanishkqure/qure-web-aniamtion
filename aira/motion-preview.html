@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aira Motion Preview</title>
+<link rel="stylesheet" href="src/aira.css">
+<style>
+html,body{margin:0;background:#fff}
+/* REVIEW:CSS:START */
+/* REVIEW BAR — preview only. Everything between the REVIEW markers is stripped from
+   aira-film.html (copied from the qTrack film's review bar). */
+@font-face{font-family:"DM Sans";src:url(assets/fonts/dm-sans-latin.woff2) format("woff2");font-weight:300 600;font-display:block}
+body.preview{background:#f4f4fb;font-family:"DM Sans",system-ui,sans-serif;color:#303030}
+.pv-wrap{max-width:min(1440px,calc((100vh - 170px)*1.7333 + 48px));margin:0 auto;padding:16px 24px 160px}
+.pv-wrap .aira-film{border-radius:14px;box-shadow:0 0 0 1px #D9D9FF}
+.rbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(1392px,calc(100% - 32px));background:#fff;border-radius:16px;
+  box-shadow:0 0 0 1px #D9D9FF,0 16px 40px -16px rgba(42,40,140,.3);padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:10px 16px;align-items:center;z-index:100}
+.rbar button{font:500 12px/1 "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase;height:32px;padding:0 12px;border-radius:999px;border:0;background:#fff;color:#2A288C;box-shadow:inset 0 0 0 1px #D9D9FF;cursor:pointer}
+.rbar button:hover{box-shadow:inset 0 0 0 1px #2A288C}
+.rbar button.on{background:#2A288C;color:#fff;box-shadow:none}
+.rbar button:focus-visible{outline:2px solid #FF7869;outline-offset:2px}
+.rb-play{width:76px}
+.rb-scenes,.rb-speed{display:flex;gap:6px;flex-wrap:wrap}
+.rb-scrub{grid-column:1/-1;display:flex;align-items:center;gap:12px}
+.rb-scrub input{flex:1;accent-color:#FF7869}
+.rb-time{font:500 13px/1 "DM Mono",monospace;color:#2A288C;min-width:120px;text-align:right;font-variant-numeric:tabular-nums}
+.rb-ticks{position:relative;height:14px;grid-column:1/-1;margin:-6px 132px 0 0}
+.rb-ticks span{position:absolute;top:0;font:500 10px/14px "DM Mono",monospace;color:rgba(42,40,140,.6);transform:translateX(-50%);white-space:nowrap}
+@media (max-width:980px){.rbar{grid-template-columns:1fr}.rb-ticks{display:none}}
+/* REVIEW:CSS:END */
+</style>
+</head>
+<body class="preview">
+<!-- REVIEW:WRAP:START --><div class="pv-wrap"><!-- REVIEW:WRAP:END -->
+
+<div class="aira-film" id="aira-film" data-start="" data-end=""></div>
+
+<!-- REVIEW:BAR:START -->
+<div class="rbar" id="rbar">
+  <button class="rb-play" id="rbPlay">Pause</button>
+  <div class="rb-scenes" id="rbScenes"></div>
+  <div class="rb-speed" id="rbSpeed"><button data-s=".25">0.25×</button><button data-s=".5">0.5×</button><button data-s="1" class="on">1×</button></div>
+  <div class="rb-ticks" id="rbTicks"></div>
+  <div class="rb-scrub"><input type="range" id="rbScrub" min="0" max="1000" step="1" value="0" aria-label="Timeline"><span class="rb-time" id="rbTime">0.00 / 0.00s</span></div>
+</div>
+</div>
+<!-- REVIEW:BAR:END -->
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/CustomEase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/TextPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/DrawSVGPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/MotionPathPlugin.min.js"></script>
+<script src="src/map-data.js"></script>
+<script src="src/motion.js"></script>
+<script src="src/aira-stage.js"></script>
+<script src="src/film.js"></script>
+
+<!-- REVIEW:SCRIPT:START -->
+<script>
+(function(){
+  const film = document.getElementById('aira-film');
+  const tl = () => window.airaFilm.timeline;
+  const SCENES = [['ch1','1 Visit'],['ch2','2 Real time'],['ch3','3 After'],['ch4','4 Facilities'],['end','End']];
+  film.addEventListener('aira:ready', ()=>{
+    const dur = tl().duration(), L = window.airaFilm.labels;
+    const play = document.getElementById('rbPlay'), scrub = document.getElementById('rbScrub'), time = document.getElementById('rbTime');
+    const sc = document.getElementById('rbScenes'), ticks = document.getElementById('rbTicks');
+    const q = new URLSearchParams(location.search);
+    SCENES.forEach(([k,n])=>{
+      const b = document.createElement('button'); b.textContent = n; b.onclick = ()=>tl().seek(k); sc.appendChild(b);
+      const s = document.createElement('span'); s.textContent = '|'; s.title = n; s.style.left = (L[k]/dur*100)+'%'; ticks.appendChild(s);
+    });
+    const setPaused = p => { tl().paused(p); film.dataset.userPaused = p ? '1' : '0'; };
+    gsap.ticker.add(()=>{ const t = tl(); scrub.value = Math.round(t.time()/dur*1000); time.textContent = t.time().toFixed(2)+' / '+dur.toFixed(2)+'s'; play.textContent = t.paused() ? 'Play' : 'Pause'; });
+    play.onclick = ()=>setPaused(!tl().paused());
+    scrub.oninput = ()=>{ setPaused(true); tl().seek(scrub.value/1000*dur); };
+    document.getElementById('rbSpeed').querySelectorAll('button').forEach(b=>b.onclick = ()=>{ tl().timeScale(+b.dataset.s); document.querySelectorAll('#rbSpeed button').forEach(x=>x.classList.toggle('on', x===b)); });
+    document.addEventListener('keydown', ev=>{
+      if(ev.target.tagName==='INPUT' && ev.key!==' ') return;
+      if(ev.key===' '){ ev.preventDefault(); setPaused(!tl().paused()); }
+      if(ev.key==='ArrowRight'){ setPaused(true); tl().seek(Math.min(dur, tl().time()+1/30)); }
+      if(ev.key==='ArrowLeft'){ setPaused(true); tl().seek(Math.max(0, tl().time()-1/30)); }
+    });
+    if(q.has('t')){ setPaused(true); tl().seek(+q.get('t')); }
+  });
+})();
+</script>
+<!-- REVIEW:SCRIPT:END -->
+</body>
+</html>
