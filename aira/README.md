@@ -1,40 +1,55 @@
 # Aira product film
 
-Branch `aira-film`, created from `41b23c5` (tip of `claude/quirky-babbage-3ygcjw`, the qTrack film).
+Branch `aira-film`, based on `12874cc` (`claude/qtrack-film-redo`). Its
+`motion-preview-standalone.html` is byte-identical to `reference/qtrack-film-final.html`,
+the qTrack film that is live on the website (SHA-256 `66ace194adf39eb1…`).
 Nothing outside `/aira` is changed.
 
-## Phase 1 (this commit)
+## Phase 1b (current)
 
-- `aira-storyboard.html`: 12 keyframes, each rebuilt in HTML/CSS/SVG and shown next to its source PNG.
-  The **Overlay** button onion-skins the source screen over the rebuild.
-  `?solo=01a` (and so on) renders a single keyframe at 1040×600 for pixel comparison.
+The four Aira chapters rebuilt as **reduced UI in the qTrack film's style**. The screens
+in `assets/screens/` give the story and copy only; look and motion come from
+`reference/qtrack-film-final.html`.
+
+- `aira-storyboard.html`: the 12 keyframes, each a frame of the real master timeline,
+  next to the matching moment of the live qTrack film (`reference/frames/`).
+  `?solo=01a` renders one keyframe at 1600×923; `?t=12.5` any moment.
 
 ## Layout
 
 | Path | What |
 |---|---|
-| `src/aira.css` | stage + rebuilt UI. All coordinates are CSS px of the screens (PNG px / 2) |
-| `src/aira-stage.js` | markup builder, copy, traced geometry, the 12 keyframe states |
-| `src/map-data.js` | Mozambique districts traced from 04a, colours from 04a/04b (generated) |
-| `src/motion.js` | motion helpers copied from the qTrack film (see the header for changes) |
-| `assets/fonts/` | IBM Plex Sans/Mono, DM Mono, DM Sans (copied from qTrack `assets/fonts`) |
-| `assets/screens/` | the 12 source PNGs (layout reference only; not shipped in the film) |
-| `tools/trace-map.py` | regenerates `src/map-data.js` from the screens |
-| `tools/build-standalone.py` | copy of qTrack's single-file build, extended (see its header) |
+| `src/aira.css` | stage, qTrack shell and components (copied), reduced Aira components |
+| `src/aira-stage.js` | copy, DOM, master timeline (labels ch1 · ch2 · ch3 · ch4 · end), keyframe times |
+| `src/motion.js` | qTrack helpers (pos, liftClone, liftOut, shellIn, cursorTo, click, typeIn, pop, swapTo, countUp) |
+| `src/map-data.js` | Mozambique districts traced from screen 04a (generated) |
+| `assets/blur/` | pre-blurred shell layers for the lift-outs (generated) |
+| `assets/fonts/` | Aether Neue, IBM Plex Sans/Mono, DM Mono, DM Sans (from qTrack `assets/fonts`) |
+| `reference/` | the live qTrack film + its matching-moment frames |
+| `tools/` | `trace-map.py`, `make-blurs.js`, `build-standalone.py` |
 
 ```bash
 python3 aira/tools/trace-map.py aira/assets/screens aira/src/map-data.js
 ```
 
 ```bash
+node aira/tools/make-blurs.js
+```
+
+```bash
 python3 aira/tools/build-standalone.py aira/aira-storyboard.html /tmp/aira-storyboard-standalone.html
 ```
 
-## Reused from qTrack
+## Stage
 
-- Easing tokens `emph` = cubic-bezier(0.2,0,0,1), `glide` = cubic-bezier(0.45,0,0.15,1); GSAP **3.13.0** (jsDelivr).
-- Fonts: the woff2 files from `assets/fonts`.
-- Motion helpers: cardIn, pop, sweepIn/sweepOut, swapTo, typeIn, click, beatOut, plus the inline
-  lift-out, pointer glide, count-up and ring-draw patterns turned into helpers (`src/motion.js`).
-- Review-bar code: will be copied into `motion-preview.html` in Phase 2.
-- QA scripts: there are none in the qTrack commit (no anonymisation search or frame-rate check). They will be written for Aira in Phase 2.
+1040×600 output. Drawn at 1600×923 (same ratio) and scaled to the container, so the UI
+lands at the same scale as the qTrack film's 1600-wide stage and its CSS is reused unchanged.
+
+## Changes to copied qTrack code (Aira copies only)
+
+- `motion.js` → `liftClone` resets `position/left/top` on the clone (Aira sources are absolutely placed);
+  `typeIn` also returns the time each character lands (chips and sweeps key off it);
+  `cursorTo` starts below the 923-high stage; new `liftBack` (reverse of `liftOut`, same eases),
+  `liftExit`, `cardIn`, `pillIn`, `sweep` wrap patterns the qTrack timeline writes inline.
+- `build-standalone.py` → also inlines local `<link>` CSS and `<script src>` files and can strip
+  the review bar (`--strip-review`).

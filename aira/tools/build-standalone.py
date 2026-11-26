@@ -15,7 +15,8 @@ fails if any local assets/ reference is left behind.
   3. optional --strip-review: removes the <!-- REVIEW:*:START --> ... END blocks and
      /* REVIEW:CSS:START */ ... END blocks (used for the production film, which must not
      contain the review bar);
-  4. the leftover check also covers ../assets and src/ references.
+  4. the leftover check also covers ../assets, src/ and reference/ references;
+  5. inlines any quoted local asset path (HTML attribute or JS string) under assets/ or reference/.
 """
 import base64, mimetypes, os, re, sys
 
@@ -55,8 +56,12 @@ def main(src, dst, *flags):
     html = re.sub(r'<script src="((?!https?:)[^"]+\.js)"></script>', script, html)
     # original behaviour: assets/ references in the page itself
     html = re.sub(r'url\((["\']?)(assets/[^)"\']+)\1\)', lambda m: 'url("%s")' % data_uri(os.path.join(root, m.group(2))), html)
-    html = re.sub(r'src="(assets/[^"]+)"', lambda m: 'src="%s"' % data_uri(os.path.join(root, m.group(1))), html)
-    left = re.findall(r'url\(["\']?(?:\.\./)?assets/[^)]+\)|(?:src|href)="(?:\.\./)?(?:assets|src)/[^"]+"', html)
+    # [AIRA] 5. any quoted local asset path (HTML attributes and JS string literals), assets/ or reference/
+    def quoted(m):
+        path = os.path.join(root, m.group(2))
+        return m.group(1) + data_uri(path) + m.group(1) if os.path.isfile(path) else m.group(0)
+    html = re.sub(r'(["\'])((?:assets|reference)/[^"\'\s<>$]+?\.(?:webp|png|jpe?g|svg|woff2))\1', quoted, html)
+    left = re.findall(r'url\(["\']?(?:\.\./)?assets/[^)]+\)|(?:src|href)="(?:\.\./)?(?:assets|src|reference)/[^"]+"|["\'](?:assets|reference)/[^"\'\s]+["\']', html)
     if left:
         sys.exit('unresolved local assets: %s' % left[:5])
     with open(dst, 'w', encoding='utf-8') as f:

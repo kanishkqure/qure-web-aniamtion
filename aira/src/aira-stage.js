@@ -1,392 +1,451 @@
 /* ======================================================================
-   Aira film — stage builder + keyframe states.
-   AiraStage.build(filmEl)        -> builds the 1040x600 stage inside .aira-film
-   AiraStage.KEYFRAMES            -> the 12 storyboard keyframes (one per source screen)
-   AiraStage.apply(stage, id)     -> puts a freshly built stage into a keyframe state
-   All copy and data below come from aira/assets/screens/*.png, except the
-   optional card labels (CARD_LABELS), which come from the Aira card copy.
+   Aira film — reduced UI on the qTrack shell, one master timeline.
+     AiraStage.build(filmEl)  -> {stage, tl, KF, labels, total}
+   Story and content come from aira/assets/screens/*.png; the look and motion come
+   from aira/reference/qtrack-film-final.html. Stage: 1600 x 923 (= 1040:600).
    ====================================================================== */
 (function(){
 'use strict';
 
-/* ---------------- copy (from the screens) ---------------- */
+/* ---------------- copy (from the screens, plus the two micro-labels from the card copy) ---------------- */
 const COPY = {
-  visitTitle:'Fever visit',
+  product:'Aira', person:'John Doe · 64M', district:'Mocuba district',
+  visit:'Fever visit', calls:'Follow-up calls', signals:'District signals',
   listening:'Aira is listening', capturing:'Capturing the consultation',
   symptomsLbl:'Presenting symptoms', writing:'Aira writing', captured:'Captured by Aira',
   symptoms:'Fever since 3 days, cyclic, with chills and sweating at night. Headache, body ache and poor appetite. Does not sleep under a bed net',
-  chips:['Fever · 3 days','Cyclic','Chills','Headache','Body ache'],
-  vitalsLbl:'Vitals',
-  vitals:[['Temperature','38.7','°C'],['Pulse','104','bpm'],['Blood pressure','112/74',''],['SpO₂','97','%']],
-  treatLbl:'Treatment plan',
+  chips:[['Fever · 3 days','3 days'],['Cyclic','cyclic'],['Chills','chills'],['Headache','Headache'],['Body ache','body ache']],
   recOvl:'Aira · Recommendation', recTitle:'Malaria test recommended',
   recBody:'Cyclic fever with chills for 3 days. The national malaria guideline asks for a test before treating.',
-  accept:'Accept', dismiss:'Dismiss', accepted:'Recommendation accepted', added:'Added to treatment plan',
-  rdt:'Malaria RDT', rdtDesc:'Test before treating · national malaria guideline',
-  live:'LIVE', timer:'01:42', followup:'Follow-up call', reached:'Reached', pending:'Pending', aira:'Aira',
+  accept:'Accept', dismiss:'Dismiss', accepted:'Recommendation accepted', treatLbl:'Treatment plan', rdt:'Malaria RDT',
+  reached:'Reached', pending:'Pending', live:'LIVE', timer0:102, followup:'Follow-up call',
+  aira:'Aira', patient:'Patient', listeningSt:'listening', speakingSt:'speaking',
   question:'Has anyone else at home had a fever in the last two weeks?',
-  patient:'Patient', listeningSt:'listening', speakingSt:'speaking',
   answer:[['Yes, ',0],['my son',1],['. He is ',0],['6',1],[' and has had ',0],['fever since yesterday',1],['.',0]],
-  xchips:[['Contact:','son, 6 yrs'],['Fever:','1 day'],['Flagged for malaria test']],
-  dash:'District signals', district:'Mocuba district', window:'Last 12 weeks', trends:'Trends by symptom & disease',
-  cases:'Cases by district', casesSub:'Malaria, last 2 weeks', high:'High', low:'Low', mocuba:'Mocuba', casesA:96, casesB:214,
-  chart:'Malaria', chartSub:'Fever visits lead, confirmed cases follow', legend:['Fever visits','Confirmed malaria','Alert threshold'],
-  early:'early signal',
-  zTitle:'Malaria · Mocuba district', zSub:'Weekly confirmed cases', signal:'Signal', jump:'+42% in 2 weeks', threshold:'Alert threshold',
+  xchips:[['Contact:','son, 6 yrs'],['Fever:','1 day'],['Flagged for malaria test',null]],
+  casesLbl:'Cases by district', casesA:96, casesB:214, mocuba:'Mocuba',
+  malaria:'Malaria', disease:'Disease', wowA:4, wowB:42,
+  chartTitle:'Malaria · Mocuba district', chartSub:'Weekly confirmed cases', threshold:'Alert threshold',
+  jump:['+42%','in 2 weeks'], signal:'Signal',
   notifT:'District team alerted', notifS:'Malaria above threshold for 2 weeks in Mocuba', now:'Now',
+  label1:'Saved to national EMR · coded', label4:'Data stays in-country',
 };
-/* trend cards: name, tag, tag class, [dir, % in 04a], [dir, % in 04b] */
-const TRENDS = [
-  ['Fever','Symptom','sym',['up',9],['up',26]],
-  ['Malaria','Disease','dis',['up',4],['up',42]],
-  ['Diarrhoea','Syndrome','sym',['dn',8],['dn',8]],
-  ['Cough','Symptom','sym',['dn',13],['dn',13]],
-  ['Headache','Symptom','sym',['up',4],['up',4]],
-];
-/* optional labels, one per chapter, from the Aira card copy (CH3 has none in the brief) */
-const CARD_LABELS = {1:'Saved to national EMR · coded', 2:'Validated by the health worker', 4:'Data stays in-country'};
+/* weekly confirmed cases, read off the 04b chart (0–90 axis); threshold drawn at 58 */
+const WEEKS = [38,41.8,40,44.9,40.9,43.8,46.9,42.9,46,51.8,62.8,73.7], THR = 58;
+/* listening waveform heights, traced from 01a (CSS px at the screen's scale) */
+const WAVE_H = [5.5,9.5,5,8,11,18.5,18.5,5,12,16,31.5,16,5,13,27.5,23.5,40.5,5,19.5,25,30,44,4.5,26,15,37.5,20,4.5,19,16.5,24.5,28.5,4.5,17,10,12,25,5,17,6.5,9];
+const CWAVE_H = [3,13,5,3,6,3,15,10,5,3,3,10,11,7,11,3,3,7,5,16,4,6];
 
-/* ---------------- traced geometry (CSS px, see README) ---------------- */
-const WAVE = {x0:413.5, step:11.5, h:[5.5,9.5,5,8,11,18.5,18.5,5,12,16,31.5,16,5,13,27.5,23.5,40.5,5,19.5,25,30,44,4.5,26,15,37.5,20,4.5,19,16.5,24.5,28.5,4.5,17,10,12,25,5,17,6.5,9,8,5,5.5]};
-const CWAVE = {x0:163.5, step:5.5, h:[3,13,5,3,6,3,15,10,5,3,3,10,11,7,11,3,3,7,5,16,4,6]};
-const WAVE_STOPS = [[0,[242,122,110]],[.5,[197,149,164]],[1,[154,176,219]]];
-/* dashboard in 04a space. 04b = scale DS about the origin + (DTX, DTY) */
-const DS = 0.6247, DTX = -30.8, DTY = 89.75;
-const TC_X = [[110.8,261],[274,424.3],[437.3,597],[610,760],[773,929]];
-const SPARK_A = [
-  '124.5,204.5 138.5,196 152.5,204.5 167.5,187.5 181,195.8 195.5,187.5 208,195 211,195.5 252.5,170.5',
-  '287.5,204.5 301.5,187.8 316,204.2 330,187.8 345,186.8 359,170.5 373,186.8 387.5,170.5 401,186.5 416,170.5',
-  '451,177.2 464.5,183.8 479.5,170.2 493.5,177 508,190.5 522,184 536.5,197.5 551,191 579,204.5',
-  '623.5,183.8 637.5,170.5 652,190.2 666.5,177 680,183.5 695,197.5 709,184 723.5,197.5 737.5,191 752,204.5',
-  '787,192.8 800.5,182 814,202.8 826.5,186.2 830,182 844,193 857.5,182 872,192.8 886,171 901.5,181.8 915,181.8'];
-/* 04b sparklines for Fever / Malaria, in 04b stage px (converted below) */
-const SPARK_B_RAW = {
-  0:'47,217.5 55,215.5 64.5,217.5 73.5,213.8 82.5,215.5 91.5,211.5 99.5,210 105.5,207.5 110.5,205 117.5,200 126.5,196',
-  1:'149,217.5 156.5,215.5 167,217.5 175.5,215.2 185,215.2 193,213.2 202,215.2 228.5,196.2'};
-const b2a = (x,y)=>[(x-DTX)/DS,(y-DTY)/DS];
-/* main chart, 04a space: 12 weekly points; 04a shows W1-W10, 04b all 12 */
-const CH = {x0:433.5, dx:44.9, base:498, grid:[308.4,371.8,435.2,498], thr:425.4,
-  feverA:[409.8,404.8,407.2,399.8,403.2,397.2,391.8,389.8,381.8,376.8],
-  malA:[450,445.5,447.8,441.5,446.5,442.6,439,444,440,437.5],
-  feverB:[409.4,404.6,407,399.8,403.5,397.4,391.8,389.7,377.4,362.2,344.6,328.9],
-  malB:[450.2,445.4,447.8,441.4,446.7,442.6,439,443.8,440.6,432.6,418.9,404.6],
-  box:[851,295,934.2,507.8], early:{x:792.7,y0:309.6,y1:497.3,ly:302.9}};
-/* zoom chart (stage px). values read off the screen's 0-90 axis */
-const Z = {x0:659.9, dx:29.43, y0:395.2, k:2.329, thrY:260, vals:[38,41.8,40,44.9,40.9,43.8,46.9,42.9,46,51.8,62.8,73.7]};
-const zy = v => Z.y0 - v*Z.k, zx = i => Z.x0 + i*Z.dx;
-
-/* ---------------- tiny DOM helpers ---------------- */
+/* ---------------- DOM helpers ---------------- */
 let UID = 0;
-function h(tag, cls, style, html){ const e = document.createElement(tag); if(cls) e.className = cls; if(style) e.setAttribute('style', style); if(html!=null) e.innerHTML = html; return e; }
-function abs(cls, style, html){ return h('div', 'abs ' + cls, style, html); }
+function h(tag, cls, html, style){ const e = document.createElement(tag); if(cls) e.className = cls; if(html!=null) e.innerHTML = html; if(style) e.setAttribute('style', style); return e; }
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-function mix(stops, t){ for(let i=1;i<stops.length;i++){ if(t<=stops[i][0]){ const a=stops[i-1], b=stops[i], u=(t-a[0])/(b[0]-a[0]); return 'rgb('+a[1].map((c,j)=>Math.round(c+(b[1][j]-c)*u)).join(',')+')'; } } return 'rgb('+stops[stops.length-1][1].join(',')+')'; }
-function pts(s){ return s.trim().split(/\s+/).map(p=>p.split(',').map(Number)); }
-function resample(poly, n){ // n points evenly spaced in x along a polyline
-  const x0 = poly[0][0], x1 = poly[poly.length-1][0], out = [];
-  for(let k=0;k<n;k++){ const x = x0 + (x1-x0)*k/(n-1); let j=1; while(j<poly.length-1 && poly[j][0]<x) j++;
-    const a=poly[j-1], b=poly[j], u=(b[0]-a[0])? (x-a[0])/(b[0]-a[0]) : 0; out.push([x, a[1]+(b[1]-a[1])*u]); }
-  return out;
-}
-const dPath = P => 'M' + P.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' L');
-const series = ys => ys.map((y,i)=>[CH.x0 + i*CH.dx, y]);
-const area = (P, base) => dPath(P) + ` L${P[P.length-1][0].toFixed(1)} ${base} L${P[0][0].toFixed(1)} ${base} Z`;
-
-/* ---------------- icons ---------------- */
-function airaMark(w, stroke, sw){ // asymmetric infinity, traced from the avatar (approximation, see README)
-  const id = 'am' + (++UID);
-  const paint = stroke === 'grad' ? `url(#${id})` : stroke;
-  return `<svg class="mark" width="${w}" height="${w*0.75}" viewBox="0 0 32 24" aria-hidden="true">${stroke==='grad'?`<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9aaedc"/><stop offset=".38" stop-color="#f3776a"/><stop offset="1" stop-color="#f3776a"/></linearGradient></defs>`:''}
-    <path d="M15.2 13.4C13.6 8.6 12 3 8.6 3 5.4 3 3.6 7.2 3.6 12.1 3.6 17.4 5.9 21 9 21c3 0 4.7-3.6 6.2-7.6 1.4-3.6 3.1-6 5.9-6 2.9 0 4.9 2.4 4.9 5.4 0 3.1-2 5.5-4.9 5.5-2.7 0-4.4-2-5.9-3.9" stroke="${paint}" stroke-width="${sw}"/></svg>`;
-}
+const CK = w => `<svg width="${w||10}" height="${w||10}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>`;
 const I = {
-  back:'<svg width="12" height="18" viewBox="0 0 12 18"><path d="M9.5 2 2.6 9l6.9 7" fill="none" stroke="#2b333d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  mic:'<svg width="22" height="26" viewBox="0 0 22 26" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><rect x="7" y="2" width="8" height="13.5" rx="4"/><path d="M3.2 11.6a7.8 7.8 0 0 0 15.6 0M11 19.6V24"/></svg>',
-  check:(c,w)=>`<svg width="${w||14}" height="${w||14}" viewBox="0 0 24 24" fill="none" stroke="${c||'#fff'}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.6 4.6L19 7.6"/></svg>`,
-  phone:c=>`<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.6 4.2 2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.6 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>`,
-  phoneCall:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 1.6 4.2 2 2 0 0 1 3.6 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L7.6 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/><path d="M15 5.2A5 5 0 0 1 18.8 9M15 1.4A8.8 8.8 0 0 1 22.6 9"/></svg>',
-  flag:'<svg width="10" height="11" viewBox="0 0 10 11"><path d="M2 1v9M2 1.4h5.6v4.2H2" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>',
-  bell:'<svg width="24" height="26" viewBox="0 0 24 26" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9A6 6 0 0 0 6 9c0 7-3 9-3 9h18s-3-2-3-9M13.7 22a2 2 0 0 1-3.4 0"/></svg>',
-  trend:'<svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 10.5 6.2 5.3l3.4 3.4L15.6 2.6M11 2.4h4.8v4.8"/></svg>',
-  up:'<svg width="10" height="9" viewBox="0 0 10 9"><path d="M5 .5 9.6 8.5H.4z" fill="currentColor"/></svg>',
-  dn:'<svg width="10" height="9" viewBox="0 0 10 9"><path d="M5 8.5 9.6.5H.4z" fill="currentColor"/></svg>',
-  pointer:'<svg class="pointer" viewBox="0 0 26 32" width="26" height="32" aria-hidden="true"><path d="M2 2 L2 25 L8.2 19.3 L12.6 29 L16.6 27.2 L12.3 17.8 L20.5 17.8 Z" fill="#fff" stroke="#303030" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  search:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>',
+  circle:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="7"/></svg>',
+  minus:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/></svg>',
+  square:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>',
+  tri:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 18 12 6l6 12z"/></svg>',
+  mic:'<svg width="16" height="18" viewBox="0 0 22 26" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><rect x="7" y="2" width="8" height="13.5" rx="4"/><path d="M3.2 11.6a7.8 7.8 0 0 0 15.6 0M11 19.6V24"/></svg>',
+  phone:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+  call:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/><path d="M15 3.5a6 6 0 0 1 5.5 5.5M15 7a2.6 2.6 0 0 1 2 2"/></svg>',
+  flag:'<svg width="9" height="10" viewBox="0 0 10 11"><path d="M2 1v9M2 1.4h5.6v4.2H2" fill="#fff" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>',
+  bell:'<svg width="18" height="18" viewBox="0 0 24 26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9A6 6 0 0 0 6 9c0 7-3 9-3 9h18s-3-2-3-9M13.7 22a2 2 0 0 1-3.4 0"/></svg>',
+  trend:'<svg width="12" height="10" viewBox="0 0 17 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 10.5 6.2 5.3l3.4 3.4L15.6 2.6M11 2.4h4.8v4.8"/></svg>',
+  up:'<svg width="9" height="8" viewBox="0 0 10 9"><path d="M5 .5 9.6 8.5H.4z" fill="currentColor"/></svg>',
+  cursor:'<svg class="cursor" viewBox="0 0 26 32" width="26" height="32" aria-hidden="true"><path d="M2 2 L2 25 L8.2 19.3 L12.6 29 L16.6 27.2 L12.3 17.8 L20.5 17.8 Z" fill="#fff" stroke="#303030" stroke-width="1.3" stroke-linejoin="round"/></svg>',
 };
+/* Aira mark: hand-traced asymmetric infinity (to be replaced by the official SVG). No gradient. */
+const mark = (w, stroke, sw) => `<svg class="mark" width="${w}" height="${(w*.75).toFixed(1)}" viewBox="0 0 32 24" aria-hidden="true"><path d="M15.2 13.4C13.6 8.6 12 3 8.6 3 5.4 3 3.6 7.2 3.6 12.1 3.6 17.4 5.9 21 9 21c3 0 4.7-3.6 6.2-7.6 1.4-3.6 3.1-6 5.9-6 2.9 0 4.9 2.4 4.9 5.4 0 3.1-2 5.5-4.9 5.5-2.7 0-4.4-2-5.9-3.9" stroke="${stroke}" stroke-width="${sw}"/></svg>`;
+const skel = (ws) => ws.map(w=>`<div class="ph l" style="width:${w}%;height:10px"></div>`).join('');
+
+/* ---------------- chart geometry (inside the chart card) ---------------- */
+const PW = 646, PH = 214;
+const px = i => 12 + i*(PW-24)/11, py = v => PH - 10 - v*(PH-20)/90;
+const lineD = (from, to) => 'M' + WEEKS.slice(from, to+1).map((v,i)=>px(from+i).toFixed(1)+' '+py(v).toFixed(1)).join(' L');
+const sparkD = (n) => 'M' + WEEKS.slice(0, n).map((v,i)=>(4 + i*10.4).toFixed(1)+' '+(44 - (v-36)*1.0).toFixed(1)).join(' L');
 
 /* ======================================================================
    BUILD
    ====================================================================== */
 function build(film){
-  const stage = h('div', 'stage'); stage.setAttribute('role','img');
-  stage.setAttribute('aria-label','Aira: listens during the visit and captures coded symptoms; recommends a malaria test in real time that the health worker accepts; follows up by phone after the visit and flags a household contact; and surfaces a district malaria signal across facilities.');
-  film.appendChild(stage);
+  const stage = h('div', 'stage'); film.appendChild(stage);
+  stage.setAttribute('role','img');
+  stage.setAttribute('aria-label','Aira: captures the consultation by voice as coded symptoms; recommends a malaria test that the health worker accepts; calls the patient after the visit and flags a household contact; and alerts the district team when malaria cases rise in Mocuba.');
 
-  /* ---------- SCENE 1 · VISIT ---------- */
-  const V = h('div', 'scene sc-visit'); stage.appendChild(V);
-  V.appendChild(abs('v-win'));
-  const rest = h('div', 'v-rest'); V.appendChild(rest);
-  rest.appendChild(abs('v-back', '', I.back));
-  rest.appendChild(abs('v-title', '', esc(COPY.visitTitle)));
-  rest.appendChild(abs('v-skel', 'left:784px;width:116.5px'));
-  rest.appendChild(abs('v-skel', 'left:916px;width:78px'));
-  rest.appendChild(abs('v-hdiv'));
-  const bar = abs('v-bar'); rest.appendChild(bar);
-  rest.appendChild(abs('v-ava', '', airaMark(40, '#fff', 2.3)));
-  rest.appendChild(abs('v-listen', '', esc(COPY.listening)));
-  rest.appendChild(abs('v-capt', '', esc(COPY.capturing)));
-  const wave = abs('v-wave'); rest.appendChild(wave);
-  WAVE.h.forEach((hh,i)=>{ const x = WAVE.x0 + i*WAVE.step - 405; const b = h('i', '', `left:${(x-1.85).toFixed(1)}px;height:${Math.max(hh,3.7)}px;background:${mix(WAVE_STOPS, i/(WAVE.h.length-1))}`); b.dataset.h = hh; wave.appendChild(b); });
-  rest.appendChild(abs('v-mic', '', '<i class="h1"></i><i class="h2"></i><span class="core">'+I.mic+'</span>'));
+  /* ---------- device (generic app shell, qTrack) ---------- */
+  const wrap = h('div', 'device-wrap'); stage.appendChild(wrap);
+  const BLUR = {visit:'assets/blur/blur-visit.webp', rec:'assets/blur/blur-rec.webp', calls:'assets/blur/blur-calls.webp', dash:'assets/blur/blur-dash.webp'};
+  Object.entries(BLUR).forEach(([n,src])=>wrap.appendChild(h('div', 'device-blur db-'+n, `<img alt="" src="${src}">`)));
+  const dev = h('div', 'device'); wrap.appendChild(dev);
+  dev.innerHTML = `<div class="dbody"><div class="dface"></div>
+    <div class="titlebar"><span class="tb-bg"></span><span class="tb-url"></span><span class="tb-dots"><i></i><i></i><i></i></span></div>
+    <div class="viewport p">
+      <header class="gbar"><b class="g-person">${esc(COPY.person)}</b><span class="sp"></span><span class="gi">${I.search}</span><span class="gi">${I.circle}</span><span class="gi">${I.minus}</span></header>
+      <nav class="grail" aria-hidden="true"><span class="gi on">${I.square}</span><span class="gi">${I.circle}</span><span class="gi">${I.tri}</span></nav>
+      <div class="cam"><div class="views"></div></div>
+    </div></div>
+    <span class="wm tb-wm">${mark(26,'#FF7869',2.4)}<span class="wm-q">${esc(COPY.product)}</span></span>`;
+  const views = dev.querySelector('.views');
+  const view = (name, title) => { const v = h('section', 'v v-'+name, `<div class="v-head"><span class="gi"></span><h2>${esc(title)}</h2></div><div class="v-body"></div>`); views.appendChild(v); return v.querySelector('.v-body'); };
 
-  const sym = h('div', 'v-sym'); rest.appendChild(sym);
-  sym.appendChild(abs('v-symlbl', '', esc(COPY.symptomsLbl)));
-  sym.appendChild(abs('v-tag', '', `<span class="swap"><span class="t-w"><i class="dot"></i>${esc(COPY.writing)}</span><span class="t-c" style="opacity:0">${I.check('#008280',15)}${esc(COPY.captured)}</span></span>`));
-  sym.appendChild(abs('v-box', '', `<i class="fill-w"></i><div class="txt"><span class="typed"></span><i class="caret"></i></div>`));
-  const chipX = [106,267.3,366,460.7,592.3];
-  COPY.chips.forEach((c,i)=>{
-    const gid = 'cg' + (++UID);
-    sym.appendChild(abs('v-chip c'+i, `left:${chipX[i]}px`, `<svg preserveAspectRatio="none"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f08a80"/><stop offset="1" stop-color="#a7b6e0"/></linearGradient></defs><rect x=".75" y=".75" style="width:calc(100% - 1.5px);height:calc(100% - 1.5px)" rx="18" fill="#fff" stroke="url(#${gid})" stroke-width="1.5" stroke-dasharray="4.5 3.2"/></svg><i class="bg"></i><span>${esc(c)}</span>`));
-  });
-  const vit = h('div', 'v-vits'); rest.appendChild(vit);
-  vit.appendChild(abs('v-vitlbl', '', esc(COPY.vitalsLbl)));
-  [[106,315],[329.7,537],[551.7,760.8],[775.3,982.8]].forEach(([a,b],i)=>{
-    const [k,v,u] = COPY.vitals[i];
-    vit.appendChild(abs('v-vit', `left:${a}px;width:${b-a}px`, `<div class="k">${esc(k)}</div><div class="v">${esc(v)}${u?`<small class="${u==='%'?'ss':''}">${esc(u)}</small>`:''}</div>`));
-  });
-  rest.appendChild(abs('v-trlbl', '', esc(COPY.treatLbl)));
+  /* ---------- view: visit (CH1, CH2) ---------- */
+  const vb = view('visit', COPY.visit);
+  vb.innerHTML = `
+    <div class="pcard capture" style="position:absolute;left:16px;top:16px">
+      <div class="listen"><span class="ava">${mark(24,'#FF7869',2.6)}</span>
+        <div class="t"><b>${esc(COPY.listening)}</b><span>${esc(COPY.capturing)}</span></div>
+        <div class="wave">${WAVE_H.slice(0,36).map((v,i)=>`<i style="left:${(i*8.7).toFixed(1)}px" data-h="${(v*.8).toFixed(1)}"></i>`).join('')}</div>
+        <span class="mic">${I.mic}</span></div>
+      <div class="row"><span class="sec-lbl">${esc(COPY.symptomsLbl)}</span><span class="sp"></span>
+        <span class="swap"><span class="badge done t-w"><i class="dot"></i>${esc(COPY.writing)}</span><span class="badge brand t-c" style="opacity:0">${CK(11)}${esc(COPY.captured)}</span></span></div>
+      <div class="field focus"><span class="typed"></span><span class="caret"></span></div>
+      <div class="chips">${COPY.chips.map(([c],i)=>`<span class="chip c${i}"><i class="cbg"></i><span>${esc(c)}</span></span>`).join('')}</div>
+    </div>
+    <div class="ph-card" style="position:absolute;left:16px;top:300px;width:313px;height:72px">${skel([46,30])}</div>
+    <div class="ph-card" style="position:absolute;left:343px;top:300px;width:313px;height:72px">${skel([38,24])}</div>
+    <div class="ph-card ph-a" style="position:absolute;left:670px;top:16px;width:378px;height:196px">${skel([52,86,70,40])}</div>
+    <div class="ph-card ph-b" style="position:absolute;left:670px;top:226px;width:378px;height:110px">${skel([34,60])}</div>
+    <div class="pcard rec" style="position:absolute;left:670px;top:16px;opacity:0">
+      <div class="hd"><span class="ava">${mark(16,'#FF7869',2.8)}</span><span class="mono">${esc(COPY.recOvl)}</span></div>
+      <h3>${esc(COPY.recTitle)}</h3><p>${esc(COPY.recBody)}</p>
+      <div class="acts"><span class="btn pri acc">${esc(COPY.accept)}</span><span class="btn sec dis">${esc(COPY.dismiss)}</span>
+        <div class="acc-m"><div class="m-old">${esc(COPY.accept)}</div><div class="m-new"><span class="chk">${CK(10)}</span>${esc(COPY.accepted)}</div></div></div>
+    </div>
+    <div class="treat" style="position:absolute;left:670px;top:240px;width:378px;opacity:0;display:flex;flex-direction:column;gap:10px">
+      <span class="sec-lbl">${esc(COPY.treatLbl)}</span>
+      <div class="slot av t-slot"><span class="bar" style="width:120px"></span><span class="ring2"></span>
+        <div class="fill"><i class="dot"></i><b>${esc(COPY.rdt)}</b><span class="sp"></span><span class="badge brand">${CK(11)}${esc(COPY.accepted)}</span></div></div>
+    </div>`;
+  // the capture card in the shell is the finished state; the lifted clone plays the chapter
+  const cap = vb.querySelector('.capture');
+  cap.querySelector('.typed').textContent = COPY.symptoms;
+  cap.querySelector('.caret').style.opacity = 0; cap.querySelector('.field').classList.remove('focus');
+  cap.querySelectorAll('.chip').forEach(c=>{ c.querySelector('.cbg').style.opacity = 1; c.style.color = '#fff'; c.style.borderColor = 'transparent'; });
+  cap.querySelector('.t-w').style.opacity = 0; cap.querySelector('.t-c').style.opacity = 1;
 
-  // recommendation card (lift-out) + treatment row
-  V.appendChild(abs('v-trow', '', `<i class="dot"></i><b>${esc(COPY.rdt)}</b><span class="d">${esc(COPY.rdtDesc)}</span><span class="pill">${I.check('#036869',16)}${esc(COPY.accepted)}</span>`));
-  V.appendChild(abs('v-rec', '', `<div class="hd"><span class="ava">${airaMark(19,'#fff',2.6)}</span><span class="ovl">${esc(COPY.recOvl)}</span></div>
-    <h4>${esc(COPY.recTitle)}</h4><p>${esc(COPY.recBody)}</p>
-    <div class="acts"><span class="v-btn acc">${esc(COPY.accept)}</span><span class="v-btn dis">${esc(COPY.dismiss)}</span>
-      <div class="v-accd"><span class="ck">${I.check('#fff',16)}</span><b>${esc(COPY.accepted)}</b><span>${esc(COPY.added)}</span></div></div>`));
+  /* ---------- view: calls (CH3) ---------- */
+  const cb = view('calls', COPY.calls);
+  cb.innerHTML = `
+    <div class="pcard calls" style="position:absolute;left:16px;top:16px">
+      <div class="crow r1"><span class="swap" style="justify-items:start"><span class="pi p-p" style="justify-self:start">${I.phone}</span><span class="pi ok p-r" style="justify-self:start;opacity:0">${I.phone}</span></span>
+        <span class="bar" style="width:150px"></span><span class="sp"></span>
+        <span class="swap"><span class="badge done s-p">${esc(COPY.pending)}</span><span class="badge ok s-r" style="opacity:0">${CK(11)}${esc(COPY.reached)}</span></span></div>
+      <div class="crow live"><span class="callic"><i class="wv"></i>${I.call}</span>
+        <div style="display:flex;flex-direction:column;gap:6px"><div class="row" style="gap:8px"><span class="livep"><i></i>${esc(COPY.live)}</span><span class="timer">01:42</span></div><b>${esc(COPY.followup)}</b></div>
+        <span class="sp"></span><div class="mwave">${CWAVE_H.map((v,i)=>`<i style="left:${(i*5.4).toFixed(1)}px" data-h="${v}"></i>`).join('')}</div></div>
+      <div class="crow r3"><span class="pi">${I.phone}</span><span class="bar" style="width:120px"></span><span class="sp"></span><span class="badge done">${esc(COPY.pending)}</span></div>
+    </div>
+    <div class="ph-card" style="position:absolute;left:550px;top:16px;width:498px;height:236px">${skel([40,76,62,30,54])}</div>
+    <div class="ph-card" style="position:absolute;left:16px;top:266px;width:520px;height:96px">${skel([30,58,44])}</div>`;
 
-  /* ---------- SCENE 2 · CALL ---------- */
-  const C = h('div', 'scene sc-call'); stage.appendChild(C);
-  // [top, skeleton widths, state, opacity]
-  const ROWS = [[-19.4,[98.8,64],'ok0',.5],[66.6,[80,49.4],'ok',1],[152.4,[92,46.8],'ok',1],[383.2,[97.8,60.8],'pend',1],[469,[87.4,51.5],'pend',.55]];
-  ROWS.forEach(([top,[w1,w2],st,op],i)=>{
-    const teal = st!=='pend';
-    const pill = st==='ok0' ? `<span class="st ok" style="color:#7fb6b3">${esc(COPY.reached)}</span>`
-      : st==='ok' ? `<span class="swap"><span class="st pend s-p" style="opacity:0">${esc(COPY.pending)}</span><span class="st ok s-r">${I.check('#2c8a86',13)}${esc(COPY.reached)}</span></span>`
-      : `<span class="st pend">${esc(COPY.pending)}</span>`;
-    C.appendChild(abs('c-row r'+i, `top:${top}px;opacity:${op}`, `<span class="ph" style="${teal?'':'background:#f3f4f4'}">${I.phone(teal?(st==='ok0'?'#7fb6b3':'#2c8a86'):'#8e9399')}</span><i class="s1" style="width:${w1}px"></i><i class="s2" style="width:${w2}px"></i>${pill}`));
-  });
-  const live = abs('c-live', '', `<div class="c-call"><i class="r3"></i><i class="r2"></i><i class="r1">${I.phoneCall}</i></div>
-    <span class="c-livep"><i class="rec"></i>${esc(COPY.live)}</span><span class="c-time">${esc(COPY.timer)}</span>
-    <span class="c-ftitle">${esc(COPY.followup)}</span><div class="c-wave"></div>`);
-  C.appendChild(live);
-  const cw = live.querySelector('.c-wave');
-  CWAVE.h.forEach((hh,i)=>{ const x = CWAVE.x0 + i*CWAVE.step - 40.6 - 2 - 119; const b = h('i', '', `left:${(x-.8).toFixed(1)}px;height:${hh}px;background:${mix(WAVE_STOPS, i/(CWAVE.h.length-1))}`); b.dataset.h = hh; cw.appendChild(b); });
-  C.appendChild(abs('c-aira', '', airaMark(18,'grad',2.4) + esc(COPY.aira)));
-  C.appendChild(abs('c-q', '', `<span class="typed"></span><i class="caret" style="opacity:0"></i>`));
-  C.appendChild(abs('c-stat', '', `<i class="dot"></i><span>${esc(COPY.patient)} · <span class="swap"><span class="s-l">${esc(COPY.listeningSt)}</span><span class="s-s" style="opacity:0">${esc(COPY.speakingSt)}</span></span></span>`));
-  C.appendChild(abs('c-ans', '', `<i class="bd"></i><div class="c-dots"><i style="background:#f3776a"></i><i style="background:#b89bb2"></i><i style="background:#c1cfe9"></i></div>
-    <div class="c-atxt">${COPY.answer.map(([t,hl],i)=>`<span class="seg${hl?' hl':''}" data-i="${i}">${esc(t)}</span>`).join('')}<i class="caret"></i></div>`));
-  const XC = [[443,null],[636.5,null],[784,'flag']];
-  COPY.xchips.forEach((c,i)=>{
-    const [x,f] = XC[i];
-    C.appendChild(abs('c-chip x'+i+(f?' flag':''), `left:${x}px`, f ? `<span class="ck">${I.flag}</span>${esc(c[0])}` : `<span class="ck">${I.check('#fff',12)}</span><span>${esc(c[0])} <b>${esc(c[1])}</b></span>`));
-  });
+  /* ---------- view: dashboard (CH4) ---------- */
+  const db = view('dash', COPY.signals);
+  const M = window.AIRA_MAP, MS = 1.55;
+  db.innerHTML = `
+    <div class="pcard mapc" style="position:absolute;left:16px;top:16px"><span class="sec-lbl">${esc(COPY.casesLbl)}</span>
+      <svg class="mapsvg" width="${(M.w*MS).toFixed(0)}" height="${(M.h*MS).toFixed(0)}" viewBox="0 0 ${M.w} ${M.h}">${M.districts.map(d=>`<path d="${d.d}"${d.id?' class="mocuba"':''}/>`).join('')}</svg>
+      <div class="mloc"><b>${esc(COPY.mocuba)}</b> · <span class="n">${COPY.casesA}</span> cases</div></div>
+    <div class="pcard tcard" style="position:absolute;left:370px;top:16px;opacity:0">
+      <div class="row" style="gap:8px"><b style="font-size:14px;font-weight:600">${esc(COPY.malaria)}</b><span class="tag">${esc(COPY.disease.toUpperCase())}</span></div>
+      <div class="wow">${I.up}<span><span class="n">${COPY.wowA}</span>% WoW</span></div>
+      <svg class="spark" width="124" height="52"><path class="sp-a" d="${sparkD(10)}" fill="none" stroke="#A9A8E8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+        <path class="sp-b" d="M${(4+9*10.4).toFixed(1)} ${(44-(WEEKS[9]-36)).toFixed(1)} L${(4+10*10.4).toFixed(1)} ${(44-(WEEKS[10]-36)).toFixed(1)} L${(4+11*10.4).toFixed(1)} ${(44-(WEEKS[11]-36)).toFixed(1)}" fill="none" stroke="#FF7869" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      <span class="ring2"></span></div>
+    <div class="ph-card ph-t1" style="position:absolute;left:684px;top:16px;width:175px;height:118px;opacity:0">${skel([50,30,70])}</div>
+    <div class="ph-card ph-t2" style="position:absolute;left:873px;top:16px;width:175px;height:118px;opacity:0">${skel([44,30,64])}</div>
+    <div class="pcard chart" style="position:absolute;left:370px;top:148px">
+      <div class="row"><span class="sec-lbl">${esc(COPY.chartTitle)}</span><span class="sp"></span><span class="badge peach sig" style="opacity:0">${I.trend}${esc(COPY.signal)}</span></div>
+      <div class="sub">${esc(COPY.chartSub)}</div>
+      <svg class="plot" width="${PW}" height="${PH}">
+        <path d="M${px(0)} ${py(0)} L${px(11)} ${py(0)}" stroke="#eceef0" stroke-width="1"/>
+        <path class="area" d="${lineD(0,9)} L${px(9)} ${py(0)} L${px(0)} ${py(0)} Z" fill="#F5F5FF"/>
+        <path d="M${px(0)} ${py(THR)} L${px(11)+6} ${py(THR)}" stroke="#6b7280" stroke-width="1.2" stroke-dasharray="5 4"/>
+        <text class="thr-l" x="${px(0)}" y="${py(THR)-8}">${esc(COPY.threshold)}</text>
+        <path class="l-a" d="${lineD(0,9)}" fill="none" stroke="#A9A8E8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        <path class="l-b" d="${lineD(9,11)}" fill="none" stroke="#FF7869" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        ${WEEKS.map((v,i)=>`<circle class="pt pt${i}" cx="${px(i).toFixed(1)}" cy="${py(v).toFixed(1)}" r="${i>9?4.5:3.6}" fill="${i>9?'#FF7869':'#fff'}" stroke="${i>9?'#fff':'#A9A8E8'}" stroke-width="${i>9?1.4:2}"/>`).join('')}
+        <circle class="ring pk" cx="${px(11).toFixed(1)}" cy="${py(WEEKS[11]).toFixed(1)}" r="15"/>
+      </svg>
+      <span class="clabel jl" style="left:${(16+px(11)-238).toFixed(0)}px;top:${(66+py(WEEKS[11])-13).toFixed(0)}px"><em>${esc(COPY.jump[0])}</em>${esc(COPY.jump[1])}</span>
+    </div>
+    <div class="ph-card" style="position:absolute;left:370px;top:464px;width:678px;height:112px">${skel([36,70,52])}</div>`;
 
-  /* ---------- SCENE 3 · DASHBOARD ---------- */
-  const D = h('div', 'scene sc-dash'); stage.appendChild(D);
-  const dash = abs('d-dash'); D.appendChild(dash);
-  const win = abs('d-win', '', '<div class="d-hdr"></div>'); dash.appendChild(win);
-  dash.appendChild(abs('d-logo', 'transform:translateY(-50%)', airaMark(24,'grad',2.2)));
-  dash.appendChild(abs('d-title', 'transform:translateY(-50%)', esc(COPY.dash)));
-  dash.appendChild(abs('d-fchip', 'left:701px', esc(COPY.district)));
-  dash.appendChild(abs('d-fchip', 'left:825.8px', esc(COPY.window)));
-  dash.appendChild(abs('d-ovl', '', esc(COPY.trends.toUpperCase())));
-  TRENDS.forEach(([nm,tag,tc,a],i)=>{
-    const [x0,x1] = TC_X[i];
-    dash.appendChild(abs('d-card d-tc t'+i, `left:${x0}px;width:${x1-x0}px`,
-      `<div class="nm">${esc(nm)}<span class="d-tag ${tc}">${esc(tag.toUpperCase())}</span></div>
-       <div class="d-wow ${a[0]}">${I[a[0]]}<span><span class="n">${a[1]}</span>% WoW</span></div><i class="d-sel"></i>`));
-  });
-  // sparklines (one svg, 04a space)
-  const sp = svgEl('svg', {class:'d-spark', width:1040, height:600}); dash.appendChild(sp);
-  SPARK_A.forEach((s,i)=>{ const p = svgEl('path', {class:'sp'+i, d:dPath(resample(pts(s), 10))}); sp.appendChild(p); });
-  // map card
-  dash.appendChild(abs('d-card d-map', '', `<div class="d-ct">${esc(COPY.cases)}</div><div class="d-cs">${esc(COPY.casesSub)}</div>`));
-  const M = window.AIRA_MAP;
-  const map = svgEl('svg', {class:'d-mapsvg', width:M.w, height:M.h, viewBox:`0 0 ${M.w} ${M.h}`, style:'position:absolute;left:120px;top:280px'});
-  M.districts.forEach(d=>{ const p = svgEl('path', {d:d.d, fill:d.a, stroke:'#fff', 'stroke-width':.7, 'stroke-linejoin':'round'}); p.dataset.a = d.a; p.dataset.b = d.b; if(d.id) p.dataset.id = d.id; map.appendChild(p); });
-  const ring = svgEl('circle', {class:'d-ring', cx:M.mocuba[0], cy:M.mocuba[1], r:9.6, fill:'none', stroke:'#0c1723', 'stroke-width':2.4}); map.appendChild(ring);
-  dash.appendChild(map);
-  dash.appendChild(abs('d-leg', 'left:293.8px;top:293.6px', esc(COPY.high)));
-  M.legend.forEach((c,i)=>dash.appendChild(abs('d-sw', `left:293.8px;top:${[315,329.7,344.2,358.8,373.4,387.4][i]-5.5}px;width:14.5px;height:11px;background:${c}`)));
-  dash.appendChild(abs('d-leg', 'left:293.8px;top:396px', esc(COPY.low)));
-  dash.appendChild(abs('d-mloc', 'left:293.8px;top:425.6px', `<b>${esc(COPY.mocuba)}</b><span class="n">${COPY.casesA}</span> cases`));
-  // chart card
-  dash.appendChild(abs('d-card d-chart', '', `<div class="d-ct">${esc(COPY.chart)}</div><div class="d-cs">${esc(COPY.chartSub)}</div>`));
-  const pl = svgEl('svg', {class:'d-plot', width:1040, height:600}); dash.appendChild(pl);
-  pl.innerHTML = `<defs>
-      <linearGradient id="fvA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe5f6"/><stop offset="1" stop-color="#eef1f9"/></linearGradient>
-      <linearGradient id="mlA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9dcdc"/><stop offset="1" stop-color="#eef1f9" stop-opacity="0"/></linearGradient>
-      <clipPath id="ccl"><rect class="cclip" x="${CH.x0-2}" y="290" width="${9*CH.dx+4}" height="220"/></clipPath></defs>
-    ${CH.grid.map(y=>`<line x1="433" x2="926.6" y1="${y}" y2="${y}" stroke="#eef0f2" stroke-width="1"/>`).join('')}
-    <g clip-path="url(#ccl)">
-      <path class="fa" fill="url(#fvA)" d="${area(series(CH.feverB.slice(0,10).map((y,i)=>CH.feverA[i])),CH.base)}"/>
-      <path class="ma" fill="url(#mlA)" d="${area(series(CH.malA),CH.base)}"/>
-      <path class="fl" fill="none" stroke="#93a6d6" stroke-width="2" stroke-linejoin="round" d="${dPath(series(CH.feverA))}"/>
-      <path class="ml" fill="none" stroke="#f3776a" stroke-width="2" stroke-linejoin="round" d="${dPath(series(CH.malA))}"/>
-    </g>
-    <line x1="433" x2="926.6" y1="${CH.thr}" y2="${CH.thr}" stroke="#6b7280" stroke-width="1.2" stroke-dasharray="5 4"/>
-    <g class="early" opacity="0"><line x1="${CH.early.x}" x2="${CH.early.x}" y1="${CH.early.y0}" y2="${CH.early.y1}" stroke="#9aaedc" stroke-width="1.3" stroke-dasharray="2 3"/>
-      <text x="${CH.early.x}" y="${CH.early.ly+3.5}" text-anchor="middle" font-size="10.5" font-weight="500" fill="#6f86c6" font-family="IBM Plex Sans">▲ ${esc(COPY.early)}</text></g>
-    <rect class="wbox" x="${CH.box[0]}" y="${CH.box[1]}" width="${CH.box[2]-CH.box[0]}" height="${CH.box[3]-CH.box[1]}" rx="6.4" fill="rgba(243,119,106,.06)" stroke="#f3776a" stroke-width="3.2" opacity="0"/>
-    <line x1="426" x2="439.4" y1="539" y2="539" stroke="#93a6d6" stroke-width="3" stroke-linecap="round"/>
-    <line x1="513.2" x2="526.8" y1="539" y2="539" stroke="#f3776a" stroke-width="3" stroke-linecap="round"/>
-    <line x1="636.5" x2="647" y1="539" y2="539" stroke="#6b7280" stroke-width="2.4" stroke-dasharray="3.4 3.2"/>`;
-  [[444,0],[531.4,1],[654,2]].forEach(([x,i])=>dash.appendChild(abs('d-leg', `left:${x}px;top:532px`, esc(COPY.legend[i]))));
+  /* ---------- lifted layer + free components (qTrack .lift) ---------- */
+  const lift = h('div', 'lift p'); stage.appendChild(lift);
+  ['cap','rec','live','chart'].forEach(n=>lift.appendChild(h('div', 'lifted lift-'+n, '<div class="lift-shadow"></div>')));
+  lift.appendChild(h('div', 'pcard conv', `
+    <div class="who">${mark(16,'#FF7869',2.8)}${esc(COPY.aira)}</div>
+    <div class="bub a"><span class="q-t"></span><span class="caret q-c" style="opacity:0"></span></div>
+    <div class="who r"><i class="dot"></i><span>${esc(COPY.patient)} · <span class="swap" style="justify-items:start;vertical-align:top"><span class="st-l" style="justify-self:start">${esc(COPY.listeningSt)}</span><span class="st-s" style="justify-self:start;opacity:0">${esc(COPY.speakingSt)}</span></span></span></div>
+    <div class="bub p"><span class="dots"><i></i><i></i><i></i></span><span class="a-t">${COPY.answer.map(([t,hl],i)=>`<span class="seg${hl?' hl':''}" data-t="${esc(t)}"></span>`).join('')}<span class="caret a-c" style="opacity:0"></span></span></div>
+    <div class="xchips">${COPY.xchips.map(([a,b],i)=>b?`<span class="xchip x${i}"><span class="chk">${CK(9)}</span>${esc(a)}&nbsp;<b>${esc(b)}</b></span>`:`<span class="xchip alert x${i}"><span class="chk">${I.flag}</span>${esc(a)}</span>`).join('')}</div>`));
+  lift.appendChild(h('div', 'pcard notif', `<span class="pulse"></span><span class="bell">${I.bell}</span><div><b>${esc(COPY.notifT)}</b><span>${esc(COPY.notifS)}</span></div><span class="now">${esc(COPY.now)}</span>`));
+  lift.appendChild(h('span', 'upc u1', esc(COPY.label1)));
+  lift.appendChild(h('span', 'upc u4', esc(COPY.label4)));
+  stage.insertAdjacentHTML('beforeend', I.cursor);
 
-  // zoom card (lift-out), stage space
-  const zc = h('div', 'z-wrap'); D.appendChild(zc);
-  const conn = svgEl('svg', {class:'abs z-conn', width:1040, height:600}); zc.appendChild(conn);
-  conn.innerHTML = `<path class="cn1" d="M555.4 272 L603.2 166.4" stroke="#f3776a" stroke-width="1.6" stroke-dasharray="4.5 4" fill="none"/><path class="cn2" d="M555.4 407.2 L603.2 373.4" stroke="#f3776a" stroke-width="1.6" stroke-dasharray="4.5 4" fill="none"/>`;
-  const zcard = abs('z-card'); zc.appendChild(zcard);
-  zc.appendChild(abs('z-title', '', esc(COPY.zTitle)));
-  zc.appendChild(abs('z-sub', '', esc(COPY.zSub)));
-  zc.appendChild(abs('z-sig', '', I.trend + esc(COPY.signal)));
-  const zp = svgEl('svg', {class:'abs z-plot', width:1040, height:600}); zc.appendChild(zp);
-  const ZP = Z.vals.map((v,i)=>[zx(i), zy(v)]);
-  zp.innerHTML = `<defs>
-      <linearGradient id="zl" gradientUnits="userSpaceOnUse" x1="${zx(0)}" x2="${zx(11)}" y1="0" y2="0"><stop offset="0" stop-color="#9aaedc"/><stop offset=".55" stop-color="#c49aae"/><stop offset=".8" stop-color="#e88a83"/><stop offset="1" stop-color="#f3776a"/></linearGradient>
-      <linearGradient id="za" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe9ec"/><stop offset="1" stop-color="#fdf6f8" stop-opacity=".3"/></linearGradient></defs>
-    <rect class="zband" x="940" y="185.6" width="48" height="209.6" fill="#fdeceb" opacity=".75"/>
-    ${[90,30,0].map(v=>`<line x1="660" x2="988" y1="${zy(v)}" y2="${zy(v)}" stroke="#eceef0" stroke-width="1"/>`).join('')}
-    ${[90,60,30,0].map(v=>`<text class="z-axis" x="650" y="${zy(v)+4.2}" text-anchor="end">${v}</text>`).join('')}
-    ${[[0,'W1'],[3,'W4'],[7,'W8'],[11,'W12']].map(([i,t])=>`<text class="z-axis" x="${zx(i)}" y="${416}" text-anchor="middle">${t}</text>`).join('')}
-    <path class="zarea" fill="url(#za)" d="${area(ZP, Z.y0)}"/>
-    <line x1="660" x2="988" y1="${Z.thrY}" y2="${Z.thrY}" stroke="#6b7280" stroke-width="1.3" stroke-dasharray="6 4.5"/>
-    <text x="664" y="${248+4.6}" font-size="13" fill="#6b7280" font-family="IBM Plex Sans">${esc(COPY.threshold)}</text>
-    <path class="zline" fill="none" stroke="url(#zl)" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" d="${dPath(ZP)}"/>
-    ${ZP.map(([x,y],i)=>i<10?`<circle class="zd zd${i}" cx="${x}" cy="${y}" r="4.1" fill="#fff" stroke="${mix([[0,[154,174,220]],[.55,[196,154,174]],[1,[243,119,106]]], i/11)}" stroke-width="2"/>`:'').join('')}
-    <circle class="zr2" cx="${ZP[11][0]}" cy="${ZP[11][1]}" r="23" fill="none" stroke="#fbd5d0" stroke-width="1.6"/>
-    <circle class="zr1" cx="${ZP[11][0]}" cy="${ZP[11][1]}" r="13.5" fill="rgba(243,119,106,.07)" stroke="#f6a197" stroke-width="2"/>
-    <circle class="zd zd10" cx="${ZP[10][0]}" cy="${ZP[10][1]}" r="4.7" fill="#f3776a" stroke="#fff" stroke-width="1.2"/>
-    <circle class="zd zd11" cx="${ZP[11][0]}" cy="${ZP[11][1]}" r="5" fill="#f3776a" stroke="#fff" stroke-width="1.2"/>
-    <path class="zlead" d="M926 229 L958 222.5" stroke="#0c1723" stroke-width="1.6" fill="none"/>`;
-  zc.appendChild(abs('z-call', '', esc(COPY.jump) + '<i class="tri"></i>'));
-  // notification
-  D.appendChild(abs('n-card', '', `<i class="n-pulse"></i><span class="n-bell"><i>${I.bell}</i></span><span class="n-t">${esc(COPY.notifT)}</span><span class="n-s">${esc(COPY.notifS)}</span><span class="n-now">${esc(COPY.now)}</span>`));
-
-  /* ---------- shared ---------- */
-  stage.appendChild(h('div', 'abs cursor-wrap', 'left:0;top:0;opacity:0;z-index:50', I.pointer));
-  const lbl = h('div', 'cardlabel abs', 'opacity:0'); stage.appendChild(lbl);
   return stage;
 }
-function svgEl(tag, attrs){ const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
 
 /* ======================================================================
-   KEYFRAMES (static states; Phase 2 tweens between them)
+   MASTER TIMELINE  (labels ch1 · ch2 · ch3 · ch4 · end)
    ====================================================================== */
-const S = (stage, sel, props) => { const els = typeof sel === 'string' ? stage.querySelectorAll(sel) : sel; gsap.set(els, props); };
-function only(stage, scene){ ['.sc-visit','.sc-call','.sc-dash'].forEach(s=>S(stage, s, {autoAlpha: s===scene?1:0})); S(stage, '.v-rec,.v-trow,.z-wrap,.n-card', {autoAlpha:0}); }
-function label(stage, ch, css){ const l = stage.querySelector('.cardlabel'); l.textContent = CARD_LABELS[ch]; l.removeAttribute('style'); l.setAttribute('style', css); }
-function typed(stage, sel, text){ stage.querySelector(sel + ' .typed').textContent = text; }
-const cut = (s, upto) => s.slice(0, s.indexOf(upto) + upto.length);
+/* chapter starts are computed from each chapter's last beat + the 0.8 s hold (see timeline) */
+const T = {ch1:0, ch2:0, ch3:0, ch4:0, end:0};
+const HOLD = .8;
+let TOTAL = 0;
 
-/* visit layouts */
-function visitTyping(stage, text, lines){
-  only(stage, '.sc-visit');
-  typed(stage, '.v-box', text);
-  S(stage, '.v-box', {height: lines===2 ? 104.5 : 71.8});
-  S(stage, '.v-chip', {autoAlpha:0});
-  S(stage, '.v-trlbl', {autoAlpha: lines===2 ? 0 : 1});
-  if(lines===2) S(stage, '.v-vits', {y:32.3});
-}
-function chipsOn(stage, filled){
-  S(stage, '.v-chip', {autoAlpha:1});
-  for(let i=0;i<filled;i++){ S(stage, `.v-chip.c${i} .bg`, {opacity:1}); S(stage, `.v-chip.c${i} span`, {color:'#fff'}); S(stage, `.v-chip.c${i} svg`, {opacity:0}); }
-}
-function captured(stage){
-  S(stage, '.v-tag .t-w', {opacity:0}); S(stage, '.v-tag .t-c', {opacity:1}); S(stage, '.v-tag', {width:159.5});
-  S(stage, '.v-box .fill-w', {opacity:1}); S(stage, '.v-box', {borderColor:'#efd5df', boxShadow:'0 10px 24px -14px rgba(170,140,220,.30)'});
-  S(stage, '.v-box .caret', {opacity:0});
-  S(stage, '.v-vitlbl', {color:'#39414c'}); S(stage, '.v-vit .k', {color:'#565d66'}); S(stage, '.v-vit .v', {color:'#39414c'}); S(stage, '.v-vit .v small', {color:'#565d66'});
-}
-function recState(stage, accepted){
-  visitTyping(stage, COPY.symptoms, 2); chipsOn(stage, 3); captured(stage);
-  S(stage, '.v-rest', {opacity:.35, filter:'blur(3px)'});          // lift-out: the rest dims (qTrack) + blur (screen)
-  S(stage, '.v-rec', {autoAlpha:1});
-  if(accepted){ S(stage, '.v-btn', {opacity:0}); S(stage, '.v-accd', {opacity:1}); }
+function timeline(stage){
+  const A = AiraMotion.bind(stage);
+  const $ = s => stage.querySelector(s), $$ = s => [...stage.querySelectorAll(s)];
+  const tl = gsap.timeline({paused:true, repeat:-1, defaults:{ease:'emph'}});
+  const dev = $('.device'), cur = $('.cursor');
+  const V = n => $('.v-'+n), B = n => $('.db-'+n);
+  const KF = {};
+
+  /* initial state (t = 0 is also the last frame of the loop: empty white stage) */
+  gsap.set($$('.v'), {autoAlpha:0}); gsap.set(V('visit'), {autoAlpha:1});
+  gsap.set($$('.device-blur'), {opacity:0, scale:.98});
+  gsap.set(dev, {opacity:0});
+  gsap.set(cur, {x:1660, y:980, opacity:0});
+  gsap.set($$('.upc, .conv, .notif'), {opacity:0});
+
+  /* ambient waveform: deterministic, so every seek shows the same frame */
+  function waveLoop(bars, from, to, step, amp){
+    const n = Math.round((to-from)/step);
+    for(let k=0;k<=n;k++){
+      tl.to(bars, {height:(i,el)=>{ const b = +el.dataset.h; const s = Math.abs(Math.sin(i*1.73 + k*2.41)) * .75 + .25; return Math.max(3, b*(k===n?1:s)*amp); },
+        marginTop:(i,el)=>{ const b = +el.dataset.h; const s = Math.abs(Math.sin(i*1.73 + k*2.41)) * .75 + .25; return -Math.max(3, b*(k===n?1:s)*amp)/2; },
+        duration:step, ease:'sine.inOut'}, from + k*step);
+    }
+  }
+  // resting waveform shape (as traced) in the shell copies
+  $$('.wave i, .mwave i').forEach(b=>{ const v = Math.max(+b.dataset.h, 2); b.style.height = v+'px'; b.style.marginTop = (-v/2)+'px'; });
+
+  /* ======================= CH1 · during the visit ======================= */
+  let t = T.ch1;
+  const capSrc = V('visit').querySelector('.capture'), capH = $('.lift-cap');
+  const cap = A.liftClone(capSrc, capH);
+  // the clone starts empty: writing tag, no text, no chips
+  gsap.set(cap.querySelector('.typed'), {text:''});
+  gsap.set(cap.querySelector('.caret'), {opacity:1}); cap.querySelector('.field').classList.add('focus');
+  gsap.set(cap.querySelector('.t-w'), {opacity:1}); gsap.set(cap.querySelector('.t-c'), {opacity:0});
+  const chips = [...cap.querySelectorAll('.chip')];
+  gsap.set(chips, {opacity:0, scale:.9}); gsap.set(cap.querySelectorAll('.cbg'), {opacity:0});
+  chips.forEach(c=>{ c.style.color = ''; c.style.borderColor = ''; });
+  // shell + the capture card arrive together, sharp
+  tl.set(capH, {visibility:'visible', opacity:1}, t).set(capSrc, {opacity:0}, t);
+  A.shellIn(tl, V('visit'), t);
+  tl.fromTo(capH, {opacity:0, y:24}, {opacity:1, y:0, duration:.7, ease:'emph', immediateRender:false}, t+.05);
+  const L1 = t+.75;
+  const C1Y = 64;
+  A.liftOut(tl, capH, capSrc, B('visit'), L1, {scale:1.1, x:150, y:C1Y});
+  const ty0 = t+1.35, tyEnd = ty0 + COPY.symptoms.length/40 + 1.4;
+  tl.to(capH, {scale:1.115, duration:tyEnd + 2.9 - (L1+.85), ease:'none'}, L1+.85);    // camera drift +1.5%
+  waveLoop([...cap.querySelectorAll('.wave i')], t+.3, tyEnd + 2.3, .16, 1);
+  const ty = A.typeIn(tl, cap.querySelector('.typed'), COPY.symptoms, ty0, 40);
+  // chips pop in as outlines as their words are said
+  COPY.chips.forEach(([,word],i)=>{ const idx = COPY.symptoms.indexOf(word) + word.length - 1;
+    tl.fromTo(chips[i], {opacity:0, scale:.9}, {opacity:1, scale:1, duration:.22, ease:'emph'}, ty.at(idx)+.08); });
+  KF['01a'] = ty.at(COPY.symptoms.indexOf('with chills') + 10) + .05;
+  const C1 = ty.end + .3;
+  tl.set(cap.querySelector('.caret'), {opacity:0}, ty.end+.15);
+  tl.set(cap.querySelector('.field'), {className:'field'}, C1);
+  KF['01b'] = C1 - .05;
+  A.swapTo(tl, cap.querySelector('.t-w'), cap.querySelector('.t-c'), C1);
+  chips.forEach((c,i)=>{ const a = C1+.2+i*.15;
+    tl.to(c.querySelector('.cbg'), {opacity:1, duration:.25, ease:'none'}, a);
+    tl.to(c, {color:'#ffffff', borderColor:'rgba(0,0,0,0)', duration:.25, ease:'none'}, a); });
+  // end micro-label under the lifted card
+  const capR = A.pos(capSrc), u1 = $('.u1');
+  const u1y = capR.y + capR.h/2 + C1Y + capR.h*1.1/2 + 22;
+  A.pillIn(tl, u1, C1+1.05, capR.x + capR.w/2 + 150 - u1.offsetWidth/2, u1y);
+  KF['01c'] = C1 + 1.75;
+
+  /* ======================= CH2 · in real time ======================= */
+  T.ch2 = t = +(C1 + 1.45 + HOLD).toFixed(2);
+  tl.to(u1, {opacity:0, duration:.3, ease:'glide'}, t-.1);
+  A.liftBack(tl, capH, capSrc, B('visit'), t);
+  const vv = V('visit'), rec = vv.querySelector('.rec');
+  tl.to(vv.querySelectorAll('.ph-a, .ph-b'), {opacity:0, duration:.3, ease:'glide'}, t+.55);
+  tl.fromTo(rec, {opacity:0, y:20, scale:.98}, {opacity:1, y:0, scale:1, duration:.55, ease:'emph'}, t+.65);
+  tl.fromTo(vv.querySelector('.treat'), {opacity:0, y:12}, {opacity:1, y:0, duration:.5, ease:'emph'}, t+.75);
+  const recH = $('.lift-rec');
+  // the clone is taken from the card's resting pose (its entrance is done by then)
+  const recC = A.liftClone(rec, recH); recC.style.opacity = 1; recC.style.transform = 'none';
+  const L2 = t+1.45, RS = 1.15, RX = -170, RY = 70;
+  A.liftOut(tl, recH, rec, B('rec'), L2, {scale:RS, x:RX, y:RY});
+  tl.to(recH, {scale:RS*1.015, duration:2.2, ease:'none'}, L2+.85);
+  // pointer to Accept (position in the lifted, scaled card)
+  const rr = A.pos(rec), accSrc = rec.querySelector('.acc'), ar = A.pos(accSrc);
+  const ocx = rr.x + rr.w/2, ocy = rr.y + rr.h/2;
+  const S2 = RS*1.015;
+  const ax = ocx + (ar.x + ar.w*.5 - ocx)*S2 + RX, ay = ocy + (ar.y + ar.h*.62 - ocy)*S2 + RY;
+  A.cursorTo(tl, cur, ax, ay, L2+.65);
+  const CL = L2+1.6;
+  const acc = recC.querySelector('.acc'), dis = recC.querySelector('.dis'), am = recC.querySelector('.acc-m');
+  A.click(tl, cur, CL, acc);
+  KF['02a'] = CL - .12;
+  A.cursorOut(tl, cur, CL+.35);
+  // morph: the Accept button grows into one "accepted" bar (qTrack morph timing)
+  const M2 = CL+.25, MD = .8, actsW = recC.querySelector('.acts').offsetWidth || 346;
+  gsap.set(am, {width:acc.offsetWidth || 169});
+  tl.set(am, {visibility:'visible'}, M2).set(acc, {opacity:0}, M2);
+  tl.to(dis, {opacity:0, scale:.96, duration:.2, ease:'power2.in'}, M2);
+  tl.to(am, {width:actsW, backgroundColor:'#e0f0ef', duration:MD, ease:'glide'}, M2);
+  tl.to(am.querySelector('.m-old'), {opacity:0, duration:MD*.09, ease:'none'}, M2);
+  tl.fromTo(am.querySelector('.m-new'), {opacity:0}, {opacity:1, duration:MD*.3, ease:'none'}, M2+MD*.7);
+  A.pop(tl, am.querySelector('.chk'), M2+MD*.75);
+  KF['02b'] = M2 + MD + .35;
+  // the card settles into the one treatment-plan row
+  const slot = vv.querySelector('.t-slot'), sr = A.pos(slot);
+  const G = M2 + MD + .55;
+  const dx = (sr.x + sr.w/2) - ocx, dy = (sr.y + sr.h/2) - ocy;
+  tl.to(recH, {x:dx, y:dy, scale:.94, duration:.9, ease:'glide'}, G);
+  tl.to(recH.querySelector('.lift-shadow'), {opacity:0, duration:.7, ease:'glide'}, G+.2);
+  tl.to(dev, {opacity:1, scale:1, duration:.6, ease:'glide'}, G+.3);
+  tl.to(B('rec'), {opacity:0, duration:.5, ease:'glide'}, G+.3);
+  tl.to(recH, {opacity:0, duration:.25, ease:'none'}, G+.75);
+  tl.set(rec, {opacity:0}, G+.75);
+  tl.to(slot.querySelector('.bar'), {opacity:0, duration:.15}, G+.75);
+  tl.to(slot, {borderStyle:'solid', backgroundColor:'#ffffff', duration:.01}, G+.8);
+  tl.fromTo(slot.querySelector('.fill'), {opacity:0, x:8}, {opacity:1, x:0, duration:.35}, G+.8);
+  tl.to(slot.querySelector('.ring2'), {opacity:1, duration:.2}, G+.8);
+  tl.to(slot.querySelector('.ring2'), {opacity:0, duration:.45}, G+1.25);
+  tl.to(dev.querySelector('.cam'), {scale:1.015, duration:2.4, ease:'none'}, G+.8);    // camera drift on the sharp shell
+  KF['02c'] = G + 1.75;
+
+  /* ======================= CH3 · after the visit ======================= */
+  T.ch3 = t = +(G + 1.7 + HOLD + .45).toFixed(2);
+  tl.to(dev, {opacity:0, y:-16, duration:.4, ease:'glide'}, t-.45);
+  tl.set(dev.querySelector('.cam'), {scale:1}, t);
+  A.shellIn(tl, V('calls'), t);
+  const vc = V('calls'), r1 = vc.querySelector('.r1');
+  A.swapTo(tl, r1.querySelector('.s-p'), r1.querySelector('.s-r'), t+.6);
+  A.swapTo(tl, r1.querySelector('.p-p'), r1.querySelector('.p-r'), t+.6);
+  const liveSrc = vc.querySelector('.live'), liveH = $('.lift-live');
+  const live = A.liftClone(liveSrc, liveH);
+  const L3 = t+1.05, LX = -60, LY = 80;
+  A.liftOut(tl, liveH, liveSrc, B('calls'), L3, {scale:1.15, x:LX, y:LY});
+  tl.fromTo(live.querySelector('.wv'), {opacity:.7, scale:1}, {opacity:0, scale:1.5, duration:.7, repeat:1, ease:'emph', immediateRender:false}, L3+.4);
+  // timer: starts at 01:42 and keeps counting
+  const tm = live.querySelector('.timer'), clock = {s:COPY.timer0};
+  const fmt = s => '0' + Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
+  // conversation card beside the lifted call
+  const lr = A.pos(liveSrc), conv = $('.conv');
+  const CVX = lr.x + lr.w/2 + LX + lr.w*1.15/2 + 44, CVY = lr.y + lr.h/2 + LY - 140;
+  A.cardIn(tl, conv, L3+.55, CVX, CVY);
+  const qt = conv.querySelector('.q-t'), qc = conv.querySelector('.q-c');
+  tl.set(qt, {text:''}, t);
+  tl.set(qc, {opacity:1}, L3+.9);
+  const q = A.typeIn(tl, qt, COPY.question, L3+1.0, 34);
+  tl.set(qc, {opacity:0}, q.end+.1);
+  KF['03a'] = q.end + .45;
+  // patient: listening -> speaking, answer types with the Peach sweep on the key phrases
+  const P3 = q.end + .55;
+  A.swapTo(tl, conv.querySelector('.st-l'), conv.querySelector('.st-s'), P3);
+  tl.to(conv.querySelector('.dots'), {opacity:0, duration:.2, ease:'none'}, P3+.1);
+  const ac = conv.querySelector('.a-c'); tl.set(ac, {opacity:1}, P3+.2);
+  let at = P3 + .3;
+  conv.querySelectorAll('.seg').forEach((s,i)=>{
+    tl.set(s, {text:''}, t);
+    const r = A.typeIn(tl, s, s.dataset.t, at, 30); at = r.end;
+    if(s.classList.contains('hl')) A.sweep(tl, s, at+.02);
+    if(i===4) KF['03b'] = at + .1;
+  });
+  tl.set(ac, {opacity:0}, at+.15);
+  const X3 = at + .4;
+  conv.querySelectorAll('.xchip').forEach((c,i)=>tl.fromTo(c, {opacity:0, scale:.9}, {opacity:1, scale:1, duration:.22, ease:'emph'}, X3 + i*.12));
+  KF['03c'] = X3 + .9;
+  const E3 = X3 + .46 + HOLD;                                           // end of the CH3 hold
+  tl.to(liveH, {scale:1.168, duration:E3 - (L3+.85), ease:'none'}, L3+.85);   // camera drift
+  waveLoop([...live.querySelectorAll('.mwave i')], L3, E3, .16, 1);
+  tl.fromTo(clock, {s:COPY.timer0}, {s:COPY.timer0 + (E3-L3), duration:E3-L3, ease:'none', onUpdate:()=>{ tm.textContent = fmt(clock.s); }}, L3);
+
+  /* ======================= CH4 · across facilities ======================= */
+  T.ch4 = t = +(E3 + .5).toFixed(2);
+  A.liftExit(tl, [liveH, conv], B('calls'), t-.5);
+  A.shellIn(tl, V('dash'), t);
+  const vd = V('dash');
+  tl.set(stage.querySelector('.g-person'), {text:COPY.district}, t);
+  [vd.querySelector('.tcard'), vd.querySelector('.ph-t1'), vd.querySelector('.ph-t2')].forEach((c,i)=>
+    tl.fromTo(c, {opacity:0, y:20, scale:.98}, {opacity:1, y:0, scale:1, duration:.55, ease:'emph'}, t+.45+i*.08));
+  const tc = vd.querySelector('.tcard');
+  tl.to(tc.querySelector('.ring2'), {opacity:1, duration:.25}, t+1.1);
+  KF['04a'] = t + 1.25;
+  const S4 = t+1.5;
+  A.countUp(tl, tc.querySelector('.n'), COPY.wowA, COPY.wowB, S4, 1.0);
+  tl.fromTo(tc.querySelector('.sp-b'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.6, ease:'glide'}, S4+.2);
+  tl.to(vd.querySelector('.mocuba'), {fill:'#FF7869', duration:.8, ease:'glide'}, S4);
+  A.countUp(tl, vd.querySelector('.mloc .n'), COPY.casesA, COPY.casesB, S4, 1.0);
+  // chart lifts out; the line draws past the threshold to the peak
+  const chSrc = vd.querySelector('.chart'), chH = $('.lift-chart');
+  const ch = A.liftClone(chSrc, chH);
+  gsap.set(ch.querySelectorAll('.l-b'), {drawSVG:'0%'}); gsap.set(ch.querySelectorAll('.pt10, .pt11'), {scale:0, transformOrigin:'50% 50%'});
+  gsap.set(ch.querySelector('.pk'), {drawSVG:'0%'});
+  gsap.set(chSrc.querySelectorAll('.l-b, .pt10, .pt11, .pk'), {opacity:0});
+  const L4 = S4+1.2, CX = -40, CY = -40, CS = 1.1;
+  A.liftOut(tl, chH, chSrc, B('dash'), L4, {scale:CS, x:CX, y:CY});
+  tl.to(chH, {scale:CS*1.015, duration:4.6, ease:'none'}, L4+.85);
+  tl.fromTo(ch.querySelector('.l-b'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.8, ease:'glide'}, L4+.7);
+  A.pop(tl, ch.querySelector('.pt10'), L4+1.05);
+  A.pop(tl, ch.querySelector('.pt11'), L4+1.45);
+  tl.fromTo(ch.querySelector('.pk'), {drawSVG:'0%'}, {drawSVG:'100%', duration:.45, ease:'power2.inOut'}, L4+1.55);
+  tl.fromTo(ch.querySelector('.jl'), {opacity:0, x:-8}, {opacity:1, x:0, duration:.35}, L4+1.8);
+  tl.fromTo(ch.querySelector('.sig'), {opacity:0, scale:.8}, {opacity:1, scale:1, duration:.22, ease:'emph'}, L4+2.0);
+  KF['04b'] = L4 + 2.45;
+  // notification slides up with one pulse
+  const cr = A.pos(chSrc), nt = $('.notif');
+  const NX = cr.x + cr.w/2 + CX - 290, NY = cr.y + cr.h/2 + CY + cr.h*CS/2 + 26;
+  const N4 = L4+2.6;
+  A.cardIn(tl, nt, N4, NX, NY);
+  tl.fromTo(nt.querySelector('.pulse'), {scale:1, opacity:.7}, {scale:1.06, opacity:0, duration:.7, ease:'emph', immediateRender:false}, N4+.45);
+  const u4 = $('.u4');
+  A.pillIn(tl, u4, N4+.75, NX + 290 - u4.offsetWidth/2, NY + 104);
+  KF['04c'] = N4 + 1.6;
+
+  /* ======================= END · back to the empty stage (loop) ======================= */
+  T.end = t = +(N4 + 1.15 + HOLD).toFixed(2);
+  TOTAL = +(t + .65).toFixed(2); window.AiraStage.TOTAL = TOTAL;
+  A.liftExit(tl, [chH, nt, u4], B('dash'), t-.1);
+  tl.to(dev, {opacity:0, y:-16, duration:.5, ease:'glide'}, t+.05);
+  tl.set(stage.querySelector('.g-person'), {text:COPY.person}, TOTAL-.01);
+  tl.set({}, {}, TOTAL);
+  Object.entries(T).forEach(([k,v])=>tl.addLabel(k, v));
+  return {tl, KF, T, TOTAL};
 }
 
+/* matching qTrack moments (live film time, seconds) for the storyboard */
+const QT_MATCH = {
+  '01a':[26.2,'b2c · letter types in with a caret'],
+  '01b':[9.4,'b1b · chips pop in under the report'],
+  '01c':[5.1,'b1a · badge swaps Missed → Routed, tick pops'],
+  '02a':[16.7,'b2a · list lifted, pointer on Book'],
+  '02b':[25.2,'b2c · Send letter morphs into the letter card'],
+  '02c':[17.5,'b2a · slot filled after the click'],
+  '03a':[30.0,'b2c · phone card: Calling…'],
+  '03b':[8.4,'b1b · Peach highlight sweeps'],
+  '03c':[38.9,'b4 · fields fly in and tick'],
+  '04a':[14.95,'b2a · sharp shell before the lift'],
+  '04b':[12.0,'b1b · priors: Peach rings, 4 → 8 mm count-up'],
+  '04c':[20.9,'b2b · No-show pulse, reschedule card slides in'],
+};
 const KEYFRAMES = [
- {id:'01a', ch:1, t:1.9,  png:'01a-visit-listening-typing.png', title:'Aira is listening',
-  note:'Waveform loops; symptoms type in at ~34 cps with a teal caret; vitals and treatment plan stay greyed (not needed yet).',
-  apply:s=>{ visitTyping(s, cut(COPY.symptoms,'with chills'), 1); }},
- {id:'01b', ch:1, t:5.0,  png:'01b-visit-symptoms-typed.png', title:'Symptoms typed, chips appear',
-  note:'Typing ends; the box grows to two lines (glide) and five dashed chips pop in as outlines, staggered 60 ms; vitals slide down.',
-  apply:s=>{ visitTyping(s, COPY.symptoms, 2); chipsOn(s, 0); }},
- {id:'01c', ch:1, t:7.4,  png:'01c-visit-captured-by-aira.png', title:'Captured by Aira',
-  note:'Tag morphs "Aira writing" → "✓ Captured by Aira"; chips fill teal one by one (150 ms apart); box settles to white; vitals un-grey. Label slides in; hold 0.8 s.',
-  apply:s=>{ visitTyping(s, COPY.symptoms, 2); chipsOn(s, 3); captured(s); label(s, 1, 'left:732px;top:399.4px;right:auto;bottom:auto'); }},
- {id:'02a', ch:2, t:10.2, png:'02a-realtime-recommendation-accept.png', title:'Recommendation lifts out',
-  note:'Visit dims to 35% (+3 px blur, as in the screen); the Aira · Recommendation card rises 24 px (emph); pointer glides in to Accept.',
-  apply:s=>{ recState(s, false); S(s, '.cursor-wrap', {opacity:1, x:400, y:396}); }},
- {id:'02b', ch:2, t:11.3, png:'02b-realtime-recommendation-accepted.png', title:'Accepted',
-  note:'Click: pointer and button press 0.96 → 1; the two buttons morph (glide) into one "Recommendation accepted · Added to treatment plan" bar; check pops.',
-  apply:s=>{ recState(s, true); }},
- {id:'02c', ch:2, t:13.6, png:'02c-realtime-treatment-plan.png', title:'Settles into the treatment plan',
-  note:'Card shrinks and glides into the Treatment plan row (FLIP); chips and vitals fold away; symptoms text greys; label slides in; hold 0.8 s.',
-  apply:s=>{ visitTyping(s, COPY.symptoms, 2);
-    S(s, '.v-chip,.v-vits,.v-tag', {autoAlpha:0});
-    S(s, '.v-symlbl', {y:-12}); S(s, '.v-box', {y:-13, height:100.5}); S(s, '.v-box .fill-w', {opacity:1}); S(s, '.v-box', {borderColor:'#f5e4ec', boxShadow:'none'});
-    S(s, '.v-box .txt', {color:'#7c838b'}); S(s, '.v-box .caret', {opacity:0});
-    S(s, '.v-trlbl', {autoAlpha:1, top:406, color:'#0c1723'});
-    S(s, '.v-trow', {autoAlpha:1});
-    label(s, 2, 'right:auto;bottom:auto;left:706px;top:405px'); }},
- {id:'03a', ch:3, t:17.7, png:'03a-after-call-patient-listening.png', title:'Follow-up call: Aira asks',
-  note:'Camera glide + crossfade in; earlier rows tick to "Reached"; LIVE row lifts out with teal ring; timer counts; question types in; patient bubble shows listening dots.',
-  apply:s=>{ only(s, '.sc-call'); typed(s, '.c-q', COPY.question); S(s, '.c-chip', {autoAlpha:0}); }},
- {id:'03b', ch:3, t:19.6, png:'03b-after-call-patient-speaking.png', title:'Patient speaking',
-  note:'Status swaps listening → speaking; dots fade; bubble widens as the answer types; "my son" and "6" get the Peach sweep as they land.',
-  apply:s=>{ only(s, '.sc-call'); typed(s, '.c-q', COPY.question); answerTo(s, 5); S(s, '.c-chip', {autoAlpha:0}); }},
- {id:'03c', ch:3, t:22.2, png:'03c-after-call-extracted-flags.png', title:'Extracted and flagged',
-  note:'"fever since yesterday" swept; bubble wraps to two lines; chips pop in 120 ms apart, the last in alert style; hold 0.8 s.',
-  apply:s=>{ only(s, '.sc-call'); typed(s, '.c-q', COPY.question); answerTo(s, 7); }},
- {id:'04a', ch:4, t:25.4, png:'04a-facilities-district-signals.png', title:'District signals',
-  note:'Glide + crossfade into the dashboard; trend cards stagger in (60 ms); sparklines and chart lines draw (glide).',
-  apply:s=>{ only(s, '.sc-dash'); }},
- {id:'04b', ch:4, t:30.0, png:'04b-facilities-malaria-signal.png', title:'Malaria signal lifts out',
-  note:'Malaria selected; dashboard glides to 62%; counts tick up (9→26, 4→42, 96→214); Mocuba colours + ring; last-2-weeks box draws; chart lifts out: line draws to the peak, Peach ring, "+42%" slides in, Signal pops.',
-  apply:s=>{ only(s, '.sc-dash'); dashB(s); S(s, '.z-wrap', {autoAlpha:1}); }},
- {id:'04c', ch:4, t:31.4, png:'04c-facilities-district-team-alerted.png', title:'District team alerted',
-  note:'Notification slides up 24 px (emph) with one red pulse; label slides in; hold 0.8 s, then crossfade back to CH1.',
-  apply:s=>{ only(s, '.sc-dash'); dashB(s); S(s, '.z-wrap,.n-card', {autoAlpha:1}); label(s, 4, 'right:auto;bottom:auto;left:40px;top:548px'); }},
+  ['01a',1,'Aira is listening','Shell and capture card rise together; the card lifts out (×1.1, glide) and the shell recedes to a pre-blurred layer at 35%. The Peach waveform runs; symptoms type in with a teal caret.'],
+  ['01b',1,'Symptoms typed','Each chip pops in as an outline the moment its word is typed (0.22 s emph), so the chips land with the speech rather than after it. Camera drifts +1.5%.'],
+  ['01c',1,'Captured by Aira','Tag swaps "Aira writing" → "✓ Captured by Aira"; all five chips fill teal one by one (0.15 s apart); the DM Mono micro-label rises in under the card.'],
+  ['02a',2,'Recommendation lifts out','Capture card settles back into a sharp shell; the recommendation card enters the right column and lifts out (×1.15). The qTrack pointer glides in to Accept.'],
+  ['02b',2,'Accepted (morph)','Click dips pointer and button 0.96 → 1; Dismiss folds away and the Accept button grows into one "Recommendation accepted" bar (0.8 s glide, label crossfades at 70%).'],
+  ['02c',2,'Settles into the treatment plan','The card glides down onto the treatment-plan slot, the shell comes back sharp, and the slot fills: "Malaria RDT · Recommendation accepted" with a teal ring flash.'],
+  ['03a',3,'Follow-up call','Shell re-enters on the call list; the row above ticks Pending → Reached; the LIVE row lifts out with a ring wave, its timer counting from 01:42. Aira\'s question types in.'],
+  ['03b',3,'Patient speaking','Status swaps listening → speaking; the answer types in and each key phrase gets the Peach highlight sweep as it lands ("my son", "6").'],
+  ['03c',3,'Extracted and flagged','"fever since yesterday" swept; three chips pop in 0.12 s apart, the last in the alert style.'],
+  ['04a',4,'District signals','Shell re-enters on the dashboard; the Malaria trend card and two placeholders stagger in; Malaria is selected (teal ring).'],
+  ['04b',4,'Signal lifts out','WoW counts 4 → 42 %, Mocuba turns Peach as cases count 96 → 214; the chart lifts out, the line draws past the threshold, a Peach ring draws at the peak, "+42% in 2 weeks" slides in, Signal pops.'],
+  ['04c',4,'District team alerted','Notification slides up (0.55 s emph) with one Peach pulse; the micro-label rises in; hold, then everything lifts out and the shell fades for the loop.'],
 ];
-function answerTo(stage, n){ // reveal answer segments [0, n)
-  const segs = stage.querySelectorAll('.c-atxt .seg');
-  segs.forEach((e,i)=>{ e.style.display = i<n ? '' : 'none'; if(e.classList.contains('hl') && i<n) e.style.backgroundSize = '100% 100%, 100% 2px'; });
-  S(stage, '.c-stat .s-l', {opacity:0}); S(stage, '.c-stat .s-s', {opacity:1});
-  S(stage, '.c-dots', {opacity:0}); S(stage, '.c-atxt', {opacity:1});
-  const done = n >= segs.length;
-  S(stage, '.c-ans', done ? {width:559, height:93.6} : {width:358.4, height:62.4});
-}
-function dashB(stage){
-  S(stage, '.d-dash', {scale:DS, x:DTX, y:DTY});
-  // data that changes between 04a and 04b
-  TRENDS.forEach((t,i)=>{ stage.querySelector(`.d-tc.t${i} .n`).textContent = t[4][1]; });
-  stage.querySelector('.d-mloc .n').textContent = COPY.casesB;
-  S(stage, '.d-tc.t1 .d-sel', {opacity:1});
-  Object.entries(SPARK_B_RAW).forEach(([i,s])=>{ const p = stage.querySelector('.sp'+i); p.setAttribute('d', dPath(resample(pts(s).map(q=>b2a(...q)), 10))); if(+i===1) p.style.stroke = '#f3776a'; });
-  stage.querySelectorAll('.d-mapsvg path').forEach(p=>p.setAttribute('fill', p.dataset.b));
-  S(stage, '.d-ring', {opacity:1});
-  S(stage, '.cclip', {attr:{width:11*CH.dx+4}});
-  S(stage, '.fl', {attr:{d:dPath(series(CH.feverB))}}); S(stage, '.ml', {attr:{d:dPath(series(CH.malB))}});
-  S(stage, '.fa', {attr:{d:area(series(CH.feverB),CH.base)}}); S(stage, '.ma', {attr:{d:area(series(CH.malB),CH.base)}});
-  S(stage, '.early,.wbox', {opacity:1});
-}
 
-function apply(stage, id){
-  // base state: things that are hidden until a keyframe asks for them
-  S(stage, '.d-ring', {opacity:0});
-  const k = KEYFRAMES.find(k=>k.id===id); k.apply(stage);
-}
-
-window.AiraStage = {build, apply, KEYFRAMES, COPY, CARD_LABELS, TRENDS, geometry:{WAVE,CWAVE,DS,DTX,DTY,CH,Z,SPARK_A,SPARK_B_RAW}, helpers:{resample,pts,dPath,series,area,b2a,mix,WAVE_STOPS}};
+window.AiraStage = {build, timeline, COPY, T, TOTAL, QT_MATCH, KEYFRAMES};
 })();
