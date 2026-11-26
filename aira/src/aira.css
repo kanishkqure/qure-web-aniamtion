@@ -1,0 +1,214 @@
+/* ======================================================================
+   Aira film: stage + rebuilt UI (1040 x 600, coordinates in CSS px of the
+   source screens = PNG px / 2). Every value here was measured from
+   aira/assets/screens/*.png.
+   ====================================================================== */
+@font-face{font-family:"IBM Plex Sans";src:url(../assets/fonts/ibm-plex-sans-latin.woff2) format("woff2");font-weight:100 700;font-display:block}
+@font-face{font-family:"IBM Plex Mono";src:url(../assets/fonts/ibm-plex-mono-400-latin.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"IBM Plex Mono";src:url(../assets/fonts/ibm-plex-mono-500-latin.woff2) format("woff2");font-weight:500;font-display:block}
+@font-face{font-family:"DM Mono";src:url(../assets/fonts/dm-mono-400-latin.woff2) format("woff2");font-weight:400;font-display:block}
+@font-face{font-family:"DM Mono";src:url(../assets/fonts/dm-mono-500-latin.woff2) format("woff2");font-weight:500;font-display:block}
+
+.aira-film{
+  --tx:#0c1723; --tx2:#39414c; --tx3:#565d66; --tx4:#9b9fa4;
+  --bd:#dee1e2; --bd2:#e6e8e9; --bg2:#f3f4f4; --skel:#eceef0;
+  --teal:#008280; --teal2:#036869; --teal3:#e7f3f3; --teal4:#bddede;
+  --peach:#f3776a; --mauve:#b89bb2; --lav:#c1cfe9; --blue:#9aaedc;
+  --alert:#ed2635; --urg:#93212f; --urg3:#fbdee1;
+  --indigo:#2A288C; --lavq:#D9D9FF;
+  --aira-grad:linear-gradient(135deg,#f3776a 0%,#c99aaa 52%,#9aaedc 100%);
+  --soft-grad:linear-gradient(90deg,#fdeeed 0%,#f8f2f4 50%,#f3f5fb 100%);
+  position:relative;width:100%;aspect-ratio:1040/600;overflow:hidden;background:#fff;
+  border-radius:14px;box-shadow:0 0 0 1px var(--lavq);          /* thin device frame (qTrack) */
+}
+.aira-film *{box-sizing:border-box}
+.aira-film .stage{position:absolute;left:0;top:0;width:1040px;height:600px;overflow:hidden;transform-origin:0 0;background:#fff;
+  font-family:"IBM Plex Sans",system-ui,sans-serif;color:var(--tx);-webkit-font-smoothing:antialiased;isolation:isolate}
+.aira-film svg{display:block;overflow:visible}
+.aira-film .abs{position:absolute}
+.aira-film .scene{position:absolute;inset:0}
+.aira-film .mid{display:flex;align-items:center}
+.aira-film .caret{display:inline-block;width:2px;height:1.05em;background:var(--teal);vertical-align:-.17em;margin-left:1px;border-radius:1px}
+.aira-film .nowrap{white-space:nowrap}
+
+/* ---------- optional card label (DM Mono pill) ---------- */
+.aira-film .cardlabel{position:absolute;right:20px;bottom:16px;z-index:40;display:inline-flex;align-items:center;gap:8px;height:26px;padding:0 12px;border-radius:999px;
+  background:#fff;box-shadow:inset 0 0 0 1px var(--lavq),0 8px 18px -12px rgba(42,40,140,.35);font:500 11.5px/1 "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase;color:var(--indigo);white-space:nowrap}
+.aira-film .cardlabel::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--peach)}
+
+/* ---------- Aira mark ---------- */
+.aira-film .mark path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+/* ======================================================================
+   SCENE 1 · VISIT (CH1 + CH2)
+   ====================================================================== */
+.v-win{left:66px;top:29.5px;width:957.5px;height:640px;border:1px solid #e6e8e9;border-radius:21px;background:#fff;
+  box-shadow:-14px 10px 30px -12px rgba(30,40,70,.06)}
+.v-rest{position:absolute;inset:0}
+.v-back{left:101px;top:58px}
+.v-title{left:134px;top:52px;font-size:20.7px;line-height:29px;font-weight:600;color:var(--tx)}
+.v-skel{top:59.8px;height:13px;border-radius:7px;background:var(--skel)}
+.v-hdiv{left:66.5px;top:101.5px;width:956.5px;height:1px;background:#e6e8e9}
+.v-bar{left:66.5px;top:102px;width:956.5px;height:101px;background:var(--soft-grad)}
+.v-bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,#f49b92,#d7a9b6 50%,#b3c4e3)}
+.v-ava{left:99px;top:121px;width:64px;height:64px;border-radius:50%;background:var(--aira-grad);box-shadow:0 0 0 3px #fff,0 4px 12px rgba(200,120,130,.22);display:flex;align-items:center;justify-content:center}
+.v-listen{left:194px;top:126.5px;font-size:20.7px;line-height:29px;font-weight:600}
+.v-capt{left:194px;top:157px;font-size:16.2px;line-height:23px;color:var(--tx3)}
+.v-wave{left:405px;top:120px;width:512px;height:66px}
+.v-wave i,.c-wave i{position:absolute;top:50%;border-radius:2px;transform:translateY(-50%)}
+.v-wave i{width:3.7px}
+.v-mic{left:919px;top:106px;width:94px;height:94px}
+.v-mic .h1{position:absolute;inset:0;border-radius:50%;background:rgba(170,205,212,.28)}
+.v-mic .h2{position:absolute;inset:9.4px;border-radius:50%;background:rgba(160,205,205,.42)}
+.v-mic .core{position:absolute;inset:18.4px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center}
+
+.v-symlbl{left:105.6px;top:233px;font-size:16.8px;line-height:24px;font-weight:600}
+.v-tag{left:286.5px;top:231px;height:27.6px;padding:0 12px 0 11px;border-radius:14px;border:1.5px solid #dcc8d3;background:#f7f4f7;
+  display:flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:var(--tx2);white-space:nowrap}
+.v-tag .dot{width:7.5px;height:7.5px;border-radius:50%;background:var(--teal)}
+.v-tag .swap{position:relative;display:grid}
+.v-tag .swap>*{grid-area:1/1;display:flex;align-items:center;gap:7px}
+.v-tag .swap>.t-c{position:absolute;left:-1px;top:50%;transform:translateY(-50%);white-space:nowrap}
+.v-box{left:105.6px;top:273.5px;width:878.4px;height:71.8px;border-radius:10px;padding:18.9px 22.4px 0;
+  background:var(--soft-grad);border:1.5px solid #f6cdd5;box-shadow:0 12px 26px -10px rgba(170,140,220,.38)}
+.v-box .fill-w{position:absolute;inset:0;border-radius:9px;background:#fff;opacity:0}
+.v-box .txt{position:relative;font-size:21.1px;line-height:33.3px;color:var(--tx);letter-spacing:-.003em}
+
+.v-chip{top:393.6px;height:37.4px;padding:0 18.6px;border-radius:19px;display:flex;align-items:center;font-size:17.4px;font-weight:500;color:var(--tx);white-space:nowrap}
+.v-chip svg{position:absolute;inset:0;width:100%;height:100%}
+.v-chip .bg{position:absolute;inset:0;border-radius:19px;background:var(--teal);opacity:0}
+.v-chip span{position:relative}
+
+.v-vitlbl{left:105.6px;top:435px;font-size:16.8px;line-height:24px;font-weight:600;color:#9ba0a6}
+.v-vit{top:471.6px;height:73.4px;border:1px solid #eceeef;border-radius:9.5px;background:#fff;padding:12.5px 0 0 18.5px}
+.v-vit .k{font-size:15.5px;line-height:20px;color:#a3a8ad}
+.v-vit .v{margin-top:8px;font-size:20.6px;line-height:26px;font-weight:600;color:#8c9197}
+.v-vit .v small{font-size:15.5px;font-weight:400;color:#a3a8ad;margin-left:5px}
+.v-trlbl{left:105.6px;top:571px;font-size:16.8px;line-height:24px;font-weight:600;color:#a3a8ad}
+
+/* recommendation card (lift-out) */
+.v-rec{left:250px;top:170px;width:540px;height:268px;border-radius:15.6px;padding:28px 28px 0 29px;
+  background:linear-gradient(100deg,#fdefed 0%,#f7f3f6 50%,#f3f6fb 100%);border:1.5px solid #f4cad3;
+  box-shadow:0 26px 50px -24px rgba(150,120,210,.45),0 2px 8px rgba(12,23,35,.05)}
+.v-rec .hd{display:flex;align-items:center;gap:9px;height:32px}
+.v-rec .hd .ava{width:30px;height:30px;border-radius:50%;background:var(--aira-grad);box-shadow:0 0 0 1.5px #fff;display:flex;align-items:center;justify-content:center;flex:none}
+.v-rec .ovl{font:400 13.2px/1 "IBM Plex Mono",monospace;letter-spacing:.115em;color:var(--tx2);text-transform:uppercase}
+.v-rec h4{margin:9px 0 0;font-size:26.3px;line-height:34px;font-weight:600;letter-spacing:-.005em;color:var(--tx)}
+.v-rec p{margin:8px 0 0;font-size:18.9px;line-height:29px;color:var(--tx2)}
+.v-rec .acts{position:absolute;left:29px;top:186px;width:481px;height:51.5px}
+.v-btn{position:absolute;top:0;height:51.5px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17.8px;font-weight:600}
+.v-btn.acc{left:0;width:234.5px;background:var(--teal);color:#fff}
+.v-btn.dis{left:247px;width:234px;background:#fff;color:var(--teal);border:1.5px solid #b9d9d7}
+.v-accd{position:absolute;inset:0;border-radius:10px;background:linear-gradient(90deg,#dfeceb,#d4e8eb);display:flex;align-items:center;padding-left:15.6px;gap:12px;opacity:0}
+.v-accd .ck{width:28px;height:28px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;flex:none}
+.v-accd b{font-size:17.9px;font-weight:600;color:var(--teal2)}
+.v-accd span{margin-left:auto;margin-right:15px;font-size:13.9px;font-weight:500;color:var(--tx2)}
+
+/* treatment plan row (02c) */
+.v-trow{left:105.6px;top:442px;width:878.4px;height:86.4px;border-radius:10px;background:linear-gradient(90deg,#feefee,#f8f2f5 50%,#f3f6fb);border:1.5px solid #f4cad3;
+  box-shadow:0 14px 28px -12px rgba(170,140,220,.40);display:flex;align-items:center;padding:0 22px 0 21px}
+.v-trow .dot{width:10px;height:10px;border-radius:50%;background:var(--teal);margin-right:18px;flex:none}
+.v-trow b{font-size:21.5px;font-weight:600;margin-right:13px;white-space:nowrap}
+.v-trow .d{font-size:16.9px;color:#6b7280;white-space:nowrap}
+.v-trow .pill{margin-left:auto;height:34.3px;padding:0 13px 0 14px;border-radius:17px;background:#d7e8ea;color:var(--teal2);display:flex;align-items:center;gap:9px;font-size:16.4px;font-weight:600;white-space:nowrap}
+
+/* ======================================================================
+   SCENE 2 · CALL (CH3)
+   ====================================================================== */
+.c-row{left:40.6px;width:299px;height:73px;border:1px solid var(--bd2);border-radius:10.4px;background:#fff}
+.c-row .ph{position:absolute;left:14.4px;top:18.2px;width:35.4px;height:35.4px;border-radius:50%;background:var(--teal3);display:flex;align-items:center;justify-content:center}
+.c-row .s1,.c-row .s2{position:absolute;left:62px;height:10px;border-radius:5px;background:#eef0f1}
+.c-row .s1{top:22.4px}
+.c-row .s2{top:41px;height:9.4px}
+.c-row .st{position:absolute;right:14.2px;top:24.4px;height:24px;padding:0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;font-size:11.9px;font-weight:600;white-space:nowrap}
+.c-row .st.ok{background:var(--teal3);color:#2c8a86}
+.c-row .st.pend{background:#f4f5f5;color:#8e9399}
+.c-row .swap{position:relative;display:grid}
+.c-row .swap>*{grid-area:1/1;justify-self:end}
+.c-live{left:40.6px;top:239.2px;width:299px;height:130px;border:2px solid var(--teal);border-radius:12px;background:#fff;
+  box-shadow:0 0 0 5px #d7ebeb,0 20px 40px -18px rgba(0,110,110,.32)}
+.c-call{position:absolute;left:4px;top:8.6px;width:107px;height:107px}
+.c-call i{position:absolute;border-radius:50%}
+.c-call .r3{inset:0;background:#eef6f6}
+.c-call .r2{inset:15.6px;background:var(--teal4)}
+.c-call .r1{inset:23.5px;background:var(--teal);display:flex;align-items:center;justify-content:center}
+.c-livep{position:absolute;left:119.5px;top:24.4px;height:25.6px;padding:0 9px 0 8px;border-radius:4px;background:var(--teal);color:#fff;display:flex;align-items:center;gap:6px;
+  font:500 13.3px/1 "IBM Plex Mono",monospace;letter-spacing:.16em}
+.c-livep .rec{width:11.6px;height:11.6px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.35)}
+.c-time{position:absolute;left:204.5px;top:25px;font:400 14.9px/24px "IBM Plex Mono",monospace;color:var(--tx2)}
+.c-ftitle{position:absolute;left:119.5px;top:57.5px;font-size:16.9px;line-height:24px;font-weight:600}
+.c-wave{position:absolute;left:119px;top:84px;width:125px;height:22px}
+.c-wave i{width:2px}
+.c-aira{left:386.5px;top:150px;display:flex;align-items:center;gap:6px;font-size:13.4px;font-weight:600;color:var(--tx3)}
+.c-q{left:383.8px;top:174px;width:385px;height:92.8px;border-radius:16px;background:var(--bg2);padding:13.6px 20px 0 20.8px;font-size:20.9px;line-height:30.2px;color:var(--tx2)}
+.c-stat{right:40.4px;top:280.5px;display:flex;align-items:center;gap:7.5px;font-size:13px;font-weight:600;color:var(--tx3);white-space:nowrap}
+.c-stat .dot{width:8.6px;height:8.6px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px #d2e9e8}
+.c-stat .swap{position:relative;display:inline-grid;vertical-align:top}
+.c-stat .swap>*{grid-area:1/1;justify-self:end}
+.c-ans{right:40.6px;top:306.8px;min-width:93.4px;height:58.8px;border-radius:12px;background:#fff;
+  box-shadow:0 20px 34px -18px rgba(150,130,210,.40)}
+.c-ans .bd{position:absolute;inset:0;border-radius:12px;padding:1px;background:linear-gradient(110deg,#f3776a 0%,#e9a2a9 45%,#a9b8e3 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.c-dots{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;gap:7.8px}
+.c-dots i{width:9.4px;height:9.4px;border-radius:50%}
+.c-atxt{position:absolute;left:20.8px;top:15.8px;width:518px;font-size:21.4px;line-height:30.2px;color:var(--tx);opacity:0}
+.hl{background-image:linear-gradient(rgba(243,119,106,.24),rgba(243,119,106,.24)),linear-gradient(var(--peach),var(--peach));background-repeat:no-repeat;
+  background-position:0 0,0 100%;background-size:0% 100%,0% 2px;padding:0 2px;margin:0 -2px;border-radius:3px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.c-chip{top:421.7px;height:37px;border-radius:10px;display:flex;align-items:center;gap:9px;padding:0 13px 0 9px;font-size:15px;font-weight:500;color:var(--tx);white-space:nowrap;
+  background:linear-gradient(90deg,#fdefee,#f0f3f9);border:1px solid #cbc8dc}
+.c-chip b{font-weight:600}
+.c-chip .ck{width:19.6px;height:19.6px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;flex:none}
+.c-chip.flag{background:#fff;border:1.5px solid var(--peach);color:#d4473b;padding-left:9px}
+.c-chip.flag .ck{background:var(--peach)}
+
+/* ======================================================================
+   SCENE 3 · DASHBOARD (CH4) — .dash is drawn in 04a space and scaled
+   (0.6247, origin 0 0, translate -30.8 / 89.75) to reach the 04b layout.
+   ====================================================================== */
+.d-dash{left:0;top:0;width:1040px;height:600px;transform-origin:0 0}
+.d-win{left:88.4px;top:10.4px;width:863.2px;height:561.6px;border:1px solid #e3e5e7;border-radius:21px;background:#fafafc;overflow:hidden;
+  box-shadow:0 18px 40px -22px rgba(20,30,60,.16)}
+.d-hdr{position:absolute;left:0;top:0;right:0;height:53.6px;background:#fff;border-bottom:1px solid #e3e5e7}
+.d-logo{left:113px;top:37.4px}
+.d-title{left:148.7px;top:37.4px;font-size:15.3px;line-height:22px;font-weight:600}
+.d-fchip{top:24px;height:27.6px;padding:0 10.5px;border:1px solid var(--bd);border-radius:6px;background:#fff;display:flex;align-items:center;font-size:12.7px;color:var(--tx2);white-space:nowrap}
+.d-ovl{left:110.2px;top:82.6px;font:400 10.6px/14px "IBM Plex Mono",monospace;letter-spacing:.115em;color:var(--tx3)}
+.d-card{border:1px solid var(--bd);border-radius:8.3px;background:#fff}
+.d-tc{top:106.6px;height:111.8px}
+.d-tc .nm{position:absolute;left:13.6px;top:12.6px;display:flex;align-items:center;gap:7px;font-size:14.6px;line-height:20px;font-weight:500;white-space:nowrap}
+.d-tag{height:15.6px;padding:0 5px;border-radius:3px;font:500 8.8px/1 "IBM Plex Mono",monospace;letter-spacing:.09em;display:inline-flex;align-items:center}
+.d-tag.sym{background:#e9eef8;color:#506895}
+.d-tag.dis{background:var(--urg3);color:#a8323e}
+.d-wow{position:absolute;left:14px;top:34.5px;display:flex;align-items:center;gap:4px;font-size:11.4px;line-height:16px;font-weight:600;white-space:nowrap}
+.d-wow.up{color:var(--urg)} .d-wow.dn{color:var(--teal2)}
+.d-spark{position:absolute;left:0;top:0}
+.d-spark path{fill:none;stroke:#93a6d6;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.d-sel{position:absolute;inset:-1px;border-radius:8.3px;box-shadow:inset 0 0 0 2px #f4a59c;opacity:0}
+.d-map{left:110.8px;top:233.5px;width:287px;height:315px}
+.d-chart{left:410px;top:233.5px;width:541px;height:315px}
+.d-ct{position:absolute;left:15.6px;top:14px;font-size:14.4px;line-height:20px;font-weight:600}
+.d-cs{position:absolute;left:15.6px;top:35px;font-size:11.5px;line-height:16px;color:var(--tx3)}
+.d-leg{position:absolute;font-size:11px;line-height:14px;color:var(--tx3)}
+.d-mloc{position:absolute;font-size:11.6px;line-height:16px;color:var(--tx2)}
+.d-mloc b{display:block;font-size:11.6px;font-weight:600;color:var(--tx)}
+.d-plot{position:absolute;left:0;top:0;overflow:visible}
+
+.z-card{left:604px;top:96px;width:416px;height:348px;border-radius:18px;background:#fff;border:1.5px solid #f4c8cd;
+  box-shadow:0 26px 50px -24px rgba(200,110,130,.40),0 2px 8px rgba(12,23,35,.04)}
+.z-title{left:626px;top:118px;font-size:18px;line-height:26px;font-weight:600;white-space:nowrap}
+.z-sub{left:626px;top:146px;font-size:14px;line-height:20px;color:var(--tx3)}
+.z-sig{left:916px;top:116px;height:28px;padding:0 12px 0 11px;border-radius:14px;background:var(--peach);color:#fff;display:flex;align-items:center;gap:8px;font-size:13.4px;font-weight:600}
+.z-plot{left:0;top:0}
+.z-axis{font-size:11.8px;fill:#8f959b;font-family:"IBM Plex Sans",sans-serif}
+.z-call{left:748.5px;top:211.6px;height:35.4px;width:177.6px;border-radius:7px;background:#0c1723;color:#fff;display:flex;align-items:center;padding-left:14.5px;font-size:15px;font-weight:600;white-space:nowrap}
+.z-call .tri{position:absolute;right:15px;top:13px;width:0;height:0;border-left:4.6px solid transparent;border-right:4.6px solid transparent;border-bottom:8px solid var(--peach)}
+.z-conn{left:0;top:0}
+
+.n-card{left:469px;top:451.4px;width:472px;height:83.4px;border-radius:19px;background:#fff;border:1.5px solid var(--alert);
+  box-shadow:0 0 0 5px #fde6e8,0 26px 40px -16px rgba(237,38,53,.30)}
+.n-bell{position:absolute;left:12px;top:9.5px;width:62px;height:62px;border-radius:50%;background:#fde3e5;display:flex;align-items:center;justify-content:center}
+.n-bell i{width:49px;height:49px;border-radius:50%;background:var(--alert);display:flex;align-items:center;justify-content:center}
+.n-t{position:absolute;left:84px;top:14.5px;font-size:18.9px;line-height:26px;font-weight:600;white-space:nowrap}
+.n-s{position:absolute;left:84px;top:44.5px;font-size:14.5px;line-height:20px;color:var(--tx2);white-space:nowrap}
+.n-now{position:absolute;right:20px;top:15.5px;font-size:12px;color:#8f959b}
+.n-pulse{position:absolute;inset:-1.5px;border-radius:19px;box-shadow:0 0 0 2px var(--alert);opacity:0}

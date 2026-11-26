@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aira Storyboard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="src/aira.css">
+<style>
+/* Review page chrome: lavender paper, indigo type (qure review style). The film stage itself stays white. */
+:root{--paper:#f6f6fb;--card:#ffffff;--ink:#303030;--muted:#5d5d72;--indigo:#2A288C;--peach:#e85d4f;--lav:#D9D9FF;--rule:#ececf5;--chip:#ffffff;--onAccent:#ffffff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--paper:#13131d;--card:#1c1c2a;--ink:#e7e7f0;--muted:#a6a6bd;--indigo:#c3c2ff;--peach:#ff8a7c;--lav:#3a3a5c;--rule:#2a2a40;--chip:#1c1c2a;--onAccent:#13131d;color-scheme:dark}}
+:root[data-theme="dark"]{--paper:#13131d;--card:#1c1c2a;--ink:#e7e7f0;--muted:#a6a6bd;--indigo:#c3c2ff;--peach:#ff8a7c;--lav:#3a3a5c;--rule:#2a2a40;--chip:#1c1c2a;--onAccent:#13131d;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"DM Sans",system-ui,sans-serif}
+.wrap{max-width:1500px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0;font-weight:500;font-size:34px;letter-spacing:-.02em;color:var(--indigo);text-wrap:balance}
+.lede{max-width:900px;font-size:16px;line-height:1.55;margin:12px 0 0}
+.mono{font:500 11.5px/1.3 "DM Mono",monospace;letter-spacing:.08em;text-transform:uppercase}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);margin-top:24px;padding-block:12px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--lav)}
+.bar label{display:flex;gap:8px;align-items:center;font-size:14px}
+.bar input[type=range]{width:180px;max-width:40vw;accent-color:var(--peach)}
+.bar .seg{display:flex;gap:6px}
+.bar button{font:500 11.5px/1 "DM Mono",monospace;letter-spacing:.06em;text-transform:uppercase;height:30px;padding:0 12px;border-radius:999px;border:0;background:var(--chip);color:var(--indigo);box-shadow:inset 0 0 0 1px var(--lav);cursor:pointer}
+.bar button.on{background:var(--indigo);color:var(--onAccent);box-shadow:none}
+.bar button:focus-visible{outline:2px solid var(--peach);outline-offset:2px}
+.ch{margin-top:44px}
+.ch h2{display:flex;align-items:baseline;gap:14px;margin:0 0 4px;font-weight:500;font-size:22px;color:var(--indigo)}
+.ch h2 .mono{color:var(--peach)}
+.ch .card{margin:0 0 6px;font-size:14px;color:var(--muted)}
+.kf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-top:18px;padding:18px;background:var(--card);border-radius:16px;box-shadow:0 0 0 1px var(--lav)}
+.kf .meta{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+.kf .meta .id{color:var(--indigo)}
+.kf .meta .t{color:var(--peach)}
+.kf .meta b{font-weight:600;font-size:16px}
+.kf .note{grid-column:1/-1;font-size:14px;line-height:1.5;margin:-4px 0 0;color:var(--muted);max-width:110ch}
+.cap{display:flex;justify-content:space-between;margin-bottom:6px;color:var(--muted);overflow-wrap:anywhere}
+.ref{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px var(--lav);aspect-ratio:1040/600;background:#fff}
+.ref img{display:block;width:100%;height:100%}
+.pane{position:relative}
+.pane .ghost{position:absolute;left:0;right:0;bottom:0;aspect-ratio:1040/600;border-radius:14px;overflow:hidden;pointer-events:none;opacity:0}
+.pane .ghost img{width:100%;height:100%;display:block}
+body.overlay .kf{grid-template-columns:1fr}
+body.overlay .kf .refpane{display:none}
+.issues{margin-top:56px;padding:24px clamp(16px,3vw,28px);background:var(--card);border-radius:16px;box-shadow:0 0 0 1px var(--lav)}
+.issues h2{margin:0 0 10px;font-weight:500;color:var(--indigo)}
+.issues ol{margin:0;padding-left:22px;line-height:1.55;font-size:14.5px}
+.issues li{margin:8px 0}
+.issues li b{color:var(--indigo);font-weight:600}
+.timeline{margin-top:26px;font-size:14px;overflow-x:auto}
+.timeline table{border-collapse:collapse;width:100%;max-width:900px}
+.timeline td,.timeline th{text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.timeline th{font:500 11px/1 "DM Mono",monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+body.solo{background:#fff}
+body.solo .wrap{padding:0;max-width:none}
+body.solo .aira-film{width:1040px;border-radius:0;box-shadow:none}
+@media (max-width:900px){.kf{grid-template-columns:minmax(0,1fr)}.bar{position:static}}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <p class="mono" style="color:var(--peach);margin:0 0 8px">Phase 1 · storyboard for approval</p>
+  <h1>Aira product film: 12 keyframes</h1>
+  <p class="lede">Each keyframe below is rebuilt in HTML/CSS/SVG (live text, traced map, data from the screens) and shown next to its source PNG. Timings are the planned positions on the master timeline (≈ 34 s loop). Use <b>overlay</b> to onion-skin the source screen over the rebuild.</p>
+
+  <div class="bar">
+    <span class="seg"><button id="mSide" class="on">Side by side</button><button id="mOver">Overlay</button></span>
+    <label>Source opacity <input type="range" id="ghost" min="0" max="100" value="50" disabled></label>
+  </div>
+
+  <div class="timeline">
+    <table>
+      <tr><th>Chapter</th><th>Label</th><th>Start</th><th>Keyframes</th><th>Card</th></tr>
+      <tr><td>1 · During the visit</td><td>ch1</td><td>0.0 s</td><td>01a · 01b · 01c</td><td>Optional label: "Saved to national EMR · coded"</td></tr>
+      <tr><td>2 · In real time</td><td>ch2</td><td>8.4 s</td><td>02a · 02b · 02c</td><td>Optional label: "Validated by the health worker"</td></tr>
+      <tr><td>3 · After the visit</td><td>ch3</td><td>15.3 s</td><td>03a · 03b · 03c</td><td>No optional label given</td></tr>
+      <tr><td>4 · Across facilities</td><td>ch4</td><td>23.8 s</td><td>04a · 04b · 04c</td><td>Optional label: "Data stays in-country"</td></tr>
+      <tr><td>Loop</td><td>end</td><td>33.0 s</td><td>crossfade 0.5 s back to 01</td><td>Total ≈ 33.5 s</td></tr>
+    </table>
+  </div>
+
+  <div id="list"></div>
+  <!-- source screens (literal paths so the standalone build can embed them) -->
+  <div id="screens" hidden>
+  <img data-k="01a" src="assets/screens/01a-visit-listening-typing.png" alt="">
+  <img data-k="01b" src="assets/screens/01b-visit-symptoms-typed.png" alt="">
+  <img data-k="01c" src="assets/screens/01c-visit-captured-by-aira.png" alt="">
+  <img data-k="02a" src="assets/screens/02a-realtime-recommendation-accept.png" alt="">
+  <img data-k="02b" src="assets/screens/02b-realtime-recommendation-accepted.png" alt="">
+  <img data-k="02c" src="assets/screens/02c-realtime-treatment-plan.png" alt="">
+  <img data-k="03a" src="assets/screens/03a-after-call-patient-listening.png" alt="">
+  <img data-k="03b" src="assets/screens/03b-after-call-patient-speaking.png" alt="">
+  <img data-k="03c" src="assets/screens/03c-after-call-extracted-flags.png" alt="">
+  <img data-k="04a" src="assets/screens/04a-facilities-district-signals.png" alt="">
+  <img data-k="04b" src="assets/screens/04b-facilities-malaria-signal.png" alt="">
+  <img data-k="04c" src="assets/screens/04c-facilities-district-team-alerted.png" alt="">
+  </div>
+
+  <div class="issues" id="issues">
+    <h2>What could not be rebuilt faithfully (and open decisions)</h2>
+    <ol id="issuesList"></ol>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="src/map-data.js"></script>
+<script src="src/aira-stage.js"></script>
+<script>
+const CHAPTERS = {1:['During the visit','Aira listens and captures the consultation.'],2:['In real time','Aira recommends; the health worker validates.'],3:['After the visit','Aira follows up by phone and flags household contacts.'],4:['Across facilities','District signals surface outbreaks early.']};
+const ISSUES = [
+ ['Aira mark','The logo inside the avatar is hand-traced from the PNG (asymmetric infinity). Please supply the official SVG and I will drop it in.'],
+ ['Map','Mozambique is auto-traced from 04a into 143 district polygons (aira/tools/trace-map.py). Shapes are close but simplified (≈1 px); a few tiny coastal districts are merged. Colours for 04a and 04b are sampled per district from the screens.'],
+ ['Lift-out dim vs the screens','The brief says "the rest dims to ~35%". Only 02a/02b show a dimmed background (and it is also blurred), so CH2 uses 35% + 3 px blur. 03a–c and 04b–c show the surrounding UI at full strength, so I kept them undimmed. Tell me if you want the 35% dim there too.'],
+ ['Pointer','The screens show a black system arrow; I used the qTrack neutral pointer (white, dark outline) as the brief asks.'],
+ ['Chips in 01c','01c fills only 3 of 5 chips (Fever, Cyclic, Chills); Headache and Body ache stay outlined. I match the screen. If you want all five filled "one by one", say so.'],
+ ['Chips behind 02a','The blurred 02a background shows the first chip outlined, not teal. I keep the teal chips from 01c for continuity (it is blurred and dimmed either way).'],
+ ['Timer','03a–c all show 01:42. A counting timer cannot match all three; it will read 01:42 at 03a and keep counting (01:44 at 03b, 01:47 at 03c).'],
+ ['Call rows','"Other call rows tick to Reached": in all three screens the rows above LIVE are already Reached and the rows below stay Pending. So the upper rows tick Pending → Reached as the chapter opens, before the LIVE row lifts out, and 03c keeps Pending below.'],
+ ['04a → 04b data','The screens are two different data states: WoW Fever 9% → 26%, Malaria 4% → 42%; Mocuba 96 → 214 cases; the chart extends from W10 to W12 and its last weeks change. The film count-ups and morphs between them.'],
+ ['Mocuba ring','The ring on the map is black in 04b; I kept it black. The Peach ring is the one at the chart peak, as in the screen.'],
+ ['Small spacing differences','Chips in 01c sit 1–2 px tighter than in 01b, and the text box is 3 px shorter; I use one geometry (01b) for both so nothing jumps.'],
+ ['Card copy','The platform page export with the four Aira card texts is not in the repo. Only the optional labels quoted in the brief are used; CH3 has none.'],
+ ['Device frame','The film sits in a thin 1 px lavender frame with 14 px radius (as in the qTrack preview). The app windows inside are the ones drawn in the screens.'],
+ ['Motion reference','There is no qtrack-film-final.html in the repo. The motion standard used is motion-preview.html at the qTrack commit this branch starts from (emph / glide, GSAP 3.13.0).'],
+];
+const solo = new URLSearchParams(location.search).get('solo');
+const list = document.getElementById('list');
+const SRC = Object.fromEntries([...document.querySelectorAll('#screens img')].map(i=>[i.dataset.k, i.getAttribute('src')]));
+
+function stageFor(host){ const f = document.createElement('div'); f.className = 'aira-film'; host.appendChild(f); const st = AiraStage.build(f);
+  const fit = ()=>{ st.style.transform = 'scale(' + (f.clientWidth/1040) + ')'; }; new ResizeObserver(fit).observe(f); fit(); return st; }
+
+function render(){
+  if(solo){ document.body.className = 'solo'; const w = document.getElementById('wrap'); w.innerHTML = ''; const st = stageFor(w); AiraStage.apply(st, solo); document.body.dataset.ready = '1'; return; }
+  let ch = 0;
+  AiraStage.KEYFRAMES.forEach(k=>{
+    if(k.ch !== ch){ ch = k.ch; const s = document.createElement('section'); s.className = 'ch';
+      s.innerHTML = `<h2><span class="mono">Chapter ${ch}</span>${CHAPTERS[ch][0]}</h2><p class="card">${CHAPTERS[ch][1]}${AiraStage.CARD_LABELS[ch]?` · optional label: <b>${AiraStage.CARD_LABELS[ch]}</b>`:''}</p>`; list.appendChild(s); }
+    const el = document.createElement('div'); el.className = 'kf';
+    el.innerHTML = `<div class="meta"><span class="mono id">${k.id}</span><span class="mono t">t = ${k.t.toFixed(1)} s</span><b>${k.title}</b></div>
+      <p class="note">${k.note}</p>
+      <div class="pane"><div class="cap mono"><span>Rebuilt (HTML / CSS / SVG)</span></div><div class="host"></div><div class="ghost"><img alt="" src="${SRC[k.id]}"></div></div>
+      <div class="pane refpane"><div class="cap mono"><span>Source · ${k.png}</span></div><div class="ref"><img alt="Source screen ${k.id}" src="${SRC[k.id]}"></div></div>`;
+    list.lastChild.appendChild(el);
+    const st = stageFor(el.querySelector('.host')); AiraStage.apply(st, k.id);
+    // ghost overlay sits exactly on the rebuilt stage
+    const g = el.querySelector('.ghost'); const place = ()=>{ const f = el.querySelector('.aira-film'); g.style.top = f.offsetTop + 'px'; g.style.height = f.offsetHeight + 'px'; };
+    new ResizeObserver(place).observe(el); place();
+  });
+  document.getElementById('issuesList').innerHTML = ISSUES.map(([a,b])=>`<li><b>${a}.</b> ${b}</li>`).join('');
+  const ghost = document.getElementById('ghost');
+  const mode = over => { document.body.classList.toggle('overlay', over); document.getElementById('mOver').classList.toggle('on', over); document.getElementById('mSide').classList.toggle('on', !over);
+    ghost.disabled = !over; document.querySelectorAll('.ghost').forEach(g=>g.style.opacity = over ? ghost.value/100 : 0); };
+  document.getElementById('mSide').onclick = ()=>mode(false);
+  document.getElementById('mOver').onclick = ()=>mode(true);
+  ghost.oninput = ()=>document.querySelectorAll('.ghost').forEach(g=>g.style.opacity = ghost.value/100);
+  document.body.dataset.ready = '1';
+}
+Promise.all([document.fonts.load('400 20px "IBM Plex Sans"'), document.fonts.load('600 20px "IBM Plex Sans"'), document.fonts.load('400 12px "IBM Plex Mono"'), document.fonts.load('500 12px "IBM Plex Mono"'), document.fonts.load('500 12px "DM Mono"')])
+  .then(()=>document.fonts.ready).then(render);
+</script>
+</body>
+</html>
